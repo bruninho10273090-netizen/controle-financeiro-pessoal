@@ -1391,6 +1391,10 @@ function saveEntry(v, again) {
       const desc = (v.desc || '').trim() || cat;
       const tid = v.id && v.id[0] === 't' ? v.id : nid('t');
       S.tx.push({ id: tid, d: v.d, t: v.mode, v: val, cat, desc, pay: v.mode === 'in' ? 'conta' : v.pay, par: v.mode === 'out' && v.pay === 'cartao' ? (+v.par || 1) : 1, ...(v.mode === 'in' && v.st === 'rec' ? { st: 'rec' } : {}) });
+      // aprendizado automático: se ninguém tinha uma regra pra essa descrição, guarda a categoria escolhida agora como regra nova
+      if (v.mode === 'out' && !v.id && !v._autocatHit && desc && desc.toLowerCase() !== cat.toLowerCase() && !autocatFind(desc)) {
+        S.autocat = S.autocat || []; S.autocat.push({ id: nid('ac'), match: desc.toLowerCase(), cat });
+      }
       for (const m of Object.keys(S.adv || {})) delete S.adv[m][tid];
       if (v.mode === 'out' && v.pay === 'cartao') {
         const a = Core.calc(v.adv || ''), n = +v.par || 1, bs = n > 1 ? Math.floor(Math.round(val / n * 1e4) / 100) / 100 : val, f1 = Core.round2(val - bs * (n - 1));
@@ -1936,7 +1940,15 @@ function impSetAllPay(v) { if (!v || !IMP) return; IMP.rows.forEach(r => r.pay =
 ACT.impconfirm = () => {
   const rows = (IMP && IMP.rows || []).filter(r => r.checked);
   if (!rows.length) { toast('Selecione ao menos um lançamento.'); return; }
-  commit(S => { for (const r of rows) S.tx.push({ id: nid('t'), d: r.d, t: r.t, v: r.v, cat: r.cat, desc: r.desc, pay: r.pay, par: 1 }); }, `${rows.length} lançamento${rows.length === 1 ? '' : 's'} importado${rows.length === 1 ? '' : 's'}`);
+  commit(S => {
+    for (const r of rows) {
+      S.tx.push({ id: nid('t'), d: r.d, t: r.t, v: r.v, cat: r.cat, desc: r.desc, pay: r.pay, par: 1 });
+      // aprendizado automático: se não tinha regra pra essa descrição, guarda a categoria escolhida na revisão como regra nova
+      if (r.t === 'out' && r.desc && r.cat && !autocatFind(r.desc)) {
+        S.autocat = S.autocat || []; S.autocat.push({ id: nid('ac'), match: r.desc.toLowerCase(), cat: r.cat });
+      }
+    }
+  }, `${rows.length} lançamento${rows.length === 1 ? '' : 's'} importado${rows.length === 1 ? '' : 's'}`);
   IMP = null;
   closeSheet();
 };
