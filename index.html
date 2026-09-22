@@ -288,7 +288,7 @@ body.auth main{padding-bottom:32px}
 <div id="sheet"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script id="seed" type="application/json">{"v":1,"startYm":"2026-09","selic":0,"sobraOverride":null,"cats":["Mercado","Comida","Transporte","Lazer","Outros"],"incCats":["Salário","Outros"],"fixed":[],"env":[],"tx":[],"cx":[],"ap":[],"inv":{"aporte":0,"divisor":1,"classes":[],"assets":[]},"uid":1,"mig":["comida1","receber1","fat0926","fat0926b","fat0926c","fat0926d","fat0926e","pai530","fecha2","adv0926","fat0926f","ml0926","fech0926","vavr0926","vavr0926c","sobra0926","sobra0926b","vaFrom0901","vaOutros0926","vaOutros0926b"],"closeDay":1,"vaMode":"lancado","adv":{},"fech":{},"vaSep":false}</script>
+<script id="seed" type="application/json">{"v":1,"startYm":"2026-09","selic":0,"sobraOverride":null,"cats":["Mercado","Comida","Transporte","Lazer","Outros"],"incCats":["Salário","Outros"],"fixed":[],"env":[],"tx":[],"cx":[],"ap":[],"inv":{"aporte":0,"divisor":1,"classes":[],"assets":[]},"uid":1,"mig":["comida1","receber1","fat0926","fat0926b","fat0926c","fat0926d","fat0926e","pai530","fecha2","adv0926","fat0926f","ml0926","fech0926","vavr0926","vavr0926c","sobra0926","sobra0926b","vaFrom0901","vaOutros0926","vaOutros0926b"],"closeDay":1,"vaMode":"lancado","adv":{},"fech":{},"vaSep":false,"autocat":[]}</script>
 <script>
 /* Núcleo de cálculo — sem DOM. Reproduz as regras da planilha ControleFinanceiroPessoal. */
 const Core = (() => {
@@ -598,6 +598,7 @@ let S, M, storageOK = true, saveTimer = null, undoSnap = null;
 const SEED = () => (typeof SHARE !== 'undefined' && SHARE) ? blankState({}) : JSON.parse($('seed').textContent);
 function migrate(o) {
   if (o.vaMode == null) o.vaMode = 'lancado'; // VA/VR soma nas entradas e só sai quando o gasto é lançado
+  if (!Array.isArray(o.autocat)) o.autocat = []; // regras de categorização automática (palavra-chave -> categoria)
   if (typeof personalMigrate === 'function' && !o.noMig) o = personalMigrate(o);
   if (!o.noMig && o.vaSep == null) o.vaSep = true; // VA/VR separado do salário: não entra na sobra nem no saldo
   // o gasto do VA/VR de setembro já está lançado (e somado nas saídas): o card do VA/VR conta o mês inteiro contra os 750, sem lançar de novo
@@ -1174,6 +1175,7 @@ function viewMore() {
     item('card', 'VA/VR e salário', S.vaSep === false ? 'Somado ao salário (sem controle separado)' : hasVA() ? 'Separado do salário: o saldo do VA/VR fica à parte' : 'Sem VA/VR. Toque para configurar', 'vasetup') +
     item('card', 'Fechamento da fatura', `Dia ${S.closeDay || 1}: compras a partir dele vão para a fatura do mês seguinte`, 'closeday') +
     item('tag', 'Categorias', 'Edite as opções de saída e de entrada', 'cats') +
+    item('tag', 'Categorização automática', (S.autocat || []).length ? `${(S.autocat || []).length} regra${(S.autocat || []).length > 1 ? 's' : ''}: preenche a categoria sozinho pela descrição` : 'Preenche a categoria sozinho a partir de palavras da descrição', 'autocatlist') +
     item('save', 'Backup e dados', (typeof SHARE !== 'undefined' && SHARE) ? 'Exportar ou importar os dados desta conta' : 'Exportar, importar ou restaurar a planilha', 'dados') +
     `<div class="fld pad"><label class="fl">Aparência</label><div class="seg wide">${[['auto', 'Automática'], ['light', 'Clara'], ['dark', 'Escura']].map(([k, l]) => `<button class="${th === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div></div>` +
     (authUser ? `<div class="pad"><p class="mut sm" style="margin-bottom:8px">Conectado como ${esc(authUser.email || '')}</p><button class="btn danger" data-act="logout">Sair da conta</button></div>` : '') +
@@ -1242,6 +1244,19 @@ function recents() {
   return out;
 }
 const withCur = (list, cur) => cur && !list.includes(cur) ? list.concat(cur) : list;
+// categorização automática: acha a regra cujo texto aparece na descrição (a mais específica, se houver mais de uma)
+function autocatFind(desc) {
+  const d = String(desc || '').trim().toLowerCase(); if (!d) return null;
+  let best = null, bestLen = -1;
+  for (const r of (S.autocat || [])) {
+    const m = String(r.match || '').trim().toLowerCase();
+    if (m && d.includes(m) && m.length > bestLen) { best = r; bestLen = m.length; }
+  }
+  return best;
+}
+function autocatHintField(v) {
+  return { t: 'html', html: `<p class="hint" id="autocatHint"${v._autocatHit ? '' : ' style="display:none"'}>Categorizado automaticamente pela regra salva.</p>` };
+}
 function dateChipsHtml(v) {
   const yest = Core.fromDn(Core.pd(TODAY) - 1);
   const b = (l, on, w) => `<button type="button" class="chip ${on ? 'on' : ''}" data-act="fdate" data-w="${w}">${l}</button>`;
@@ -1256,7 +1271,7 @@ function dsug(v) {
   if (FM) FM.ds = out;
   return out.map((t, i) => `<button type="button" class="chip sm" data-act="dpick" data-i="${i}">${esc(t.desc)} <b>${fmtNum(t.v)}</b></button>`).join('');
 }
-ACT.dpick = el => { if (!FM || !FM.ds) return; const t = FM.ds[+el.dataset.i]; if (!t) return; Object.assign(FM.v, { desc: t.desc, cat: t.cat, pay: t.pay, par: 1 }); if (!String(FM.v.v || '').trim()) FM.v.v = String(t.v).replace('.', ','); drawSheet(); };
+ACT.dpick = el => { if (!FM || !FM.ds) return; const t = FM.ds[+el.dataset.i]; if (!t) return; Object.assign(FM.v, { desc: t.desc, cat: t.cat, pay: t.pay, par: 1, _autocatManual: true }); if (!String(FM.v.v || '').trim()) FM.v.v = String(t.v).replace('.', ','); drawSheet(); };
 function entryFields(v) {
   const f = [];
   f.push({ t: 'seg', k: 'mode', opts: [['out', 'Saída'], ['in', 'Entrada'], ['ap', 'Guardar']] });
@@ -1267,8 +1282,8 @@ function entryFields(v) {
       if (!S.env.some(e => e.id === v.env)) { const e0 = M.envFor({ cat: v.cat || '' }) || S.env[0]; v.env = e0 ? e0.id : ''; }
       if (S.env.length > 1) f.push({ t: 'seg', k: 'env', label: 'Linha do VA/VR', opts: S.env.map(e => [e.id, e.name]) });
       const ev = S.env.find(e => e.id === v.env);
-      if (!ev || ev.cats.includes('*')) f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true });
-    } else f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true });
+      if (!ev || ev.cats.includes('*')) { f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true }); f.push(autocatHintField(v)); }
+    } else { f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true }); f.push(autocatHintField(v)); }
     f.push({ t: 'text', k: 'desc', label: 'Descrição', ph: 'Ex.: Mercado, Farmácia, Uber' });
     f.push({ t: 'html', html: `<div id="dsug" class="chips" style="margin:-6px 0 12px">${dsug(v)}</div>` });
     if (v.pay === 'cartao') f.push({ t: 'step', k: 'par', label: 'Parcelas', fmt: n => +n === 1 ? 'À vista' : n + '×', max: 36 });
@@ -1302,7 +1317,11 @@ function entryPreview(v) {
   }
   return h;
 }
-function entryDefaults(over) { return Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0' }, over || {}); }
+function entryDefaults(over) {
+  const v = Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0', _autocatManual: false, _autocatHit: false }, over || {});
+  if (over && over.id) v._autocatManual = true; // editando um lançamento existente: não mexe na categoria já escolhida
+  return v;
+}
 function openEntry(init) {
   const v = entryDefaults(init);
   if (v.mode === 'ap' && !v.cx && S.cx.length) v.cx = ((typeof DEFAULT_CX !== 'undefined' && S.cx.find(c => c.name === DEFAULT_CX)) || S.cx[0]).name;
@@ -1317,18 +1336,36 @@ function entryHook(k, why) {
     if (v.mode === 'out') { if (!S.cats.includes(v.cat)) v.cat = ''; }
     else if (v.mode === 'in') { if (!S.incCats.includes(v.cat)) v.cat = ''; }
     else if (!v.cx && S.cx.length) v.cx = S.cx[0].name;
+    v._autocatManual = false; v._autocatHit = false;
   }
+  if (k === 'cat' && why === 'set') v._autocatManual = true; // usuário escolheu a categoria com a mão: não sobrescreve mais
   if (k === 'env' && why === 'set') {
     const ev = S.env.find(e => e.id === v.env); if (ev) {
       const extras = ev.cats.includes('*'), dflt = ev.cats[0] === 'Troca VA/VR' ? 'Troca com o pai' : ev.cats[0], generic = ['', 'Combustível', 'Troca com o pai', 'Troca VA/VR'];
       if (!extras) { v.cat = ev.cats[0]; if (generic.includes((v.desc || '').trim())) v.desc = dflt; } else { if (S.env.some(e => e !== ev && e.cats.includes(v.cat))) v.cat = ''; if (generic.includes((v.desc || '').trim())) v.desc = ''; }
     }
   }
-  if (k === 'desc' && why === 'input' && v.mode === 'out') { const e = $('dsug'); if (e) e.innerHTML = dsug(v); }
+  if (k === 'desc' && why === 'input' && v.mode === 'out') {
+    const e = $('dsug'); if (e) e.innerHTML = dsug(v);
+    if (!v._autocatManual) {
+      const rule = autocatFind(v.desc);
+      const hint = $('autocatHint');
+      if (rule && S.cats.includes(rule.cat)) {
+        if (v.cat !== rule.cat) {
+          v.cat = rule.cat; v._autocatHit = true;
+          document.querySelectorAll('#sheet [data-act="fset"][data-k="cat"]').forEach(b => b.classList.toggle('on', b.dataset.v === rule.cat));
+        }
+        if (hint) hint.style.display = '';
+      } else if (v._autocatHit) {
+        v._autocatHit = false;
+        if (hint) hint.style.display = 'none';
+      }
+    }
+  }
 }
 ACT.rep = el => {
   if (!FM) return; const r = recents()[+el.dataset.i]; if (!r) return;
-  Object.assign(FM.v, { mode: 'out', v: String(r.v).replace('.', ','), cat: r.cat, desc: r.desc, pay: r.pay, par: 1 }); drawSheet();
+  Object.assign(FM.v, { mode: 'out', v: String(r.v).replace('.', ','), cat: r.cat, desc: r.desc, pay: r.pay, par: 1, _autocatManual: true }); drawSheet();
   const i = document.querySelector('#sheet .big'); if (i && i.select) i.select();
 };
 ACT.fdate = el => {
@@ -1591,6 +1628,39 @@ ACT.cats = () => openForm({
   fields: [{ t: 'area', k: 'out', label: 'Saídas (separe por vírgula)', rows: 3 }, { t: 'area', k: 'inn', label: 'Entradas (separe por vírgula)', rows: 3 }],
   save: v => { const a = uniq(v.out.split(',').map(s => s.trim()).filter(Boolean)), b = uniq(v.inn.split(',').map(s => s.trim()).filter(Boolean)); if (!a.length || !b.length) return 'Mantenha ao menos uma categoria em cada lista.'; commit(S => { S.cats = a; S.incCats = b; }, 'Categorias salvas'); }
 });
+function autocatScreen() {
+  const rules = S.autocat || [];
+  const rows = rules.length ? rules.map(r => `<button class="row" data-act="autocatedit" data-id="${r.id}"><span class="r-main"><b>${esc(r.match)}</b><small class="mut">vira ${esc(r.cat)}</small></span>${icon('right', 18)}</button>`).join('')
+    : '<p class="mut">Nenhuma regra ainda. Crie uma para categorizar sozinho lançamentos repetidos, como “Ifood” virando “Comida”.</p>';
+  openInfo('Categorização automática', `<p class="mut">Ao digitar a descrição de um lançamento novo, se ela contiver o texto de uma regra, a categoria é preenchida sozinha.</p>${rows}<div class="row-btns"><button class="btn" data-act="autocatnew">Nova regra</button></div>`);
+}
+ACT.autocatlist = () => autocatScreen();
+function autocatRuleForm(rule) {
+  const back = () => autocatScreen();
+  openForm({
+    title: rule ? 'Editar regra' : 'Nova regra', back,
+    v: { match: rule ? rule.match : '', cat: rule ? rule.cat : (S.cats[0] || '') },
+    fields: [
+      { t: 'text', k: 'match', label: 'Se a descrição contiver', ph: 'Ex.: ifood' },
+      { t: 'select', k: 'cat', label: 'Vira a categoria', opts: S.cats },
+      { t: 'note', html: 'Não diferencia maiúsculas de minúsculas e vale para qualquer parte da descrição.' }
+    ],
+    del: rule ? () => { commit(S => { S.autocat = (S.autocat || []).filter(r => r.id !== rule.id); }, 'Regra excluída'); back(); } : null,
+    save: v => {
+      const match = v.match.trim();
+      if (!match) return 'Digite um texto para procurar na descrição.';
+      if (!v.cat) return 'Escolha uma categoria.';
+      commit(S => {
+        S.autocat = S.autocat || [];
+        if (rule) { const r = S.autocat.find(x => x.id === rule.id); if (r) { r.match = match; r.cat = v.cat; } }
+        else S.autocat.push({ id: nid('ac'), match, cat: v.cat });
+      }, 'Regra salva');
+      back();
+    }
+  });
+}
+ACT.autocatnew = () => autocatRuleForm(null);
+ACT.autocatedit = el => autocatRuleForm((S.autocat || []).find(r => r.id === el.dataset.id));
 ACT.dados = () => openInfo('Backup e dados', `
   <p class="mut">${typeof CLOUD_ON !== 'undefined' && CLOUD_ON ? (cloudReady ? '<b class="pos">Sincronizado com a nuvem do artefato.</b> Abrindo este mesmo link em outro aparelho, com a sua conta, os dados aparecem sozinhos.' : 'Tentando conectar à nuvem do artefato…') : 'Salvo neste navegador. Abra este link como artefato publicado (não pelo arquivo baixado) para sincronizar entre aparelhos.'}</p>
   <p class="mut">Exporte um backup para guardar à parte ou levar para um app que não sincroniza.</p>
