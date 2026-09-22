@@ -1983,16 +1983,97 @@ async function startApp(user) {
     const { data } = await sb.from('app_state').select('blob').eq('user_id', user.id).maybeSingle();
     remote = data;
   } catch (e) { }
+  let isNewAccount = false;
   if (remote && typeof remote.blob === 'string') {
     try { S = migrate(JSON.parse(remote.blob)); } catch (e) { S = migrate(SEED()); }
   } else {
     S = migrate(SEED());
+    isNewAccount = true;
     try { await sb.from('app_state').insert({ user_id: user.id, blob: JSON.stringify(S) }); } catch (e) { }
   }
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
   try { applyTheme(localStorage.getItem(THEME_KEY) || 'light'); } catch (e) { }
+  if (isNewAccount) startOnboard(); else render();
+}
+
+// ---------- boas-vindas: 2-3 perguntas rápidas pra conta nova (antes do 1º render do app) ----------
+let OB = null; // { step, closeDay, err }
+function startOnboard() {
+  OB = { step: 1, closeDay: '', err: '' };
+  renderOnboard();
+}
+function finishOnboard() {
+  const d = parseInt(OB.closeDay);
+  if (d >= 1 && d <= 28) S.closeDay = d;
+  OB = null;
+  document.body.classList.remove('auth');
+  save();
   render();
 }
+function obShell(title, sub, body) {
+  document.body.classList.add('auth');
+  $('nav').innerHTML = '';
+  $('app').innerHTML = `<div class="auth">
+    <div class="auth-brand"><span class="auth-logo">${icon('trend', 24)}</span><h1>Controle Financeiro</h1></div>
+    <p class="auth-tag">Só mais um minuto pra deixar o app do seu jeito.</p>
+    <section class="card auth-card">
+      <h3>${esc(title)}</h3>
+      ${sub ? `<p class="mut" style="margin:0 0 14px">${esc(sub)}</p>` : ''}
+      ${body}
+    </section>
+  </div>`;
+}
+function renderOnboard() {
+  if (!OB) return;
+  if (OB.step === 1) {
+    obShell('Você recebe VA/VR?', 'Vale-alimentação ou vale-refeição, separado do salário.', `
+      <div class="stack">
+        <button class="btn primary" data-act="obVa" data-v="1">Sim, recebo</button>
+        <button class="btn" data-act="obVa" data-v="0">Não recebo</button>
+      </div>`);
+  } else if (OB.step === 2) {
+    obShell('O VA/VR fica separado do salário?', 'Isso muda se ele entra ou não na sobra do mês, no seu controle aqui no app.', `
+      <div class="stack">
+        <button class="btn primary" data-act="obVaSep" data-v="1">Separado (não entra na sobra)</button>
+        <button class="btn" data-act="obVaSep" data-v="0">Somado junto com o salário</button>
+      </div>`);
+  } else if (OB.step === 3) {
+    obShell('Fechamento da fatura', 'Compras feitas a partir desse dia entram na fatura do mês seguinte.', `
+      ${OB.err ? `<div class="auth-err">${esc(OB.err)}</div>` : ''}
+      <div class="fld"><label class="fl">Dia do fechamento (1 a 28)</label><input class="in" id="obClose" type="number" min="1" max="28" inputmode="numeric" value="${esc(OB.closeDay)}"></div>
+      <div class="stack">
+        <button class="btn primary" data-act="obClose">Continuar</button>
+        <button class="btn" data-act="obNoCard">Não uso cartão de crédito</button>
+      </div>`);
+  }
+}
+ACT.obVa = el => {
+  const yes = el.dataset.v === '1';
+  if (yes) {
+    S.vaSep = true;
+    if (!S.env.length) S.env = [{ id: 'e_vavr', name: 'VA/VR', monthly: 750, cats: ['*'], est: false, grp: 'A' }];
+    OB.step = 2;
+  } else {
+    S.vaSep = false;
+    S.env = [];
+    OB.step = 3;
+  }
+  renderOnboard();
+};
+ACT.obVaSep = el => {
+  const sep = el.dataset.v === '1';
+  if (!sep) { S.vaSep = false; S.env = []; } // somado ao salário: sem controle separado de VA/VR aqui
+  OB.step = 3;
+  renderOnboard();
+};
+ACT.obClose = () => {
+  const v = ($('obClose') && $('obClose').value || '').trim();
+  const d = parseInt(v);
+  if (!(d >= 1 && d <= 28)) { OB.err = 'Digite um dia de 1 a 28.'; renderOnboard(); return; }
+  OB.closeDay = String(d); OB.err = '';
+  finishOnboard();
+};
+ACT.obNoCard = () => { OB.closeDay = ''; finishOnboard(); };
 
 function renderAuth() {
   document.body.classList.add('auth');
