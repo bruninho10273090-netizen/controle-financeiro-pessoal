@@ -18,28 +18,28 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
 :root{
-  --bg:#F3F2F8;--card:#FFFFFF;--ink:#15132B;--mut:#6B6985;--line:#E4E2EE;
-  --acc:#5A3FE0;--acc-ink:#FFFFFF;--acc-soft:#ECE8FF;
-  --pos:#12805C;--pos-soft:#DDF3EA;--neg:#D0392F;--neg-soft:#FBE4E1;--amb:#A85F00;--amb-soft:#FBEBD0;
-  --c1:#3B2FA0;--c2:#E07A3F;--c3:#2F9DB5;--c4:#12A672;
-  --shadow:0 1px 0 rgba(21,19,43,.04),0 10px 28px -16px rgba(21,19,43,.22);
+  --bg:#F5F2ED;--card:#FFFFFF;--ink:#0B2E3E;--mut:#5F7681;--line:#E4DFD6;
+  --acc:#407E8D;--acc-ink:#FFFFFF;--acc-soft:#DEEBED;
+  --pos:#12805C;--pos-soft:#DDF3EA;--neg:#D0392F;--neg-soft:#FBE4E1;--amb:#8A6D3F;--amb-soft:#F1EAE0;
+  --c1:#083B50;--c2:#A28E69;--c3:#407E8D;--c4:#7FB3BE;
+  --shadow:0 1px 0 rgba(8,59,80,.05),0 10px 28px -16px rgba(8,59,80,.22);
   --nav:rgba(255,255,255,.92);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0E0D1A;--card:#181630;--ink:#F2F1FA;--mut:#9C9ABB;--line:#2B2949;
-    --acc:#9C86FF;--acc-ink:#120B3A;--acc-soft:#2A2350;
-    --pos:#3DD6A0;--pos-soft:#12372E;--neg:#FF7E72;--neg-soft:#3F1D1D;--amb:#F2B45A;--amb-soft:#3A2B10;
-    --c1:#8E7CF5;--c2:#F0965A;--c3:#55BDD3;--c4:#3DD6A0;
-    --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -16px rgba(0,0,0,.6);--nav:rgba(24,22,48,.92);
+    --bg:#071E29;--card:#0E3040;--ink:#EDE9E2;--mut:#9FB4BC;--line:#1C4152;
+    --acc:#5FAAB9;--acc-ink:#052029;--acc-soft:#123B48;
+    --pos:#3DD6A0;--pos-soft:#12372E;--neg:#FF7E72;--neg-soft:#3F1D1D;--amb:#D8BE93;--amb-soft:#3A2E1C;
+    --c1:#6FA8BE;--c2:#D8BE93;--c3:#5FAAB9;--c4:#8FCBD3;
+    --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -16px rgba(0,0,0,.6);--nav:rgba(14,48,64,.92);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0E0D1A;--card:#181630;--ink:#F2F1FA;--mut:#9C9ABB;--line:#2B2949;
-  --acc:#9C86FF;--acc-ink:#120B3A;--acc-soft:#2A2350;
-  --pos:#3DD6A0;--pos-soft:#12372E;--neg:#FF7E72;--neg-soft:#3F1D1D;--amb:#F2B45A;--amb-soft:#3A2B10;
-  --c1:#8E7CF5;--c2:#F0965A;--c3:#55BDD3;--c4:#3DD6A0;
-  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -16px rgba(0,0,0,.6);--nav:rgba(24,22,48,.92);
+  --bg:#071E29;--card:#0E3040;--ink:#EDE9E2;--mut:#9FB4BC;--line:#1C4152;
+  --acc:#5FAAB9;--acc-ink:#052029;--acc-soft:#123B48;
+  --pos:#3DD6A0;--pos-soft:#12372E;--neg:#FF7E72;--neg-soft:#3F1D1D;--amb:#D8BE93;--amb-soft:#3A2E1C;
+  --c1:#6FA8BE;--c2:#D8BE93;--c3:#5FAAB9;--c4:#8FCBD3;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -16px rgba(0,0,0,.6);--nav:rgba(14,48,64,.92);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:light dark}
@@ -257,6 +257,28 @@ body.auth main{padding-bottom:32px}
 .hl-btn .hl-more{font-size:11.5px;font-weight:600;color:var(--acc);text-transform:none;letter-spacing:0}
 .hl-btn:active{opacity:.7}
 .stats.three{grid-template-columns:repeat(3,1fr);gap:8px}.stats.three .stat{padding:10px 10px}.stats.three .stat span{font-size:11.5px}.stats.three .stat b{font-size:14.5px}
+
+/* ---------- versão desktop: sidebar fixa + conteúdo amplo ---------- */
+@media (min-width:960px){
+  body{background:var(--bg)}
+  #nav{position:fixed;top:0;left:0;right:auto;bottom:0;width:256px;height:100vh;border-top:0;border-right:1px solid var(--line);background:var(--card);backdrop-filter:none;-webkit-backdrop-filter:none;padding:28px 18px;display:flex;flex-direction:column}
+  .nav-in{max-width:none;margin:0;width:100%;height:auto;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .tab{flex-direction:row;justify-content:flex-start;gap:12px;width:100%;padding:13px 14px;border-radius:12px;font-size:14.5px}
+  .tab span{font-size:14.5px}
+  .tab.on{background:var(--acc-soft)}
+  .fab{order:-1;width:100%;height:52px;border-radius:14px;margin:0 0 20px;box-shadow:none}
+  #app{max-width:1180px;margin:0 auto;padding:44px 48px 56px calc(256px + 48px)}
+  #toast{left:calc(50% + 128px);bottom:32px}
+  .ph{font-size:32px;margin:6px 2px 20px}
+  .hero{padding:32px 36px 28px;border-radius:24px}
+  .hero .num{font-size:54px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .legend{grid-template-columns:repeat(4,1fr)}
+  .card,.cx,.big-row{border-radius:20px}
+  .sheet-back{align-items:center;padding:24px}
+  .sheet{max-width:520px;max-height:88vh;border-radius:22px;animation:none}
+  body.auth #app{padding-left:48px;max-width:480px;margin:80px auto}
+}
 
 </style>
 </head>
@@ -1143,7 +1165,7 @@ function viewMore() {
   if (UI.sub === 'inv') return viewInv();
   if (UI.sub === 'fixos') return viewFixos();
   const item = (ic, t, s, act) => `<button class="row big-row" data-act="${act}"><span class="ico">${icon(ic)}</span><span class="r-main"><b>${t}</b><small class="mut">${s}</small></span>${icon('right', 18)}</button>`;
-  let th = 'auto'; try { th = localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) { }
+  let th = 'light'; try { th = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { }
   return `<h1 class="ph">Mais</h1>` + ((typeof SHARE !== 'undefined' && SHARE) ? accountCard() : '') +
     item('trend', 'Investimentos', 'Carteira, metas e rebalanceamento do aporte', 'openinv') +
     item('cog', 'Itens fixos e VA/VR', 'Salário, moradia, VA/VR e outros itens fixos', 'openfix') +
@@ -1594,6 +1616,7 @@ ACT.restore = () => askConfirm('Voltar aos dados importados da planilha? Suas al
 // ---------- início ----------
 function boot() {
   if (typeof SHARE !== 'undefined' && SHARE) return bootShare();
+  try { applyTheme(localStorage.getItem(THEME_KEY) || 'light'); } catch (e) { }
   $('app').innerHTML = '<p class="mut" style="padding:40px 16px;text-align:center">Carregando…</p>';
   // o listener sb.auth.onAuthStateChange (registrado abaixo, antes deste boot() ser chamado)
   // dispara sozinho com a sessão atual (ou null) logo após ser registrado, e decide entre startApp/renderAuth
@@ -1614,6 +1637,7 @@ function cloudSave() {
 
 async function startApp(user) {
   authUser = user;
+  document.body.classList.remove('auth');
   let remote = null;
   try {
     const { data } = await sb.from('app_state').select('blob').eq('user_id', user.id).maybeSingle();
@@ -1626,23 +1650,25 @@ async function startApp(user) {
     try { await sb.from('app_state').insert({ user_id: user.id, blob: JSON.stringify(S) }); } catch (e) { }
   }
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-  try { applyTheme(localStorage.getItem(THEME_KEY) || 'auto'); } catch (e) { }
+  try { applyTheme(localStorage.getItem(THEME_KEY) || 'light'); } catch (e) { }
   render();
 }
 
 function renderAuth() {
+  document.body.classList.add('auth');
   $('nav').innerHTML = '';
-  $('app').innerHTML = `<h1 class="ph">Controle Financeiro</h1>
-    <section class="card">
+  $('app').innerHTML = `<div class="auth">
+    <div class="auth-brand"><span class="auth-logo">${icon('trend', 24)}</span><h1>Controle Financeiro</h1></div>
+    <p class="auth-tag">Organize entradas, saídas, caixinhas e investimentos num só lugar. Seus dados ficam só na sua conta.</p>
+    <section class="card auth-card">
       <h3>${authMode === 'signup' ? 'Criar conta' : 'Entrar'}</h3>
-      ${authErr ? `<div class="warn">${esc(authErr)}</div>` : ''}
+      ${authErr ? `<div class="auth-err">${esc(authErr)}</div>` : ''}
       <div class="fld"><label class="fl">E-mail</label><input class="in" id="authEmail" type="email" autocomplete="email" value="${esc(authEmailVal)}"></div>
-      <div class="fld"><label class="fl">Senha</label><input class="in" id="authPass" type="password" autocomplete="${authMode === 'signup' ? 'new-password' : 'current-password'}"></div>
-      <div class="stack">
-        <button class="btn primary" data-act="authSubmit" ${authBusy ? 'disabled' : ''}>${authBusy ? 'Aguarde…' : (authMode === 'signup' ? 'Criar conta' : 'Entrar')}</button>
-        <button class="link" data-act="authToggle">${authMode === 'signup' ? 'Já tenho conta' : 'Criar uma conta nova'}</button>
-      </div>
-    </section>`;
+      <div class="fld" style="margin-bottom:4px"><label class="fl">Senha</label><input class="in" id="authPass" type="password" autocomplete="${authMode === 'signup' ? 'new-password' : 'current-password'}"></div>
+      <button class="btn primary auth-btn" data-act="authSubmit" ${authBusy ? 'disabled' : ''}>${authBusy ? 'Aguarde…' : (authMode === 'signup' ? 'Criar conta' : 'Entrar')}</button>
+      <button class="link" data-act="authToggle">${authMode === 'signup' ? 'Já tenho conta' : 'Criar uma conta nova'}</button>
+    </section>
+  </div>`;
 }
 ACT.authToggle = () => { authMode = authMode === 'signup' ? 'login' : 'signup'; authErr = ''; renderAuth(); };
 ACT.authSubmit = async () => {
