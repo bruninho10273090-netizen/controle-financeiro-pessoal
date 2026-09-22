@@ -1659,9 +1659,9 @@ async function startApp(user) {
 }
 
 // ---------- boas-vindas: 2-3 perguntas rápidas pra conta nova (antes do 1º render do app) ----------
-let OB = null; // { step, va, closeDay, err }
+let OB = null; // { step, closeDay, err }
 function startOnboard() {
-  OB = { step: 1, va: null, closeDay: '', err: '' };
+  OB = { step: 1, closeDay: '', err: '' };
   renderOnboard();
 }
 function finishOnboard() {
