@@ -265,6 +265,7 @@ body.auth main{padding-bottom:32px}
 <nav id="nav" aria-label="Navegação principal"></nav>
 <div id="sheet"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script id="seed" type="application/json">{"v":1,"startYm":"2026-09","selic":0,"sobraOverride":null,"cats":["Mercado","Comida","Transporte","Lazer","Outros"],"incCats":["Salário","Outros"],"fixed":[],"env":[],"tx":[],"cx":[],"ap":[],"inv":{"aporte":0,"divisor":1,"classes":[],"assets":[]},"uid":1,"mig":["comida1","receber1","fat0926","fat0926b","fat0926c","fat0926d","fat0926e","pai530","fecha2","adv0926","fat0926f","ml0926","fech0926","vavr0926","vavr0926c","sobra0926","sobra0926b","vaFrom0901","vaOutros0926","vaOutros0926b"],"closeDay":1,"vaMode":"lancado","adv":{},"fech":{},"vaSep":false}</script>
 <script>
 /* Núcleo de cálculo — sem DOM. Reproduz as regras da planilha ControleFinanceiroPessoal. */
@@ -562,6 +563,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const sum = (a, g) => a.reduce((s, x) => s + g(x), 0);
 const cls = (...a) => a.filter(Boolean).join(' ');
 const signCls = v => v > 0.004 ? 'pos' : v < -0.004 ? 'neg' : '';
+
+// ---------- autenticação e nuvem (Supabase) ----------
+const SUPABASE_URL = 'https://ilfcihorjdgcnvdpgpjs.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsZmNpaG9yamRnY252ZHBncGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMDg5ODksImV4cCI6MjEwNTY4NDk4OX0.lp0FA8wf2wQsUIafXAQql-ApLUVvVBVOayF7pBtCCeo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let authUser = null, authMode = 'login', authErr = '', authEmailVal = '', authBusy = false;
 
 // ---------- estado & persistência ----------
 let KEY = 'cfp:v1'; const THEME_KEY = 'cfp:theme';
@@ -1145,7 +1152,8 @@ function viewMore() {
     item('tag', 'Categorias', 'Edite as opções de saída e de entrada', 'cats') +
     item('save', 'Backup e dados', (typeof SHARE !== 'undefined' && SHARE) ? 'Exportar ou importar os dados desta conta' : 'Exportar, importar ou restaurar a planilha', 'dados') +
     `<div class="fld pad"><label class="fl">Aparência</label><div class="seg wide">${[['auto', 'Automática'], ['light', 'Clara'], ['dark', 'Escura']].map(([k, l]) => `<button class="${th === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div></div>` +
-    `<p class="mut sm pad">Seus dados ficam salvos neste navegador. Faça um backup de vez em quando.</p>`;
+    (authUser ? `<div class="pad"><p class="mut sm" style="margin-bottom:8px">Conectado como ${esc(authUser.email || '')}</p><button class="btn danger" data-act="logout">Sair da conta</button></div>` : '') +
+    `<p class="mut sm pad">Seus dados ficam salvos na sua conta. Faça um backup de vez em quando.</p>`;
 }
 function subHead(t) { return `<div class="subh"><button class="ib" data-act="subback" aria-label="Voltar">${icon('left', 20)}</button><h1>${t}</h1></div>`; }
 
@@ -1586,70 +1594,83 @@ ACT.restore = () => askConfirm('Voltar aos dados importados da planilha? Suas al
 // ---------- início ----------
 function boot() {
   if (typeof SHARE !== 'undefined' && SHARE) return bootShare();
-  S = load();
+  $('app').innerHTML = '<p class="mut" style="padding:40px 16px;text-align:center">Carregando…</p>';
+  // o listener sb.auth.onAuthStateChange (registrado abaixo, antes deste boot() ser chamado)
+  // dispara sozinho com a sessão atual (ou null) logo após ser registrado, e decide entre startApp/renderAuth
+}
+
+// ---------- nuvem (Supabase): cada conta guarda seu próprio estado, isolado por login ----------
+// localStorage continua sendo o cache local (funciona offline); a nuvem sincroniza por cima,
+// salvando o mesmo JSON numa linha só do usuário logado (protegida por Row Level Security).
+let cloudSaveTimer = null;
+
+function cloudSave() {
+  if (!authUser) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => {
+    sb.from('app_state').upsert({ user_id: authUser.id, blob: JSON.stringify(S), updated_at: new Date().toISOString() }).then(() => { }).catch(() => { });
+  }, 800);
+}
+
+async function startApp(user) {
+  authUser = user;
+  let remote = null;
+  try {
+    const { data } = await sb.from('app_state').select('blob').eq('user_id', user.id).maybeSingle();
+    remote = data;
+  } catch (e) { }
+  if (remote && typeof remote.blob === 'string') {
+    try { S = migrate(JSON.parse(remote.blob)); } catch (e) { S = migrate(SEED()); }
+  } else {
+    S = migrate(SEED());
+    try { await sb.from('app_state').insert({ user_id: user.id, blob: JSON.stringify(S) }); } catch (e) { }
+  }
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
   try { applyTheme(localStorage.getItem(THEME_KEY) || 'auto'); } catch (e) { }
   render();
 }
 
-// ---------- nuvem do artefato: sincroniza os dados por conta, sem servidor próprio ----------
-// Guarda o mesmo JSON que já ia para o localStorage num documento privado (data/users/<id>/app/state).
-// Continua funcionando offline: localStorage é sempre o cache local; a nuvem é sincronizada por cima,
-// quando o navegador permite (só funciona na página publicada, dentro da organização).
-let cloudDoc = null, cloudReady = false, cloudLast = null, cloudSaveTimer = null, cloudUnsub = null, CLOUD_ON = false;
-
-function cloudApply(json) {
-  try {
-    const parsed = JSON.parse(json);
-    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.tx)) return;
-    S = migrate(parsed);
-    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
-    render();
-  } catch (e) { }
+function renderAuth() {
+  $('nav').innerHTML = '';
+  $('app').innerHTML = `<h1 class="ph">Controle Financeiro</h1>
+    <section class="card">
+      <h3>${authMode === 'signup' ? 'Criar conta' : 'Entrar'}</h3>
+      ${authErr ? `<div class="warn">${esc(authErr)}</div>` : ''}
+      <div class="fld"><label class="fl">E-mail</label><input class="in" id="authEmail" type="email" autocomplete="email" value="${esc(authEmailVal)}"></div>
+      <div class="fld"><label class="fl">Senha</label><input class="in" id="authPass" type="password" autocomplete="${authMode === 'signup' ? 'new-password' : 'current-password'}"></div>
+      <div class="stack">
+        <button class="btn primary" data-act="authSubmit" ${authBusy ? 'disabled' : ''}>${authBusy ? 'Aguarde…' : (authMode === 'signup' ? 'Criar conta' : 'Entrar')}</button>
+        <button class="link" data-act="authToggle">${authMode === 'signup' ? 'Já tenho conta' : 'Criar uma conta nova'}</button>
+      </div>
+    </section>`;
 }
-
-function cloudSave() {
-  if (!cloudReady || !cloudDoc) return;
-  clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(() => {
-    const blob = JSON.stringify(S);
-    if (blob === cloudLast) return;
-    cloudLast = blob;
-    cloudDoc.set({ blob, updatedAt: Date.now() }).catch(() => { });
-  }, 800);
-}
-
-async function cloudInit() {
-  try {
-    if (typeof claude === 'undefined' || !claude.use) return;
-    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
-    if (!db || !user) return; // capacidade não concedida nesta visualização (ex.: fora da organização)
-    const id = await user.id();
-    if (!id) return; // sem identidade aqui (visitante sem conta); fica só no localStorage deste navegador
-    cloudDoc = db.doc('data/users/' + id + '/app/state');
-    CLOUD_ON = true;
-    let snap;
-    try { snap = await cloudDoc.get(); } catch (e) { return; }
-    const remote = snap.exists ? snap.data() : null;
-    if (remote && typeof remote.blob === 'string') {
-      cloudLast = remote.blob;
-      cloudApply(remote.blob);
-    } else {
-      cloudLast = JSON.stringify(S);
-      cloudDoc.set({ blob: cloudLast, updatedAt: Date.now() }).catch(() => { });
-    }
-    cloudReady = true;
-    cloudUnsub = cloudDoc.onSnapshot(s => {
-      if (!s.exists || s.metadata.hasPendingWrites) return; // ignora o eco da própria escrita
-      const r = s.data();
-      if (!r || typeof r.blob !== 'string' || r.blob === cloudLast) return;
-      cloudLast = r.blob;
-      cloudApply(r.blob); // mudança feita em outro aparelho/aba
-    }, () => { cloudReady = false; });
-  } catch (e) { }
-}
+ACT.authToggle = () => { authMode = authMode === 'signup' ? 'login' : 'signup'; authErr = ''; renderAuth(); };
+ACT.authSubmit = async () => {
+  const email = ($('authEmail') && $('authEmail').value || '').trim();
+  const pass = ($('authPass') && $('authPass').value) || '';
+  authEmailVal = email; authErr = '';
+  if (!email || !pass) { authErr = 'Preencha e-mail e senha.'; renderAuth(); return; }
+  if (pass.length < 6) { authErr = 'A senha precisa ter pelo menos 6 caracteres.'; renderAuth(); return; }
+  authBusy = true; renderAuth();
+  const call = authMode === 'signup' ? sb.auth.signUp({ email, password: pass }) : sb.auth.signInWithPassword({ email, password: pass });
+  const { data, error } = await call;
+  authBusy = false;
+  if (error) { authErr = error.message; renderAuth(); return; }
+  if (authMode === 'signup' && !data.session) { authErr = 'Conta criada! Verifique seu e-mail para confirmar antes de entrar.'; authMode = 'login'; renderAuth(); return; }
+  // sessão criada: onAuthStateChange abaixo inicia o app
+};
+ACT.logout = async () => { try { await sb.auth.signOut(); } catch (e) { } };
+sb.auth.onAuthStateChange((event, session) => {
+  if (session && session.user) {
+    if (!authUser || authUser.id !== session.user.id) startApp(session.user);
+  } else {
+    authUser = null; authMode = 'login'; authErr = '';
+    renderAuth();
+  }
+});
 
 // inicia o app (sempre o último arquivo do bundle)
-if (typeof document !== 'undefined' && document.getElementById('seed')) { boot(); if (typeof cloudInit === 'function') cloudInit(); }
+if (typeof document !== 'undefined' && document.getElementById('seed')) { boot(); }
 
 </script>
 </body>
