@@ -972,8 +972,10 @@ ACT.catopen = el => {
 };
 ACT.hcset = el => { UI.open.hc = UI.open.hc === el.dataset.v ? false : el.dataset.v; render(); };
 function cardLines(ym, back) {
-  const ins = M.installments(ym), all = M.cardItems(ym).filter(x => Math.abs(x.v) > 0.004);
-  const done = all.filter(x => x.done), pend = all.filter(x => !x.done);
+  const ins = M.installments(ym).slice().sort((a, b) => a.t.d < b.t.d ? 1 : a.t.d > b.t.d ? -1 : 0);
+  const all = M.cardItems(ym).filter(x => Math.abs(x.v) > 0.004);
+  const byDue = (a, b) => (a.due || '') < (b.due || '') ? 1 : (a.due || '') > (b.due || '') ? -1 : 0;
+  const done = all.filter(x => x.done).sort(byDue), pend = all.filter(x => !x.done).sort(byDue);
   const rowRec = (x, late) => `<div class="rr"><button class="row" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}"${back ? ' data-back="1"' : ''}${late ? ' style="opacity:.62"' : ''}><span class="r-main"><b>${esc(x.f.name)}</b><span class="tags"><i class="tag pay-cartao">Todo mês</i>${late ? `<i class="tag acc">soma em ${dmy(x.due)}/${x.due.slice(0, 4)}</i>` : ''}</span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${late ? '' : advChip(ym, x.f.id, x.v)}</div>`;
   const insH = ins.map(x => `<div class="rr"><button class="row" data-act="edtx" data-id="${x.t.id}"><span class="r-main"><b>${esc(x.t.desc || x.t.cat)}</b><span class="tags"><i class="tag">${x.k}/${x.n}</i><i class="tag">${esc(x.t.cat)}</i><i class="tag">compra ${dmy(x.t.d)}</i></span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${advChip(ym, x.t.id, x.v)}</div>`).join('');
   const sub = (l, v, mut) => `<p class="mut sm" style="margin:.7rem 0 .1rem;display:flex;justify-content:space-between"><span>${l}</span>${mut ? '' : `<b>${brl(v)}</b>`}</p>`;
