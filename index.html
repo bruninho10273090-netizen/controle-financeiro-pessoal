@@ -1184,6 +1184,7 @@ function subHead(t) { return `<div class="subh"><button class="ib" data-act="sub
 function viewInv() {
   const iv = M.invest(), I = S.inv;
   const cfg = card('Aporte', `<div class="fld2"><label>Quanto quer investir<input class="in" inputmode="decimal" data-inv="aporte" value="${String(I.aporte).replace('.', ',')}"></label><label>Divisor da base<input class="in" inputmode="decimal" data-inv="divisor" value="${String(I.divisor).replace('.', ',')}"></label></div><p class="mut sm">O divisor repete a conta da planilha: cada percentual é o valor do ativo dividido pelo total da carteira e por este número.</p>${kv('Total da carteira', brl(iv.total))}`);
+  const qc = card('Cotações', `<p class="mut sm">${esc(invQuoteStatus())}</p><div class="row-btns"><button class="btn primary" data-act="invqauto" ${invQBusy ? 'disabled' : ''}>${invQBusy ? 'Atualizando…' : 'Atualizar automaticamente'}</button><button class="btn" data-act="invqpaste">Colar cotações</button></div>${invQResultHtml()}<p class="mut sm">Automático hoje só funciona para PETR4, VALE3, ITUB4 e MGLU3 — é o que a API gratuita sem cadastro (brapi.dev) libera sem token. Para os demais ativos, use “Colar cotações” com o que você copiar da corretora, do Google ou de uma planilha.</p>`);
   const cl = card('Metas por classe', iv.classes.map(c => `<div class="kv"><span>${esc(c.c.name)} <small class="mut">agora ${pct(c.atual, 1)}</small></span><span class="metaedit"><input class="in xs" inputmode="decimal" data-inv="meta" data-id="${c.c.id}" value="${String(Math.round(c.meta * 1000) / 10).replace('.', ',')}" aria-label="Meta de ${esc(c.c.name)} em porcentagem">%<i class="badge ${c.acao === 'INVESTIR' ? 'pos' : c.acao === 'REDUZIR' ? 'neg' : ''}">${c.acao === 'INVESTIR' ? 'Investir' : c.acao === 'REDUZIR' ? 'Reduzir' : 'Ok'}</i></span></div>`).join(''));
   const assets = I.classes.map(c => {
     const rows = iv.rows.filter(r => r.a.cls === c.id);
@@ -1191,7 +1192,7 @@ function viewInv() {
   }).join('');
   const buys = iv.rows.filter(r => r.m > 0);
   const reb = card('Rebalanceamento do aporte', buys.length ? buys.map(r => `<div class="kv"><span>Comprar <b>${r.m}×</b> ${esc(r.a.ticker)} <small class="mut">a ${brl(r.a.price)}</small></span><b>${brl(r.n)}</b></div>`).join('') + `<div class="kv tot"><span>Total a investir</span><b>${brl(iv.gasto)}</b></div>${kv('Troco', brl(iv.troco))}<div class="row-btns"><button class="btn primary" data-act="invapply">Registrar compras na carteira</button></div>` : '<p class="mut">Sem compras sugeridas. Confira o aporte e as cotações.</p>');
-  return subHead('Investimentos') + cfg + cl + reb + assets + `<p class="mut sm pad">As cotações são manuais: atualize a coluna Cotação quando quiser. A planilha usava GOOGLEFINANCE, que não existe aqui.</p>`;
+  return subHead('Investimentos') + cfg + qc + cl + reb + assets + `<p class="mut sm pad">As cotações continuam editáveis a qualquer momento na lista acima. A planilha original usava GOOGLEFINANCE, que não existe aqui — por isso os botões de Cotações no topo desta página.</p>`;
 }
 
 function viewFixos() {
@@ -1564,7 +1565,7 @@ ACT.inv = t => {
     else if (k === 'aporte') S.inv.aporte = n;
     else if (k === 'divisor') S.inv.divisor = n || 1;
     else if (k === 'meta') S.inv.classes.find(c => c.id === id).meta = n / 100;
-    else { const a = S.inv.assets.find(x => x.id === id); if (a) a[k] = k === 'qty' ? n : Core.round2(n); }
+    else { const a = S.inv.assets.find(x => x.id === id); if (a) { a[k] = k === 'qty' ? n : Core.round2(n); if (k === 'price') { delete a.qAt; delete a.qSrc; } } }
   });
 };
 ACT.invapply = () => { const rows = M.invest().rows.filter(r => r.m > 0); commit(S => { rows.forEach(r => { S.inv.assets.find(a => a.id === r.a.id).qty += r.m; }); }, 'Compras registradas na carteira'); };
@@ -1572,18 +1573,106 @@ function assetForm(a, clsId) {
   const isNew = !a; const id = a && a.id;
   openForm({
     title: isNew ? 'Novo ativo' : a.ticker, v: { ticker: a ? a.ticker : '', cls: a ? a.cls : clsId, qty: a ? String(a.qty) : '0', price: a ? String(a.price).replace('.', ',') : '', ideal: a ? String(Math.round(a.ideal * 10000) / 100).replace('.', ',') : '' },
-    fields: [{ t: 'text', k: 'ticker', label: 'Ticker', ph: 'Ex.: BBAS3' }, { t: 'select', k: 'cls', label: 'Classe', opts: S.inv.classes.map(c => [c.id, c.name]) }, { t: 'num', k: 'qty', label: 'Quantidade' }, { t: 'num', k: 'price', label: 'Cotação atual (R$)' }, { t: 'num', k: 'ideal', label: 'Percentual ideal na carteira', ph: 'Ex.: 2,86' }],
+    fields: [{ t: 'text', k: 'ticker', label: 'Ticker', ph: 'Ex.: BBAS3' }, { t: 'select', k: 'cls', label: 'Classe', opts: S.inv.classes.map(c => [c.id, c.name]) }, { t: 'num', k: 'qty', label: 'Quantidade' }, { t: 'num', k: 'price', label: 'Cotação atual (R$)' }, !isNew && a.qAt ? { t: 'note', html: `Cotação ${a.qSrc === 'auto' ? 'atualizada automaticamente' : 'colada'} em ${esc(fmtWhen(a.qAt))}. Editar aqui substitui esse valor.` } : null, { t: 'num', k: 'ideal', label: 'Percentual ideal na carteira', ph: 'Ex.: 2,86' }],
     del: isNew ? null : () => commit(S => { S.inv.assets = S.inv.assets.filter(x => x.id !== id); }, 'Ativo removido'),
     save: v => {
       if (!v.ticker.trim()) return 'Informe o ticker.'; const q = Core.calc(v.qty), p = Core.calc(v.price), i = Core.calc(v.ideal);
       if (isNaN(q) || q < 0) return 'Quantidade inválida.'; if (isNaN(p) || p < 0) return 'Cotação inválida.'; if (isNaN(i) || i < 0) return 'Informe o percentual ideal.';
       const o = { ticker: v.ticker.trim().toUpperCase(), cls: v.cls, qty: q, price: Core.round2(p), ideal: i / 100 };
-      commit(S => { if (isNew) S.inv.assets.push(Object.assign({ id: nid('i') }, o)); else Object.assign(S.inv.assets.find(x => x.id === id), o); }, 'Ativo salvo');
+      commit(S => { if (isNew) S.inv.assets.push(Object.assign({ id: nid('i') }, o)); else { const t = S.inv.assets.find(x => x.id === id); Object.assign(t, o); delete t.qAt; delete t.qSrc; } }, 'Ativo salvo');
     }
   });
 }
 ACT.assetnew = el => assetForm(null, el.dataset.cls);
 ACT.assetedit = el => assetForm(S.inv.assets.find(x => x.id === el.dataset.id));
+
+// ---------- cotações automáticas (B3) ----------
+// Fonte: brapi.dev (https://brapi.dev/api/quote/TICKER), sem chave nem cadastro para ler, e
+// confirmado com Access-Control-Allow-Origin: * (funciona com fetch() direto do navegador, sem
+// proxy). Limitação real: o acesso sem token só responde para 4 tickers de teste da própria
+// brapi (PETR4, VALE3, ITUB4, MGLU3); qualquer outro ticker volta 401 pedindo cadastro. Por isso
+// "Colar cotações" fica sempre disponível como alternativa que cobre qualquer ativo.
+let invQBusy = false, invQResult = null; // resultado da última tentativa automática (não é salvo)
+function fmtWhen(iso) {
+  const d = new Date(iso); if (isNaN(d)) return '';
+  const dIso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return (dIso === TODAY ? 'hoje' : `${dmy(dIso)}/${dIso.slice(0, 4)}`) + ` às ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function invQuoteStatus() {
+  const list = S.inv.assets.filter(a => a.qAt);
+  if (!list.length) return 'Nenhuma cotação foi atualizada automaticamente ou colada ainda: os preços abaixo são os que você digitou.';
+  const last = list.reduce((m, a) => a.qAt > m.qAt ? a : m, list[0]);
+  return `Última atualização (${last.qSrc === 'auto' ? 'automática' : 'colada'}): ${last.ticker} ${fmtWhen(last.qAt)}. ${list.length} de ${S.inv.assets.length} ativo(s) têm cotação automática ou colada.`;
+}
+function invQResultHtml() {
+  if (!invQResult || !invQResult.fail.length) return '';
+  return `<div class="warn sm">Sem cotação automática: ${invQResult.fail.map(f => `${esc(f.tk)} (${esc(f.msg)})`).join(', ')}. Use “Colar cotações” para esses.</div>`;
+}
+async function fetchQuote(ticker) {
+  const tk = String(ticker || '').trim().toUpperCase();
+  if (!tk) return { ok: false, msg: 'ticker vazio' };
+  let res;
+  try { res = await fetch(`https://brapi.dev/api/quote/${encodeURIComponent(tk)}`); }
+  catch (e) { return { ok: false, msg: 'falha de rede' }; }
+  let data = null; try { data = await res.json(); } catch (e) { }
+  if (!res.ok) return { ok: false, msg: res.status === 401 ? 'precisa de cadastro nessa API' : ((data && data.message) || `erro ${res.status}`) };
+  const price = data && data.results && data.results[0] && data.results[0].regularMarketPrice;
+  if (!(price > 0)) return { ok: false, msg: 'sem cotação disponível' };
+  return { ok: true, price: Core.round2(price) };
+}
+ACT.invqauto = async () => {
+  if (invQBusy) return;
+  const tickers = uniq(S.inv.assets.map(a => (a.ticker || '').trim().toUpperCase()).filter(Boolean));
+  if (!tickers.length) { toast('Nenhum ativo cadastrado ainda.'); return; }
+  invQBusy = true; invQResult = null; render();
+  const results = await Promise.all(tickers.map(async tk => ({ tk, r: await fetchQuote(tk) })));
+  invQBusy = false;
+  const ok = results.filter(x => x.r.ok), fail = results.filter(x => !x.r.ok);
+  invQResult = { fail: fail.map(x => ({ tk: x.tk, msg: x.r.msg })) };
+  if (!ok.length) { render(); toast('Nenhuma cotação disponível sem cadastro nessa API. Use “Colar cotações”.'); return; }
+  const now = new Date().toISOString();
+  commit(S => {
+    ok.forEach(({ tk, r }) => { S.inv.assets.filter(a => (a.ticker || '').trim().toUpperCase() === tk).forEach(a => { a.price = r.price; a.qAt = now; a.qSrc = 'auto'; }); });
+  }, `${ok.length} de ${tickers.length} cotação(ões) atualizada(s) automaticamente${fail.length ? '. Os demais precisam de "Colar cotações".' : ''}`);
+};
+function parsePastedPrice(raw) {
+  const m = String(raw || '').replace(/R\$/gi, ' ').match(/\d[\d.,]*/);
+  if (!m) return NaN;
+  let t = m[0];
+  t = t.includes(',') && t.includes('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(',', '.');
+  const n = parseFloat(t);
+  return isFinite(n) ? n : NaN;
+}
+function parseQuotePaste(text) {
+  const byTicker = new Map();
+  String(text || '').split(/\r?\n/).forEach(line => {
+    const l = line.trim(); if (!l) return;
+    const m = l.match(/^([A-Za-z0-9]{3,8})(?:\.[A-Za-z]{2,3})?[\s:;-]+(.+)$/);
+    if (!m) return;
+    const price = parsePastedPrice(m[2]);
+    if (price > 0) byTicker.set(m[1].toUpperCase(), price);
+  });
+  return byTicker;
+}
+ACT.invqpaste = () => openForm({
+  title: 'Colar cotações', v: { txt: '' },
+  fields: [
+    { t: 'note', html: 'Cole uma cotação por linha, no formato <b>TICKER PREÇO</b> (ex.: <code>BBAS3 27,84</code>). Funciona com espaço, tab, dois-pontos ou traço entre os dois, e não liga para maiúsculas/minúsculas.' },
+    { t: 'area', k: 'txt', label: 'Cotações', rows: 8, ph: 'BBAS3 27,84' }
+  ],
+  saveLabel: 'Aplicar',
+  save: v => {
+    const parsed = parseQuotePaste(v.txt);
+    if (!parsed.size) return 'Não encontrei nenhuma linha no formato TICKER PREÇO.';
+    const matches = S.inv.assets.filter(a => parsed.get((a.ticker || '').trim().toUpperCase()) > 0);
+    if (!matches.length) return 'Nenhum ticker do texto colado bate com os ativos cadastrados.';
+    const now = new Date().toISOString();
+    const ids = matches.map(a => a.id);
+    commit(S => {
+      S.inv.assets.filter(a => ids.includes(a.id)).forEach(a => { a.price = Core.round2(parsed.get((a.ticker || '').trim().toUpperCase())); a.qAt = now; a.qSrc = 'paste'; });
+    }, `${matches.length} cotação(ões) atualizada(s) a partir do texto colado`);
+  }
+});
 
 // ---------- categorias, backup, dados ----------
 ACT.cats = () => openForm({
