@@ -1594,7 +1594,7 @@ ACT.cats = () => openForm({
 ACT.dados = () => openInfo('Backup e dados', `
   <p class="mut">${typeof CLOUD_ON !== 'undefined' && CLOUD_ON ? (cloudReady ? '<b class="pos">Sincronizado com a nuvem do artefato.</b> Abrindo este mesmo link em outro aparelho, com a sua conta, os dados aparecem sozinhos.' : 'Tentando conectar à nuvem do artefato…') : 'Salvo neste navegador. Abra este link como artefato publicado (não pelo arquivo baixado) para sincronizar entre aparelhos.'}</p>
   <p class="mut">Exporte um backup para guardar à parte ou levar para um app que não sincroniza.</p>
-  <div class="stack"><button class="btn primary" data-act="export">Exportar backup (.json)</button><button class="btn" data-act="import">Importar backup</button><button class="btn" data-act="zero">Zerar lançamentos, manter configurações</button>${(typeof SHARE !== 'undefined' && SHARE) ? '' : '<button class="btn danger" data-act="restore">Restaurar dados da planilha</button>'}</div>`);
+  <div class="stack"><button class="btn primary" data-act="export">Exportar backup (.json)</button><button class="btn" data-act="import">Importar backup</button><button class="btn" data-act="impstart">Importar extrato (OFX/CSV)</button><button class="btn" data-act="zero">Zerar lançamentos, manter configurações</button>${(typeof SHARE !== 'undefined' && SHARE) ? '' : '<button class="btn danger" data-act="restore">Restaurar dados da planilha</button>'}</div>`);
 ACT.export = async () => {
   const json = JSON.stringify(S, null, 1), name = `controle-financeiro-${TODAY}.json`;
   try { const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; if (dl) { await dl.save({ filename: name, data: json }); toast('Backup gerado'); return; } } catch (e) { }
@@ -1614,6 +1614,173 @@ ACT.import = () => openForm({
 ACT.file = t => { const f = t.files && t.files[0]; if (!f || !FM) return; const r = new FileReader(); r.onload = () => { FM.v.json = String(r.result); drawSheet(); }; r.readAsText(f); };
 ACT.zero = () => askConfirm('Apagar todos os lançamentos e aportes? Itens fixos, caixinhas e investimentos ficam como estão.', 'Apagar', () => commit(S => { S.tx = []; S.ap = []; }, 'Lançamentos apagados'), () => ACT.dados());
 ACT.restore = () => askConfirm('Voltar aos dados importados da planilha? Suas alterações serão substituídas.', 'Restaurar', () => { undoSnap = JSON.stringify(S); S = migrate(SEED()); save(); render(); toast('Dados da planilha restaurados', true); }, () => ACT.dados());
+
+// ---------- importar extrato (OFX/CSV) ----------
+// Tudo roda no navegador (FileReader) — nada é enviado para fora. IMP guarda o estado do fluxo em andamento.
+let IMP = null;
+ACT.impstart = () => {
+  IMP = null;
+  openInfo('Importar extrato', `<p class="mut">Selecione o arquivo do extrato exportado do banco: OFX (a maioria dos bancos) ou CSV. A leitura acontece aqui no navegador, nada é enviado para fora.</p>
+    <div class="fld"><label class="fl">Arquivo (.ofx, .csv ou .txt)</label><input type="file" class="in" accept=".ofx,.csv,.txt" onchange="impPickFile(this.files[0])"></div>`, () => ACT.dados());
+};
+function impPickFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { impHandleText(file.name || '', String(reader.result || '').replace(/^\uFEFF/, '')); }
+    catch (e) { openInfo('Importar extrato', '<p class="mut">Não consegui processar esse arquivo. Confira se é um extrato OFX ou CSV exportado do banco.</p>', () => ACT.impstart()); }
+  };
+  reader.onerror = () => openInfo('Importar extrato', '<p class="mut">Não consegui ler esse arquivo.</p>', () => ACT.impstart());
+  reader.readAsText(file);
+}
+function impNum(str) {
+  let s = String(str == null ? '' : str).trim().replace(/^R\$\s*/i, '').replace(/\s/g, '');
+  if (!s) return NaN;
+  let neg = false;
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+  if (s[0] === '-') { neg = true; s = s.slice(1); } else if (s[0] === '+') { s = s.slice(1); }
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); // formato BR: ponto = milhar, vírgula = decimal
+  const n = parseFloat(s);
+  return isFinite(n) ? (neg ? -n : n) : NaN;
+}
+function impDate(str) {
+  const s = String(str || '').trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) { const d = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`; return isNaN(new Date(d).getTime()) ? '' : d; }
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (m) { let [, d, mo, y] = m; if (y.length === 2) y = (+y > 50 ? '19' : '20') + y; const iso = `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`; return isNaN(new Date(iso).getTime()) ? '' : iso; }
+  return '';
+}
+function impParseOFX(text) {
+  const rows = [];
+  const isCC = /<CCSTMTRS|<CREDITCARDMSGSRSV1|<CCACCTFROM/i.test(text);
+  const blocks = text.split(/<STMTTRN>/i).slice(1);
+  for (const raw of blocks) {
+    const block = raw.split(/<\/STMTTRN>/i)[0];
+    const get = tag => { const m = block.match(new RegExp('<' + tag + '>\\s*([^\\r\\n<]*)', 'i')); return m ? m[1].trim() : ''; };
+    const d = impDate(get('DTPOSTED').slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+    const v = impNum(get('TRNAMT'));
+    if (!d || !isFinite(v) || Math.abs(v) < 0.005) continue;
+    const memo = get('MEMO') || get('NAME') || get('PAYEE') || (v < 0 ? 'Saída' : 'Entrada');
+    rows.push({ d, t: v < 0 ? 'out' : 'in', v: Math.round(Math.abs(v) * 100) / 100, desc: memo, pay: isCC ? 'cartao' : 'conta' });
+  }
+  return rows;
+}
+function impSplitCSVLine(line, delim) {
+  const out = []; let cur = '', q = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (q) { if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
+function impParseCSV(text) {
+  const lines = text.split(/\r\n|\r|\n/).filter(l => l.trim() !== '');
+  if (!lines.length) return null;
+  const delim = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+  const table = lines.map(l => impSplitCSVLine(l, delim));
+  const hasHeader = !table[0].some(c => impDate(c)); // uma linha de dados real sempre tem uma célula com data válida
+  const labels = hasHeader ? table[0] : table[0].map((_, i) => 'Coluna ' + (i + 1));
+  const dataRows = hasHeader ? table.slice(1) : table;
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const findCol = names => labels.findIndex(h => names.some(n => norm(h).includes(n)));
+  return { labels, dataRows, iDate: findCol(['data']), iDesc: findCol(['descri', 'histor', 'memo', 'lancamento', 'nome', 'detalh']), iVal: findCol(['valor', 'montante', 'vlr']) };
+}
+function impBuildCSVRows(csv, iDate, iDesc, iVal, defPay) {
+  const rows = [];
+  for (const cols of csv.dataRows) {
+    const d = impDate(cols[iDate]), v = impNum(cols[iVal]);
+    if (!d || !isFinite(v) || Math.abs(v) < 0.005) continue;
+    rows.push({ d, t: v < 0 ? 'out' : 'in', v: Math.round(Math.abs(v) * 100) / 100, desc: (cols[iDesc] || '').trim() || 'Lançamento', pay: defPay });
+  }
+  return rows;
+}
+function impHandleText(name, text) {
+  const isOfx = /\.ofx$/i.test(name) || /<STMTTRN>/i.test(text);
+  const isCC = /cart[aã]o|credit/i.test(name);
+  if (isOfx) {
+    const rows = impParseOFX(text);
+    if (!rows.length) { openInfo('Importar extrato', '<p class="mut">Não encontrei lançamentos nesse arquivo OFX. Confira se é um extrato exportado do banco.</p>', () => ACT.impstart()); return; }
+    impStartReview(rows);
+    return;
+  }
+  const csv = impParseCSV(text);
+  if (!csv || !csv.dataRows.length) { openInfo('Importar extrato', '<p class="mut">Não consegui ler esse arquivo como CSV. Confira o formato exportado do banco.</p>', () => ACT.impstart()); return; }
+  if (csv.iDate >= 0 && csv.iDesc >= 0 && csv.iVal >= 0) {
+    const rows = impBuildCSVRows(csv, csv.iDate, csv.iDesc, csv.iVal, isCC ? 'cartao' : 'conta');
+    if (rows.length) { impStartReview(rows); return; }
+  }
+  IMP = { csv, pay: isCC ? 'cartao' : 'conta' };
+  openInfo('Importar extrato', `<p class="mut">Não identifiquei as colunas automaticamente. Escolha qual é qual:</p>
+    <div class="fld"><label class="fl">Data</label><select class="in" id="impmapD">${csv.labels.map((h, i) => `<option value="${i}">${esc(h)}</option>`).join('')}</select></div>
+    <div class="fld"><label class="fl">Descrição</label><select class="in" id="impmapN">${csv.labels.map((h, i) => `<option value="${i}">${esc(h)}</option>`).join('')}</select></div>
+    <div class="fld"><label class="fl">Valor</label><select class="in" id="impmapV">${csv.labels.map((h, i) => `<option value="${i}">${esc(h)}</option>`).join('')}</select></div>
+    <div class="sheet-foot"><button type="button" class="btn primary" data-act="impmapok">Continuar</button></div>`, () => ACT.impstart());
+}
+ACT.impmapok = () => {
+  if (!IMP || !IMP.csv) return;
+  const iDate = +$('impmapD').value, iDesc = +$('impmapN').value, iVal = +$('impmapV').value;
+  const rows = impBuildCSVRows(IMP.csv, iDate, iDesc, iVal, IMP.pay);
+  if (!rows.length) { toast('Não encontrei lançamentos válidos com essas colunas.'); return; }
+  impStartReview(rows);
+};
+function impGuessCat(desc, t) {
+  const list = t === 'in' ? S.incCats : S.cats;
+  const nd = String(desc || '').toUpperCase();
+  for (const rule of (S.autocat || [])) {
+    let kw, cat;
+    if (Array.isArray(rule)) { kw = rule[0]; cat = rule[1]; }
+    else if (rule && typeof rule === 'object') { kw = rule.kw || rule.match || rule.keyword || rule.termo; cat = rule.cat || rule.categoria; }
+    if (kw && cat && list.includes(cat) && nd.includes(String(kw).toUpperCase())) return cat;
+  }
+  return list.includes('Outros') ? 'Outros' : (list[0] || 'Outros');
+}
+function impStartReview(rawRows) {
+  const rows = rawRows.map(r => Object.assign({ cat: impGuessCat(r.desc, r.t) }, r));
+  for (const r of rows) { r.dup = S.tx.some(t => t.d === r.d && t.t === r.t && Math.abs(t.v - r.v) < 0.005); r.checked = !r.dup; }
+  IMP = { rows };
+  openInfo('Revisar importação', impReviewHtml(), () => ACT.impstart());
+}
+function impReviewHtml() {
+  const rows = IMP.rows, n = rows.length, nc = rows.filter(r => r.checked).length;
+  return `<p class="mut">${n} lançamento${n === 1 ? '' : 's'} encontrado${n === 1 ? '' : 's'} no arquivo. Possíveis duplicatas (mesma data e valor de um lançamento já existente) já vêm desmarcadas.</p>
+    <div class="fld"><label class="fl">Aplicar forma de pagamento a todos</label><select class="in" onchange="impSetAllPay(this.value)">
+      <option value="">Escolher…</option><option value="conta">Conta</option><option value="cartao">Cartão</option><option value="vavr">VA/VR</option>
+    </select></div>
+    ${rows.map((r, i) => impRowHtml(r, i)).join('')}
+    <div class="sheet-foot"><button type="button" class="btn" data-act="fclose">Cancelar</button><button type="button" class="btn primary" data-act="impconfirm">Importar ${nc} lançamento${nc === 1 ? '' : 's'}</button></div>`;
+}
+function impRowHtml(r, i) {
+  const list = r.t === 'in' ? S.incCats : S.cats;
+  return `<div class="card" style="margin-bottom:8px;padding:10px 12px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+      <input type="checkbox" ${r.checked ? 'checked' : ''} onchange="impToggle(${i},this.checked)">
+      <span class="r-main"><b>${esc(r.desc)}</b><span class="tags"><i class="tag">${dmy(r.d)}</i><i class="tag ${r.t === 'in' ? 'pos' : ''}">${r.t === 'in' ? '+' : '−'}${brl(r.v).replace('−', '')}</i>${r.dup ? '<i class="tag amb">possível duplicata</i>' : ''}</span></span>
+    </label>
+    <div class="row-btns" style="margin-top:8px">
+      <select class="in" style="flex:1" onchange="impSetCat(${i},this.value)">${list.map(c => `<option value="${esc(c)}" ${c === r.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+      <select class="in" style="flex:1" onchange="impSetPay(${i},this.value)">
+        <option value="conta" ${r.pay === 'conta' ? 'selected' : ''}>Conta</option><option value="cartao" ${r.pay === 'cartao' ? 'selected' : ''}>Cartão</option><option value="vavr" ${r.pay === 'vavr' ? 'selected' : ''}>VA/VR</option>
+      </select>
+    </div>
+  </div>`;
+}
+function impRedraw() { if (FM) { FM.info = impReviewHtml(); drawSheet(); } }
+function impToggle(i, v) { IMP.rows[i].checked = v; impRedraw(); }
+function impSetCat(i, v) { IMP.rows[i].cat = v; impRedraw(); }
+function impSetPay(i, v) { IMP.rows[i].pay = v; impRedraw(); }
+function impSetAllPay(v) { if (!v || !IMP) return; IMP.rows.forEach(r => r.pay = v); impRedraw(); }
+ACT.impconfirm = () => {
+  const rows = (IMP && IMP.rows || []).filter(r => r.checked);
+  if (!rows.length) { toast('Selecione ao menos um lançamento.'); return; }
+  commit(S => { for (const r of rows) S.tx.push({ id: nid('t'), d: r.d, t: r.t, v: r.v, cat: r.cat, desc: r.desc, pay: r.pay, par: 1 }); }, `${rows.length} lançamento${rows.length === 1 ? '' : 's'} importado${rows.length === 1 ? '' : 's'}`);
+  IMP = null;
+  closeSheet();
+};
 
 // ---------- início ----------
 function boot() {
