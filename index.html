@@ -1997,14 +1997,20 @@ async function startApp(user) {
 }
 
 // ---------- boas-vindas: 2-3 perguntas rápidas pra conta nova (antes do 1º render do app) ----------
-let OB = null; // { step, closeDay, err }
+let OB = null; // { step, closeDay, sal, err }
 function startOnboard() {
-  OB = { step: 1, closeDay: '', err: '' };
+  OB = { step: 1, closeDay: '', sal: '', err: '' };
   renderOnboard();
 }
 function finishOnboard() {
   const d = parseInt(OB.closeDay);
   if (d >= 1 && d <= 28) S.closeDay = d;
+  const sal = Core.calc(OB.sal || '');
+  if (sal > 0) {
+    let s = S.fixed.find(f => f.id === 'f_sal');
+    if (!s) { s = { id: 'f_sal', name: 'Salário', kind: 'in', sched: [] }; S.fixed.push(s); }
+    s.sched.push([CUR_YM, Core.round2(sal)]);
+  }
   OB = null;
   document.body.classList.remove('auth');
   save();
@@ -2045,6 +2051,13 @@ function renderOnboard() {
         <button class="btn primary" data-act="obClose">Continuar</button>
         <button class="btn" data-act="obNoCard">Não uso cartão de crédito</button>
       </div>`);
+  } else if (OB.step === 4) {
+    obShell('Qual sua renda mensal?', 'Já deixamos o salário lançado como item fixo, pra você não começar do zero.', `
+      <div class="fld"><label class="fl">Renda fixa por mês</label><input class="in" id="obSal" inputmode="decimal" placeholder="Ex.: 3500" value="${esc(OB.sal)}"></div>
+      <div class="stack">
+        <button class="btn primary" data-act="obSal">Continuar</button>
+        <button class="btn" data-act="obNoSal">Prefiro configurar depois</button>
+      </div>`);
   }
 }
 ACT.obVa = el => {
@@ -2071,9 +2084,14 @@ ACT.obClose = () => {
   const d = parseInt(v);
   if (!(d >= 1 && d <= 28)) { OB.err = 'Digite um dia de 1 a 28.'; renderOnboard(); return; }
   OB.closeDay = String(d); OB.err = '';
+  OB.step = 4; renderOnboard();
+};
+ACT.obNoCard = () => { OB.closeDay = ''; OB.step = 4; renderOnboard(); };
+ACT.obSal = () => {
+  OB.sal = ($('obSal') && $('obSal').value || '').trim();
   finishOnboard();
 };
-ACT.obNoCard = () => { OB.closeDay = ''; finishOnboard(); };
+ACT.obNoSal = () => { OB.sal = ''; finishOnboard(); };
 
 function renderAuth() {
   document.body.classList.add('auth');
