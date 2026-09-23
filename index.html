@@ -711,7 +711,9 @@ const Core = (() => {
   // Avalia expressões simples ("12,5+30*2") sem usar eval
   function calc(str) {
     if (str == null) return NaN;
-    let s = String(str).replace(/\s+/g, '').replace(/^=/, '').replace(/,/g, '.');
+    let s = String(str).replace(/\s+/g, '').replace(/^=/, '');
+    if (s.includes(',')) s = s.replace(/\.(?=\d{3}(\D|$))/g, '');
+    s = s.replace(/,/g, '.');
     if (!s || /[^0-9+\-*/().]/.test(s)) return NaN;
     let i = 0;
     const num = () => {
@@ -1076,6 +1078,26 @@ const IC = {
 };
 const icon = (n, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
 
+// ---------- máscara de moeda: os dígitos entram pelos centavos (1 → 0,01 · 10 → 0,10 · 100 → 1,00) ----------
+const moneyFmt = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function moneyMask(el) {
+  const neg = /^\s*-/.test(el.value), dg = el.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, 13);
+  const out = dg ? (neg ? '-' : '') + moneyFmt(parseInt(dg, 10) / 100) : neg ? '-' : '';
+  if (el.value !== out) el.value = out;
+  try { el.setSelectionRange(out.length, out.length); } catch (e) { }
+}
+// valores que já vêm preenchidos ("1234.5", "12,5") são mostrados no formato da máscara
+function moneyInit(root) {
+  (root || document).querySelectorAll('input[data-money]:not([data-mfmt])').forEach(el => {
+    el.dataset.mfmt = '1';
+    const s = String(el.value || '').trim(); if (!s) return;
+    const n = Core.calc(s); if (!isNaN(n)) el.value = moneyFmt(n);
+  });
+}
+document.addEventListener('input', e => { if (e.target && e.target.dataset && e.target.dataset.money) moneyMask(e.target); }, true);
+document.addEventListener('focusin', e => { const t = e.target; if (t && t.dataset && t.dataset.money) setTimeout(() => { try { t.setSelectionRange(t.value.length, t.value.length); } catch (x) { } }, 0); });
+new MutationObserver(() => moneyInit()).observe(document.documentElement, { childList: true, subtree: true });
+
 // ---------- motor de formulários (bottom sheet) ----------
 let FM = null;   // formulário aberto
 function openForm(cfg) {
@@ -1103,9 +1125,9 @@ function fieldHtml(f, v) {
     case 'note': return `<p class="hint">${f.html}</p>`;
     case 'seg': return `<div class="fld">${lab}<div class="seg" data-k="${f.k}">${f.opts.map(([o, l]) => `<button type="button" class="${cls(String(val) === String(o) && 'on')}" data-act="fset" data-k="${f.k}" data-v="${esc(o)}">${esc(l)}</button>`).join('')}</div></div>`;
     case 'chips': return `<div class="fld">${lab}<div class="chips">${f.opts.map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<button type="button" class="chip ${String(val) === String(ov) ? 'on' : ''}" data-act="fset" data-k="${f.k}" data-v="${esc(ov)}">${f.k === 'cat' && typeof catMeta === 'function' && catMeta(ol).ic ? icon(catMeta(ol).ic, 15) : ''}${esc(ol)}</button>`; }).join('')}${f.add ? (FM && FM.adding === f.k ? `<span class="addrow"><input class="in sm" data-newcat="1" placeholder="Nome" autocomplete="off"><button type="button" class="chip on" data-act="chipok" data-k="${f.k}">Adicionar</button></span>` : `<button type="button" class="chip ghost" data-act="chipadd" data-k="${f.k}">+ Nova</button>`) : ''}</div></div>`;
-    case 'money': return `<div class="fld">${lab}<div class="amt"><span>R$</span><input class="big" inputmode="decimal" autocomplete="off" data-k="${f.k}" data-autofocus="1" value="${esc(val ?? '')}" placeholder="0,00" enterkeyhint="done"></div></div>`;
+    case 'money': return `<div class="fld">${lab}<div class="amt"><span>R$</span><input class="big" inputmode="numeric" data-money="1" autocomplete="off" data-k="${f.k}" data-autofocus="1" value="${esc(val ?? '')}" placeholder="0,00" enterkeyhint="done"></div></div>`;
     case 'text': return `<div class="fld">${lab}<input class="in" type="text" autocomplete="off" data-k="${f.k}" value="${esc(val ?? '')}" placeholder="${esc(f.ph || '')}" ${f.list ? `list="${f.list}"` : ''}></div>`;
-    case 'num': return `<div class="fld">${lab}<input class="in" inputmode="decimal" autocomplete="off" data-k="${f.k}" value="${esc(val ?? '')}" placeholder="${esc(f.ph || '')}"></div>`;
+    case 'num': return `<div class="fld">${lab}<input class="in" ${f.money ? 'inputmode="numeric" data-money="1"' : 'inputmode="decimal"'} autocomplete="off" data-k="${f.k}" value="${esc(val ?? '')}" placeholder="${esc(f.ph || '')}"></div>`;
     case 'date': return `<div class="fld">${lab}<input class="in" type="date" data-k="${f.k}" value="${esc(val ?? '')}"></div>`;
     case 'month': return `<div class="fld">${lab}<input class="in" type="month" data-k="${f.k}" value="${esc(val ?? '')}"></div>`;
     case 'select': return `<div class="fld">${lab}<select class="in" data-k="${f.k}">${f.opts.map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(ov)}" ${String(val) === String(ov) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select></div>`;
@@ -1883,12 +1905,12 @@ function viewCxBody() {
 }
 function viewInvBody() {
   const iv = M.invest(), I = S.inv;
-  const cfg = card('Aporte do mês', `<div class="fld2"><label>Quanto quer investir<input class="in" inputmode="decimal" data-inv="aporte" value="${String(I.aporte).replace('.', ',')}"></label><label>Divisor da base<input class="in" inputmode="decimal" data-inv="divisor" value="${String(I.divisor).replace('.', ',')}"></label></div><p class="mut sm">O divisor repete a conta da planilha: cada percentual é o valor do ativo dividido pelo total da carteira e por este número.</p>${kv('Total da carteira', brl(iv.total))}`);
+  const cfg = card('Aporte do mês', `<div class="fld2"><label>Quanto quer investir<input class="in" inputmode="decimal" data-inv="aporte" data-money="1" value="${String(I.aporte).replace('.', ',')}"></label><label>Divisor da base<input class="in" inputmode="decimal" data-inv="divisor" value="${String(I.divisor).replace('.', ',')}"></label></div><p class="mut sm">O divisor repete a conta da planilha: cada percentual é o valor do ativo dividido pelo total da carteira e por este número.</p>${kv('Total da carteira', brl(iv.total))}`);
   const qc = card('Cotações', `<p class="mut sm">${esc(invQuoteStatus())}</p><div class="row-btns"><button class="btn primary" data-act="invqauto" ${invQBusy ? 'disabled' : ''}>${invQBusy ? 'Atualizando…' : 'Atualizar automaticamente'}</button><button class="btn" data-act="invqpaste">Colar cotações</button></div>${invQResultHtml()}<p class="mut sm" style="margin-top:10px">O automático gratuito só cobre PETR4, VALE3, ITUB4 e MGLU3. Para os demais, use “Colar cotações” com o que copiar da corretora ou de uma planilha.</p>`);
   const cl = card('Metas por classe', iv.classes.length ? iv.classes.map(c => `<div class="kv"><span>${esc(c.c.name)} <small class="mut">agora ${pct(c.atual, 1)}</small></span><span class="metaedit"><input class="in xs" inputmode="decimal" data-inv="meta" data-id="${c.c.id}" value="${String(Math.round(c.meta * 1000) / 10).replace('.', ',')}" aria-label="Meta de ${esc(c.c.name)} em porcentagem">%<i class="badge ${c.acao === 'INVESTIR' ? 'pos' : c.acao === 'REDUZIR' ? 'neg' : ''}">${c.acao === 'INVESTIR' ? 'Investir' : c.acao === 'REDUZIR' ? 'Reduzir' : 'Ok'}</i></span></div>`).join('') : '<p class="mut sm">Nenhuma classe de ativo cadastrada.</p>');
   const assets = I.classes.map(c => {
     const rows = iv.rows.filter(r => r.a.cls === c.id);
-    return `<section class="card"><div class="card-h"><h3>${esc(c.name)}</h3><button class="link" style="padding:0" data-act="assetnew" data-cls="${c.id}">Novo ativo</button></div>${rows.length ? `<div class="thead"><span>Ativo</span><span>Qtd.</span><span>Cotação</span><span>Total</span></div>` : '<p class="mut sm">Nenhum ativo nesta classe.</p>'}${rows.map(r => `<div class="arow"><button class="tk" data-act="assetedit" data-id="${r.a.id}">${esc(r.a.ticker)}</button><input class="in xs" inputmode="decimal" data-inv="qty" data-id="${r.a.id}" value="${String(r.a.qty).replace('.', ',')}" aria-label="Quantidade de ${esc(r.a.ticker)}"><input class="in xs" inputmode="decimal" data-inv="price" data-id="${r.a.id}" value="${String(r.a.price).replace('.', ',')}" aria-label="Cotação de ${esc(r.a.ticker)}"><b>${fmtNum(r.val)}</b></div>`).join('')}</section>`;
+    return `<section class="card"><div class="card-h"><h3>${esc(c.name)}</h3><button class="link" style="padding:0" data-act="assetnew" data-cls="${c.id}">Novo ativo</button></div>${rows.length ? `<div class="thead"><span>Ativo</span><span>Qtd.</span><span>Cotação</span><span>Total</span></div>` : '<p class="mut sm">Nenhum ativo nesta classe.</p>'}${rows.map(r => `<div class="arow"><button class="tk" data-act="assetedit" data-id="${r.a.id}">${esc(r.a.ticker)}</button><input class="in xs" inputmode="decimal" data-inv="qty" data-id="${r.a.id}" value="${String(r.a.qty).replace('.', ',')}" aria-label="Quantidade de ${esc(r.a.ticker)}"><input class="in xs" inputmode="decimal" data-inv="price" data-money="1" data-id="${r.a.id}" value="${String(r.a.price).replace('.', ',')}" aria-label="Cotação de ${esc(r.a.ticker)}"><b>${fmtNum(r.val)}</b></div>`).join('')}</section>`;
   }).join('');
   const buys = iv.rows.filter(r => r.m > 0);
   const reb = card('Rebalanceamento do aporte', buys.length ? buys.map(r => `<div class="kv"><span>Comprar <b>${r.m}×</b> ${esc(r.a.ticker)} <small class="mut">a ${brl(r.a.price)}</small></span><b>${brl(r.n)}</b></div>`).join('') + `<div class="kv tot"><span>Total a investir</span><b>${brl(iv.gasto)}</b></div>${kv('Troco', brl(iv.troco))}<div class="row-btns"><button class="btn primary" data-act="invapply">Registrar compras na carteira</button></div>` : '<p class="mut sm">Sem compras sugeridas. Confira o aporte e as cotações.</p>');
@@ -2197,7 +2219,7 @@ function calcBody(g) {
     if (x.h) return `<div class="chead">${x.h}</div>`;
     if (x.seg) return `<div class="cin cfull"><span>${x.l}</span><div class="seg">${x.opts.map(([v, l]) => `<button type="button" class="${String(c[x.seg]) === v ? 'on' : ''}" data-act="calcset" data-g="${g}" data-f="${x.seg}" data-v="${v}">${l}</button>`).join('')}</div></div>`;
     const [k, l, pre, suf, txt] = x;
-    return `<label class="cin"><span>${l}</span><span class="cbox">${pre ? `<i>${pre}</i>` : ''}<input ${txt ? 'type="text"' : 'inputmode="decimal"'} data-calc="${g}.${k}" value="${esc(c[k])}" autocomplete="off">${suf ? `<i>${suf}</i>` : ''}</span></label>`;
+    return `<label class="cin"><span>${l}</span><span class="cbox">${pre ? `<i>${pre}</i>` : ''}<input ${txt ? 'type="text"' : pre === 'R$' ? 'inputmode="numeric" data-money="1"' : 'inputmode="decimal"'} data-calc="${g}.${k}" value="${esc(c[k])}" autocomplete="off">${suf ? `<i>${suf}</i>` : ''}</span></label>`;
   }).join('');
   return `<p class="mut" style="margin:-6px 0 14px">${d.s}</p><div class="cins">${ins}</div><div id="cr-${g}">${d.res(c)}</div>`;
 }
@@ -2786,7 +2808,7 @@ function assetForm(a, clsId) {
   const isNew = !a; const id = a && a.id;
   openForm({
     title: isNew ? 'Novo ativo' : a.ticker, v: { ticker: a ? a.ticker : '', cls: a ? a.cls : clsId, qty: a ? String(a.qty) : '0', price: a ? String(a.price).replace('.', ',') : '', ideal: a ? String(Math.round(a.ideal * 10000) / 100).replace('.', ',') : '' },
-    fields: [{ t: 'text', k: 'ticker', label: 'Ticker', ph: 'Ex.: BBAS3' }, { t: 'select', k: 'cls', label: 'Classe', opts: S.inv.classes.map(c => [c.id, c.name]) }, { t: 'num', k: 'qty', label: 'Quantidade' }, { t: 'num', k: 'price', label: 'Cotação atual (R$)' }, !isNew && a.qAt ? { t: 'note', html: `Cotação ${a.qSrc === 'auto' ? 'atualizada automaticamente' : 'colada'} em ${esc(fmtWhen(a.qAt))}. Editar aqui substitui esse valor.` } : null, { t: 'num', k: 'ideal', label: 'Percentual ideal na carteira', ph: 'Ex.: 2,86' }],
+    fields: [{ t: 'text', k: 'ticker', label: 'Ticker', ph: 'Ex.: BBAS3' }, { t: 'select', k: 'cls', label: 'Classe', opts: S.inv.classes.map(c => [c.id, c.name]) }, { t: 'num', k: 'qty', label: 'Quantidade' }, { t: 'num', k: 'price', money: 1, label: 'Cotação atual (R$)' }, !isNew && a.qAt ? { t: 'note', html: `Cotação ${a.qSrc === 'auto' ? 'atualizada automaticamente' : 'colada'} em ${esc(fmtWhen(a.qAt))}. Editar aqui substitui esse valor.` } : null, { t: 'num', k: 'ideal', label: 'Percentual ideal na carteira', ph: 'Ex.: 2,86' }],
     del: isNew ? null : () => commit(S => { S.inv.assets = S.inv.assets.filter(x => x.id !== id); }, 'Ativo removido'),
     save: v => {
       if (!v.ticker.trim()) return 'Informe o ticker.'; const q = Core.calc(v.qty), p = Core.calc(v.price), i = Core.calc(v.ideal);
@@ -3222,7 +3244,7 @@ function renderOnboard() {
       <button class="btn ghost auth-alt" data-act="obNoCard">Não uso cartão de crédito</button>`);
   } else if (OB.step === 4) {
     obShell('Qual é a sua renda mensal?', 'Já deixamos o salário lançado como item fixo, pra você não começar do zero.', `
-      <div class="fld"><label class="fl">Renda fixa por mês</label><div class="amt"><span>R$</span><input class="big" id="obSal" inputmode="decimal" placeholder="0,00" value="${esc(OB.sal)}"></div></div>
+      <div class="fld"><label class="fl">Renda fixa por mês</label><div class="amt"><span>R$</span><input class="big" id="obSal" inputmode="numeric" data-money="1" placeholder="0,00" value="${esc(OB.sal)}"></div></div>
       <button class="btn primary auth-btn" data-act="obSal">Começar</button>
       <button class="btn ghost auth-alt" data-act="obNoSal">Prefiro configurar depois</button>`);
   }
