@@ -1908,7 +1908,7 @@ function viewCxBody() {
 function viewInvBody() {
   const iv = M.invest(), I = S.inv;
   const cfg = card('Aporte do mês', `<div class="fld2"><label>Quanto quer investir<input class="in" inputmode="decimal" data-inv="aporte" data-money="1" value="${String(I.aporte).replace('.', ',')}"></label><label>Divisor da base<input class="in" inputmode="decimal" data-inv="divisor" value="${String(I.divisor).replace('.', ',')}"></label></div><p class="mut sm">O divisor repete a conta da planilha: cada percentual é o valor do ativo dividido pelo total da carteira e por este número.</p>${kv('Total da carteira', brl(iv.total))}`);
-  const qc = card('Cotações', `<p class="mut sm">${esc(invQuoteStatus())}</p><div class="row-btns"><button class="btn primary" data-act="invqauto" ${invQBusy ? 'disabled' : ''}>${invQBusy ? 'Atualizando…' : 'Atualizar automaticamente'}</button><button class="btn" data-act="invqpaste">Colar cotações</button></div>${invQResultHtml()}<p class="mut sm" style="margin-top:10px">O automático gratuito só cobre PETR4, VALE3, ITUB4 e MGLU3. Para os demais, use “Colar cotações” com o que copiar da corretora ou de uma planilha.</p>`);
+  const qc = card('Cotações', `<p class="mut sm">${esc(invQuoteStatus())}</p><div class="row-btns"><button class="btn primary" data-act="invqauto" ${invQBusy ? 'disabled' : ''}>${invQBusy ? 'Atualizando…' : 'Atualizar automaticamente'}</button><button class="btn" data-act="invqpaste">Colar cotações</button></div>${invQResultHtml()}<p class="mut sm" style="margin-top:10px">O automático cobre ações, FIIs e ETFs da B3 (a cotação pode vir com alguns minutos de atraso). Se algum não vier, use “Colar cotações” com o que copiar da corretora.</p>`);
   const cl = card('Metas por classe', iv.classes.length ? iv.classes.map(c => `<div class="kv"><span>${esc(c.c.name)} <small class="mut">agora ${pct(c.atual, 1)}</small></span><span class="metaedit"><input class="in xs" inputmode="decimal" data-inv="meta" data-id="${c.c.id}" value="${String(Math.round(c.meta * 1000) / 10).replace('.', ',')}" aria-label="Meta de ${esc(c.c.name)} em porcentagem">%<i class="badge ${c.acao === 'INVESTIR' ? 'pos' : c.acao === 'REDUZIR' ? 'neg' : ''}">${c.acao === 'INVESTIR' ? 'Investir' : c.acao === 'REDUZIR' ? 'Reduzir' : 'Ok'}</i></span></div>`).join('') : '<p class="mut sm">Nenhuma classe de ativo cadastrada.</p>');
   const assets = I.classes.map(c => {
     const rows = iv.rows.filter(r => r.a.cls === c.id);
@@ -2863,11 +2863,10 @@ ACT.assetnew = el => assetForm(null, el.dataset.cls);
 ACT.assetedit = el => assetForm(S.inv.assets.find(x => x.id === el.dataset.id));
 
 // ---------- cotações automáticas (B3) ----------
-// Fonte: brapi.dev (https://brapi.dev/api/quote/TICKER), sem chave nem cadastro para ler, e
-// confirmado com Access-Control-Allow-Origin: * (funciona com fetch() direto do navegador, sem
-// proxy). Limitação real: o acesso sem token só responde para 4 tickers de teste da própria
-// brapi (PETR4, VALE3, ITUB4, MGLU3); qualquer outro ticker volta 401 pedindo cadastro. Por isso
-// "Colar cotações" fica sempre disponível como alternativa que cobre qualquer ativo.
+// Fonte: brapi.dev (https://brapi.dev/api/quote/TICKER?token=...), com Access-Control-Allow-Origin: *
+// (fetch() direto do navegador). Token do plano gratuito, compartilhado por todos os usuários
+// (~15 mil consultas/mês, um ticker por requisição). "Colar cotações" continua como alternativa.
+const BRAPI_TOKEN = 'oYQkMxsS6KJVtneypk4QJT';
 let invQBusy = false, invQResult = null; // resultado da última tentativa automática (não é salvo)
 function fmtWhen(iso) {
   const d = new Date(iso); if (isNaN(d)) return '';
@@ -2888,10 +2887,10 @@ async function fetchQuote(ticker) {
   const tk = String(ticker || '').trim().toUpperCase();
   if (!tk) return { ok: false, msg: 'ticker vazio' };
   let res;
-  try { res = await fetch(`https://brapi.dev/api/quote/${encodeURIComponent(tk)}`); }
+  try { res = await fetch(`https://brapi.dev/api/quote/${encodeURIComponent(tk)}?token=${BRAPI_TOKEN}`); }
   catch (e) { return { ok: false, msg: 'falha de rede' }; }
   let data = null; try { data = await res.json(); } catch (e) { }
-  if (!res.ok) return { ok: false, msg: res.status === 401 ? 'precisa de cadastro nessa API' : ((data && data.message) || `erro ${res.status}`) };
+  if (!res.ok) return { ok: false, msg: res.status === 404 ? 'ticker não encontrado' : res.status === 401 || res.status === 402 || res.status === 429 ? 'limite da API atingido, tente mais tarde' : ((data && data.message) || `erro ${res.status}`) };
   const price = data && data.results && data.results[0] && data.results[0].regularMarketPrice;
   if (!(price > 0)) return { ok: false, msg: 'sem cotação disponível' };
   return { ok: true, price: Core.round2(price) };
@@ -2901,15 +2900,21 @@ ACT.invqauto = async () => {
   const tickers = uniq(S.inv.assets.map(a => (a.ticker || '').trim().toUpperCase()).filter(Boolean));
   if (!tickers.length) { toast('Nenhum ativo cadastrado ainda.'); return; }
   invQBusy = true; invQResult = null; render();
-  const results = await Promise.all(tickers.map(async tk => ({ tk, r: await fetchQuote(tk) })));
+  // uma consulta por vez: a brapi recusa várias simultâneas no plano gratuito
+  const results = [];
+  for (const tk of tickers) {
+    let r = await fetchQuote(tk);
+    if (!r.ok && r.msg === 'falha de rede') { await new Promise(ok => setTimeout(ok, 800)); r = await fetchQuote(tk); }
+    results.push({ tk, r });
+  }
   invQBusy = false;
   const ok = results.filter(x => x.r.ok), fail = results.filter(x => !x.r.ok);
   invQResult = { fail: fail.map(x => ({ tk: x.tk, msg: x.r.msg })) };
-  if (!ok.length) { render(); toast('Nenhuma cotação disponível sem cadastro nessa API. Use “Colar cotações”.'); return; }
+  if (!ok.length) { render(); toast('Não consegui atualizar nenhuma cotação agora. Use “Colar cotações”.'); return; }
   const now = new Date().toISOString();
   commit(S => {
     ok.forEach(({ tk, r }) => { S.inv.assets.filter(a => (a.ticker || '').trim().toUpperCase() === tk).forEach(a => { a.price = r.price; a.qAt = now; a.qSrc = 'auto'; }); });
-  }, `${ok.length} de ${tickers.length} cotação(ões) atualizada(s) automaticamente${fail.length ? '. Os demais precisam de "Colar cotações".' : ''}`);
+  }, `${ok.length} de ${tickers.length} cotação(ões) atualizada(s) automaticamente${fail.length ? '. Veja abaixo os que falharam.' : ''}`);
 };
 function parsePastedPrice(raw) {
   const m = String(raw || '').replace(/R\$/gi, ' ').match(/\d[\d.,]*/);
