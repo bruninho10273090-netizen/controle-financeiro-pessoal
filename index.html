@@ -638,6 +638,18 @@ body.auth #app{padding:0;max-width:none}
 .cgrid>div{display:flex;flex-direction:column;gap:2px;min-width:0}
 .cgrid span{font-size:11.5px;color:var(--mut)}.cgrid b{font-weight:600;font-size:14.5px;white-space:nowrap}
 
+.tx.tx-card{background:linear-gradient(100deg,color-mix(in srgb,var(--g2) 42%,var(--card)) 0%,color-mix(in srgb,var(--g2) 24%,var(--card)) 60%,color-mix(in srgb,var(--g2) 14%,var(--card)) 100%)}
+.tx.tx-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--g1),var(--g3))}
+.tx.tx-card .tm small{color:color-mix(in srgb,var(--g2) 55%,var(--ink))}
+.tx.tx-card:active{filter:brightness(.97)}
+.calcgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctile{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--card);border:1px solid color-mix(in srgb,var(--line) 60%,transparent);border-radius:16px;padding:14px;box-shadow:var(--shadow);transition:transform .18s var(--ease)}
+.ctile:active{transform:scale(.97)}
+.ctile b{font-weight:600;font-size:14.5px;line-height:1.25;margin-top:4px}
+.ctile small{font-size:12px;color:var(--mut);line-height:1.4}
+.chead{grid-column:1/-1;font-weight:600;font-size:13.5px;margin:6px 0 -2px;color:var(--ink)}
+.cfull{grid-column:1/-1}
+
 /* ---------- relatório: impressão / salvar em PDF ---------- */
 @media print{
   body *{visibility:hidden}
@@ -1526,10 +1538,10 @@ function cardLines(ym, back, cardId) {
 // ---------- linhas do extrato ----------
 function txRow(t) {
   const isIn = t.t === 'in';
-  const payH = t.t === 'out' && t.pay === 'cartao' ? `${mcard(cardOf(t), true)}${esc(payLabel(t))}` : esc(payLabel(t));
+  const isCard = t.t === 'out' && t.pay === 'cartao', payH = esc(payLabel(t));
   const sub = [esc(t.cat), payH].filter(Boolean).join(' · ');
   const right = isIn && t.st === 'rec' ? `<i class="pill ${t.d < TODAY ? 'late' : ''}">${t.d < TODAY ? 'atrasado' : dmy(t.d)}</i>` : (t.recFor ? '<small>repasse</small>' : '');
-  return `<button class="tx" data-act="edtx" data-id="${t.id}">${cbadge(t.cat)}<span class="tm"><b>${esc(t.desc)}</b><small>${sub}</small></span><span class="tv"><b class="${isIn ? 'cr' : ''}">${isIn ? '+' : '−'}${brl(t.v).replace('−', '')}</b>${right}</span></button>`;
+  return `<button class="tx${isCard ? ' tx-card' : ''}"${isCard ? ` style="${cardVars(cardOf(t))}"` : ''} data-act="edtx" data-id="${t.id}">${cbadge(t.cat)}<span class="tm"><b>${esc(t.desc)}</b><small>${sub}</small></span><span class="tv"><b class="${isIn ? 'cr' : ''}">${isIn ? '+' : '−'}${brl(t.v).replace('−', '')}</b>${right}</span></button>`;
 }
 function apRow(a) {
   return `<button class="tx" data-act="edap" data-id="${a.id}"><span class="cbadge" style="--c:var(--k2)">${icon('box', 19)}</span><span class="tm"><b>${a.v < 0 ? 'Resgate de' : 'Guardado em'} ${esc(a.cx)}</b><small>caixinha${a.re ? ' · realocação' : a.ext ? ' · de terceiros' : ''}</small></span><span class="tv"><b style="color:var(--acc)">${brlS(a.v)}</b></span></button>`;
@@ -1910,64 +1922,216 @@ function patChart() {
   </section>`;
 }
 
-// ---------- calculadoras (as mais usadas: juros compostos, primeiro milhão, renda fixa, viver de renda) ----------
-const CALC = { jc: null, meta: null, rf: null, renda: null };
-function calcInit() {
-  if (CALC.jc) return;
-  const tot = Math.round(M.dashboard(CUR_YM).total), selic = String(S.selic || 10.75).replace('.', ',');
-  CALC.jc = { ini: String(tot), ap: '500', taxa: selic, anos: '10' };
-  CALC.meta = { alvo: '1000000', ini: String(tot), ap: '1000', taxa: selic, anos: '15' };
-  CALC.rf = { valor: '10000', meses: '24', cdi: Math.max(0, (S.selic || 10.75) - .1).toFixed(2).replace('.', ','), cdb: '110', lci: '92' };
-  CALC.renda = { renda: '5000', taxa: selic, ipca: '4,5' };
+// ---------- calculadoras ----------
+// Tabelas de 2026 (INSS e IRRF com a redução para rendas até R$ 7.350). São estimativas: confira no holerite.
+const INSS_T = [[1621.00, .075], [2902.84, .09], [4354.27, .12], [8475.55, .14]];
+function inssV(b) { let t = 0, prev = 0; for (const [lim, a] of INSS_T) { if (b > prev) t += (Math.min(b, lim) - prev) * a; prev = lim; } return t; }
+function irrfV(bruto, inss, dep) {
+  const ded = Math.max(inss + (dep || 0) * 189.59, 607.20), b = Math.max(0, bruto - ded);
+  const T = [[2428.80, 0, 0], [2826.65, .075, 182.16], [3751.05, .15, 394.16], [4664.68, .225, 675.49], [Infinity, .275, 908.73]];
+  const r = T.find(x => b <= x[0]); let t = Math.max(0, b * r[1] - r[2]);
+  if (bruto <= 5000) t = 0; else if (bruto <= 7350) t = Math.max(0, t - (978.62 - 0.133145 * bruto));
+  return t;
 }
-const cnum = s => { const v = Core.calc(String(s || '').replace(/\./g, '')); return isNaN(v) ? 0 : v; };
+const liqCLT = (b, dep) => { const i = inssV(b); return b - i - irrfV(b, i, dep); };
+const cnum = s => { const v = Core.calc(String(s == null ? '' : s).replace(/\.(?=\d{3}(\D|$))/g, '')); return isNaN(v) ? 0 : v; };
 const cm = a => Math.pow(1 + a / 100, 1 / 12) - 1;
 function fvc(pv, pmt, i, n) { const g = Math.pow(1 + i, n); return i ? pv * g + pmt * (g - 1) / i : pv + pmt * n; }
-const CALC_RES = {
-  jc() {
-    const c = CALC.jc, i = cm(cnum(c.taxa)), n = Math.round(cnum(c.anos) * 12), ini = cnum(c.ini), ap = cnum(c.ap);
-    const tot = fvc(ini, ap, i, n), inv = ini + ap * n, jur = tot - inv, anos = Math.max(1, Math.round(n / 12)), step = Math.ceil(anos / 15);
-    const yrs = []; for (let a = step; a <= anos; a += step) yrs.push({ a, t: fvc(ini, ap, i, a * 12), v: ini + ap * a * 12 });
-    const mx = Math.max(1, ...yrs.map(q => q.t)), bw = 300 / Math.max(1, yrs.length);
-    const bars = `<svg viewBox="0 0 300 96" class="mchart" role="img" aria-label="Evolução ano a ano">${yrs.map((q, k) => { const ht = q.t / mx * 76, hv = q.v / mx * 76, x0 = k * bw + 2; return `<rect x="${x0}" y="${80 - ht}" width="${bw - 4}" height="${ht}" rx="2" style="fill:var(--tan)"/><rect x="${x0}" y="${80 - hv}" width="${bw - 4}" height="${hv}" rx="2" style="fill:var(--acc)"/>${yrs.length <= 10 || k % 2 === 0 ? `<text x="${x0 + (bw - 4) / 2}" y="93" text-anchor="middle" class="ax">${q.a}a</text>` : ''}`; }).join('')}</svg>`;
-    return `<div class="cres"><span>Você terá</span><b class="serif">${brl(tot)}</b></div><div class="cgrid"><div><span>Total investido</span><b>${brl(inv)}</b></div><div><span>Em juros</span><b class="pos">${brl(jur)}</b></div><div><span>Renda mensal no fim</span><b>${brl(tot * i)}</b></div><div><span>Juros sobre o investido</span><b>${inv ? pct(jur / inv, 0) : '—'}</b></div></div><div class="chartleg" style="margin-top:12px"><span><i style="background:var(--acc)"></i>Investido</span><span><i style="background:var(--tan)"></i>Juros</span></div>${bars}`;
+const pmtPrice = (pv, i, n) => i ? pv * i / (1 - Math.pow(1 + i, -n)) : pv / n;
+const tempoTxt = m => m >= 1200 ? 'mais de 100 anos' : `${Math.floor(m / 12) ? `${Math.floor(m / 12)} ano${Math.floor(m / 12) === 1 ? '' : 's'}` : ''}${Math.floor(m / 12) && m % 12 ? ' e ' : ''}${m % 12 ? `${m % 12} ${m % 12 === 1 ? 'mês' : 'meses'}` : ''}` || 'agora';
+const cres = (l, v) => `<div class="cres"><span>${l}</span><b class="serif">${v}</b></div>`;
+const cgrid = items => `<div class="cgrid">${items.map(([l, v, c]) => `<div><span>${l}</span><b class="${c || ''}">${v}</b></div>`).join('')}</div>`;
+function avgGasto() { let s = 0, n = 0; for (let i = 1; i <= 3; i++) { const v = M.saidasConf(Core.addM(CUR_YM, -i)); if (v > 0.004) { s += v; n++; } } return n ? s / n : M.saidasConf(CUR_YM); }
+function avgSobra() { let s = 0; for (let i = 1; i <= 3; i++) s += Math.max(0, M.dashboard(Core.addM(CUR_YM, -i)).meta); return s / 3; }
+function reservaAtual() {
+  const rows = M.cxRows(M.today).rows.filter(r => /reserva|emerg/i.test(r.c.name));
+  return rows.length ? { v: sum(rows, r => r.atual), src: rows.map(r => r.c.name).join(', ') } : null;
+}
+const f2 = v => fmtNum(v);
+let CALC = null;
+function calcInit() {
+  if (CALC) return;
+  const tot = Math.round(M.dashboard(CUR_YM).total), selic = S.selic || 14.25, sel = String(selic).replace('.', ',');
+  const sal = S.fixed.find(f => f.id === 'f_sal'), salV = sal ? Math.round(M.fv(sal, CUR_YM) * 100) / 100 : 5000;
+  const res = reservaAtual();
+  CALC = {
+    jc: { ini: String(tot), ap: '500', taxa: sel, anos: '10' },
+    meta: { alvo: '1000000', ini: String(tot), ap: '1000', taxa: sel, anos: '15' },
+    renda: { renda: '5000', taxa: sel, ipca: '4,5', ret: '3000' },
+    reserva: { gasto: f2(avgGasto()), meses: '6', tem: f2(res ? res.v : 0), ap: f2(avgSobra()) },
+    rf: { valor: '10000', meses: '24', cdi: Math.max(0, selic - .1).toFixed(2).replace('.', ','), cdb: '110', lci: '92', tes: '100' },
+    vista: { preco: '3000', desc: '5', n: '10', juros: '0', cash: '1', rend: (selic * .85).toFixed(2).replace('.', ',') },
+    cartoes: { gasto: '3000', dolar: '5,40', a_nome: 'Cartão A', a_anu: '0', a_cash: '1', a_pts: '0', a_mil: '0', b_nome: 'Cartão B', b_anu: '1200', b_cash: '0', b_pts: '2,2', b_mil: '25' },
+    aluguel: { imovel: '500000', entrada: '100000', taxa: '11,5', anos: '30', aluguel: '2500', reaj: '5', valor: '5', rend: (selic * .85).toFixed(2).replace('.', ',') },
+    amort: { valor: '300000', taxa: '11,5', meses: '360', extra: '0', sis: 'sac' },
+    salario: { bruto: f2(salV), dep: '0', outros: '0' },
+    cltpj: { clt: f2(salV), ben: '800', pj: f2(salV * 1.5), aliq: '6', contador: '300', pro: '1621' },
+    decimo: { sal: f2(salV), meses: '12', dep: '0' },
+    ferias: { sal: f2(salV), dias: '30', vende: 'nao', dep: '0' }
+  };
+}
+const CALCS = {
+  jc: {
+    t: 'Juros compostos', s: 'Quanto seu dinheiro vira com aportes todo mês.', ic: 'trend', k: 2,
+    ins: [['ini', 'Valor inicial', 'R$'], ['ap', 'Aporte mensal', 'R$'], ['taxa', 'Taxa ao ano', '', '%'], ['anos', 'Prazo', '', 'anos']],
+    res(c) {
+      const i = cm(cnum(c.taxa)), n = Math.round(cnum(c.anos) * 12), ini = cnum(c.ini), ap = cnum(c.ap);
+      const tot = fvc(ini, ap, i, n), inv = ini + ap * n, jur = tot - inv, anos = Math.max(1, Math.round(n / 12)), step = Math.ceil(anos / 15);
+      const yrs = []; for (let a = step; a <= anos; a += step) yrs.push({ a, t: fvc(ini, ap, i, a * 12), v: ini + ap * a * 12 });
+      const mx = Math.max(1, ...yrs.map(q => q.t)), bw = 300 / Math.max(1, yrs.length);
+      const bars = `<svg viewBox="0 0 300 96" class="mchart" role="img" aria-label="Evolução ano a ano">${yrs.map((q, k) => { const ht = q.t / mx * 76, hv = q.v / mx * 76, x0 = k * bw + 2; return `<rect x="${x0}" y="${80 - ht}" width="${bw - 4}" height="${ht}" rx="2" style="fill:var(--tan)"/><rect x="${x0}" y="${80 - hv}" width="${bw - 4}" height="${hv}" rx="2" style="fill:var(--acc)"/>${yrs.length <= 10 || k % 2 === 0 ? `<text x="${x0 + (bw - 4) / 2}" y="93" text-anchor="middle" class="ax">${q.a}a</text>` : ''}`; }).join('')}</svg>`;
+      return cres('Você terá', brl(tot)) + cgrid([['Total investido', brl(inv)], ['Em juros', brl(jur), 'pos'], ['Renda mensal no fim', brl(tot * i)], ['Juros sobre o investido', inv ? pct(jur / inv, 0) : '—']]) + `<div class="chartleg" style="margin-top:12px"><span><i style="background:var(--acc)"></i>Investido</span><span><i style="background:var(--tan)"></i>Juros</span></div>${bars}`;
+    }
   },
-  meta() {
-    const c = CALC.meta, i = cm(cnum(c.taxa)), alvo = cnum(c.alvo), ini = cnum(c.ini), ap = cnum(c.ap), n = Math.round(cnum(c.anos) * 12);
-    let m = 0, v = ini; while (v < alvo && m < 1200) { v = v * (1 + i) + ap; m++; }
-    const g = Math.pow(1 + i, n), need = n ? Math.max(0, i ? (alvo - ini * g) * i / (g - 1) : (alvo - ini) / n) : 0;
-    const tempo = m >= 1200 ? 'mais de 100 anos' : `${Math.floor(m / 12)} ano${Math.floor(m / 12) === 1 ? '' : 's'}${m % 12 ? ` e ${m % 12} ${m % 12 === 1 ? 'mês' : 'meses'}` : ''}`;
-    return `<div class="cres"><span>Com ${brl(ap)} por mês você chega lá em</span><b class="serif">${ini >= alvo ? 'já chegou' : tempo}</b></div><div class="cgrid"><div><span>Pra chegar em ${esc(c.anos)} anos</span><b>${brl(need)}/mês</b></div><div><span>Data prevista</span><b>${m < 1200 && ini < alvo ? ymLabel(Core.addM(CUR_YM, m)) : '—'}</b></div></div>`;
+  meta: {
+    t: 'Primeiro milhão', s: 'Quanto tempo falta e quanto aportar pra chegar na meta.', ic: 'target', k: 7,
+    ins: [['alvo', 'Meta', 'R$'], ['ini', 'Já tenho', 'R$'], ['ap', 'Aporte mensal', 'R$'], ['taxa', 'Taxa ao ano', '', '%'], ['anos', 'Quero chegar em', '', 'anos']],
+    res(c) {
+      const i = cm(cnum(c.taxa)), alvo = cnum(c.alvo), ini = cnum(c.ini), ap = cnum(c.ap), n = Math.round(cnum(c.anos) * 12);
+      let m = 0, v = ini; while (v < alvo && m < 1200) { v = v * (1 + i) + ap; m++; }
+      const g = Math.pow(1 + i, n), need = n ? Math.max(0, i ? (alvo - ini * g) * i / (g - 1) : (alvo - ini) / n) : 0;
+      return cres(`Com ${brl(ap)} por mês você chega lá em`, ini >= alvo ? 'já chegou' : tempoTxt(m)) + cgrid([[`Pra chegar em ${esc(c.anos)} anos`, `${brl(need)}/mês`], ['Data prevista', m < 1200 && ini < alvo ? ymLabel(Core.addM(CUR_YM, m)) : '—']]);
+    }
   },
-  rf() {
-    const c = CALC.rf, v = cnum(c.valor), n = cnum(c.meses), cdi = cnum(c.cdi), dias = n * 30;
-    const ir = dias <= 180 ? .225 : dias <= 360 ? .2 : dias <= 720 ? .175 : .15;
-    const cdb = v * (Math.pow(1 + cdi / 100 * cnum(c.cdb) / 100, n / 12) - 1) * (1 - ir);
-    const lci = v * (Math.pow(1 + cdi / 100 * cnum(c.lci) / 100, n / 12) - 1);
-    const pmo = cdi > 8.5 ? .005 : Math.pow(1 + cdi * .7 / 100, 1 / 12) - 1, poup = v * (Math.pow(1 + pmo, n) - 1);
-    const rows = [['CDB', cdb, `${esc(c.cdb)}% do CDI · IR ${pct(ir, 1)}`], ['LCI / LCA', lci, `${esc(c.lci)}% do CDI · isento`], ['Poupança', poup, 'isenta']];
-    const best = Math.max(...rows.map(r => r[1]));
-    return rows.map(r => `<div class="kv"><span>${r[0]} <small class="mut">${r[2]}</small></span><b class="${r[1] === best ? 'pos' : ''}">${brl(v + r[1])}${r[1] === best ? ' · melhor' : ''}</b></div>`).join('') + `<p class="mut sm" style="margin-top:8px">Pra empatar com a LCI de ${esc(c.lci)}%, o CDB precisa pagar ${(cnum(c.lci) / (1 - ir)).toFixed(1).replace('.', ',')}% do CDI nesse prazo.</p>`;
+  renda: {
+    t: 'Calculadora de renda', s: 'Quanto precisa pra viver de renda e quanto duram as retiradas.', ic: 'sun', k: 3,
+    ins: [['renda', 'Renda mensal desejada', 'R$'], ['taxa', 'Rendimento ao ano', '', '%'], ['ipca', 'Inflação ao ano', '', '%'], ['ret', 'Retirada mensal (teste)', 'R$']],
+    res(c) {
+      const real = (1 + cnum(c.taxa) / 100) / (1 + cnum(c.ipca) / 100) - 1, im = Math.pow(1 + real, 1 / 12) - 1;
+      const need = im > 0 ? cnum(c.renda) / im : 0, tem = M.dashboard(CUR_YM).total, perp = tem * im, ret = cnum(c.ret);
+      let m = 0, v = tem; if (ret > perp) while (v > 0 && m < 1200) { v = v * (1 + im) - ret; m++; }
+      return cres('Patrimônio necessário', im > 0 ? brl(need) : '—') + cgrid([['Juro real ao ano', pct(real, 2)], ['Você já tem', need ? pct(Math.min(1, tem / need), 1) : '—'], ['Hoje dá pra tirar, pra sempre', `${brl(perp)}/mês`], [`Tirando ${brl(ret)}/mês`, ret <= perp ? 'dura pra sempre' : `acaba em ${tempoTxt(m)}`, ret <= perp ? 'pos' : 'neg']]) + `<div class="hb-b" style="margin-top:10px"><i style="width:${need ? Math.min(100, tem / need * 100).toFixed(1) : 0}%"></i></div><p class="mut sm" style="margin-top:8px">Usa o seu patrimônio atual (${brl(tem)}) e o rendimento acima da inflação.</p>`;
+    }
   },
-  renda() {
-    const c = CALC.renda, real = (1 + cnum(c.taxa) / 100) / (1 + cnum(c.ipca) / 100) - 1, im = Math.pow(1 + real, 1 / 12) - 1;
-    const need = im > 0 ? cnum(c.renda) / im : 0, tem = M.dashboard(CUR_YM).total;
-    return `<div class="cres"><span>Patrimônio necessário</span><b class="serif">${im > 0 ? brl(need) : '—'}</b></div><div class="cgrid"><div><span>Juro real ao ano</span><b>${pct(real, 2)}</b></div><div><span>Você já tem</span><b>${need ? pct(Math.min(1, tem / need), 1) : '—'}</b></div></div><div class="hb-b" style="margin-top:10px"><i style="width:${need ? Math.min(100, tem / need * 100).toFixed(1) : 0}%"></i></div><p class="mut sm" style="margin-top:8px">Vivendo só do rendimento acima da inflação, sem consumir o patrimônio.</p>`;
+  reserva: {
+    t: 'Reserva de emergência', s: 'Com base nos seus próprios gastos dos últimos meses.', ic: 'box', k: 4,
+    ins: [['gasto', 'Custo mensal', 'R$'], { seg: 'meses', opts: [['3', '3 meses'], ['6', '6 meses'], ['12', '12 meses']], l: 'Cobertura' }, ['tem', 'Já tenho guardado', 'R$'], ['ap', 'Guardo por mês', 'R$']],
+    res(c) {
+      const alvo = cnum(c.gasto) * cnum(c.meses), tem = cnum(c.tem), ap = cnum(c.ap), falta = Math.max(0, alvo - tem), r = reservaAtual();
+      const m = ap > 0 ? Math.ceil(falta / ap) : Infinity;
+      return cres('Sua reserva ideal', brl(alvo)) + cgrid([['Falta', brl(falta), falta > 0 ? 'neg' : 'pos'], ['Atingido', alvo ? pct(Math.min(1, tem / alvo), 0) : '—'], ['No ritmo atual', falta <= 0 ? 'completa' : isFinite(m) ? tempoTxt(m) : '—'], ['Previsão', falta <= 0 || !isFinite(m) ? '—' : ymLabel(Core.addM(CUR_YM, m))]]) + `<div class="hb-b" style="margin-top:10px"><i style="width:${alvo ? Math.min(100, tem / alvo * 100).toFixed(1) : 0}%"></i></div><p class="mut sm" style="margin-top:8px">Custo mensal = média das saídas dos últimos 3 meses (${brl(avgGasto())}). ${r ? `Já guardado = caixinha ${esc(r.src)}.` : 'Não achei caixinha com “reserva” ou “emergência” no nome — crie uma pra acompanhar sozinho.'} Guardo por mês = média das sobras recentes.</p>`;
+    }
+  },
+  rf: {
+    t: 'Simulador de rentabilidade', s: 'CDB, LCI/LCA, Tesouro Selic e poupança no mesmo prazo, já com IR.', ic: 'chart', k: 6,
+    ins: [['valor', 'Valor', 'R$'], ['meses', 'Prazo', '', 'meses'], ['cdi', 'CDI ao ano', '', '%'], ['cdb', 'CDB', '', '% CDI'], ['lci', 'LCI/LCA', '', '% CDI'], ['tes', 'Tesouro Selic', '', '% Selic']],
+    res(c) {
+      const v = cnum(c.valor), n = cnum(c.meses), cdi = cnum(c.cdi), dias = n * 30;
+      const ir = dias <= 180 ? .225 : dias <= 360 ? .2 : dias <= 720 ? .175 : .15;
+      const bruto = pctA => v * (Math.pow(1 + cdi / 100 * pctA / 100, n / 12) - 1);
+      const pm = cdi > 8.5 ? .005 : Math.pow(1 + cdi * .7 / 100, 1 / 12) - 1;
+      const rows = [['CDB', bruto(cnum(c.cdb)) * (1 - ir), `${esc(c.cdb)}% CDI · IR ${pct(ir, 1)}`], ['LCI / LCA', bruto(cnum(c.lci)), `${esc(c.lci)}% CDI · isento`], ['Tesouro Selic', bruto(cnum(c.tes)) * (1 - ir) - v * .002 * n / 12, `IR ${pct(ir, 1)} · custódia 0,2%`], ['Poupança', v * (Math.pow(1 + pm, n) - 1), 'isenta']];
+      const best = Math.max(...rows.map(r => r[1]));
+      return rows.map(r => `<div class="kv"><span>${r[0]} <small class="mut">${r[2]}</small></span><b class="${r[1] === best ? 'pos' : ''}">${brl(v + r[1])}${r[1] === best ? ' · melhor' : ''}</b></div>`).join('') + `<p class="mut sm" style="margin-top:8px">Pra empatar com a LCI de ${esc(c.lci)}%, o CDB precisa pagar ${(cnum(c.lci) / (1 - ir)).toFixed(1).replace('.', ',')}% do CDI nesse prazo. Pra ver a evolução do seu patrimônio real, use o gráfico de previsões acima.</p>`;
+    }
+  },
+  vista: {
+    t: 'À vista ou parcelado', s: 'Considera o rendimento do dinheiro parado e o cashback do cartão.', ic: 'card', k: 5,
+    ins: [['preco', 'Preço cheio', 'R$'], ['desc', 'Desconto à vista', '', '%'], ['n', 'Parcelas', '', 'x'], ['juros', 'Juros do parcelado', '', '% a.m.'], ['cash', 'Cashback no crédito', '', '%'], ['rend', 'Rendimento líquido', '', '% a.a.']],
+    res(c) {
+      const preco = cnum(c.preco), n = Math.max(1, Math.round(cnum(c.n))), jm = cnum(c.juros) / 100, i = cm(cnum(c.rend));
+      const parc = pmtPrice(preco, jm, n), total = parc * n, cash = total * cnum(c.cash) / 100;
+      const pv = i ? parc * (1 - Math.pow(1 + i, -n)) / i : total, custoParc = pv - cash, custoVista = preco * (1 - cnum(c.desc) / 100);
+      const melhor = custoVista <= custoParc ? 'À vista' : 'Parcelado', eco = Math.abs(custoParc - custoVista);
+      const descMin = Math.max(0, 1 - custoParc / preco);
+      return cres('Vale mais a pena', `${melhor} · economiza ${brl(eco)}`) + cgrid([['À vista', brl(custoVista)], [`Parcelado ${n}× de ${brl(parc)}`, brl(total)], ['Custo real do parcelado', brl(custoParc), 'acc'], ['Cashback', brl(cash), 'pos'], ['Desconto mínimo p/ pagar à vista', pct(descMin, 1)], ['Rendimento enquanto paga', brl(total - pv)]]) + `<p class="mut sm" style="margin-top:8px">Custo real do parcelado = quanto você precisaria deixar investido hoje pra pagar todas as parcelas, menos o cashback.</p>`;
+    }
+  },
+  cartoes: {
+    t: 'Comparador de cartões', s: 'Anuidade, cashback e pontos: qual cartão rende mais pra você.', ic: 'card', k: 8,
+    ins: [['gasto', 'Gasto mensal no cartão', 'R$'], ['dolar', 'Dólar', 'R$'], { h: 'Primeiro cartão' }, ['a_nome', 'Nome', '', '', 1], ['a_anu', 'Anuidade por ano', 'R$'], ['a_cash', 'Cashback', '', '%'], ['a_pts', 'Pontos por US$', '', 'pts'], ['a_mil', 'Valor do milheiro', 'R$'], { h: 'Segundo cartão' }, ['b_nome', 'Nome', '', '', 1], ['b_anu', 'Anuidade por ano', 'R$'], ['b_cash', 'Cashback', '', '%'], ['b_pts', 'Pontos por US$', '', 'pts'], ['b_mil', 'Valor do milheiro', 'R$']],
+    res(c) {
+      const ano = cnum(c.gasto) * 12, dol = cnum(c.dolar) || 1;
+      const calc = p => { const cash = ano * cnum(c[p + '_cash']) / 100, pts = ano / dol * cnum(c[p + '_pts']), ptsV = pts / 1000 * cnum(c[p + '_mil']); return { cash, pts, ptsV, anu: cnum(c[p + '_anu']), liq: cash + ptsV - cnum(c[p + '_anu']) }; };
+      const a = calc('a'), b = calc('b'), win = a.liq >= b.liq ? c.a_nome : c.b_nome;
+      const col = (nm, r) => `<div class="card" style="margin:0;padding:12px;box-shadow:none;background:var(--card-2)"><b style="display:block;margin-bottom:6px">${esc(nm)}</b>${kv('Cashback', brl(r.cash))}${kv(`${Math.round(r.pts).toLocaleString('pt-BR')} pontos`, brl(r.ptsV))}${kv('Anuidade', '−' + brl(r.anu))}<div class="kv tot"><span>Ganho no ano</span><b class="${signCls(r.liq)}">${brl(r.liq)}</b></div></div>`;
+      return cres('Rende mais', `${esc(win)} · +${brl(Math.abs(a.liq - b.liq))}/ano`) + `<div class="cgrid" style="grid-template-columns:1fr">${col(c.a_nome, a)}${col(c.b_nome, b)}</div>`;
+    }
+  },
+  aluguel: {
+    t: 'Aluguel x financiamento', s: 'Compara o patrimônio no fim do prazo nos dois caminhos.', ic: 'house', k: 1,
+    ins: [['imovel', 'Valor do imóvel', 'R$'], ['entrada', 'Entrada', 'R$'], ['taxa', 'Juros do financiamento', '', '% a.a.'], ['anos', 'Prazo', '', 'anos'], ['aluguel', 'Aluguel hoje', 'R$'], ['reaj', 'Reajuste do aluguel', '', '% a.a.'], ['valor', 'Valorização do imóvel', '', '% a.a.'], ['rend', 'Rendimento dos investimentos', '', '% a.a.']],
+    res(c) {
+      const imovel = cnum(c.imovel), ent = cnum(c.entrada), n = Math.round(cnum(c.anos) * 12), i = cm(cnum(c.taxa)), inv = cm(cnum(c.rend));
+      const parc = pmtPrice(imovel - ent, i, n); let alug = cnum(c.aluguel), saldo = ent, pagoAlug = 0;
+      for (let m = 1; m <= n; m++) { saldo = saldo * (1 + inv) + (parc - alug); pagoAlug += alug; if (m % 12 === 0) alug *= 1 + cnum(c.reaj) / 100; }
+      const casa = imovel * Math.pow(1 + cnum(c.valor) / 100, n / 12), win = casa >= saldo ? 'Financiar' : 'Alugar e investir';
+      return cres('No fim do prazo, sai na frente', `${win} · +${brl(Math.abs(casa - saldo))}`) + cgrid([['Financiando: imóvel vale', brl(casa)], ['Alugando: investimentos', brl(saldo)], ['Parcela (Price)', brl(parc)], ['Total de juros pagos', brl(parc * n - (imovel - ent)), 'neg'], ['Total pago de aluguel', brl(pagoAlug)], ['Aluguel no fim', `${brl(alug)}/mês`]]) + `<p class="mut sm" style="margin-top:8px">Alugando, a entrada vai pro investimento e todo mês você investe a diferença entre a parcela e o aluguel (ou resgata, se o aluguel passar da parcela).</p>`;
+    }
+  },
+  amort: {
+    t: 'Amortização', s: 'Parcelas e saldo devedor pela tabela SAC ou Price, com amortização extra.', ic: 'file', k: 6,
+    ins: [['valor', 'Valor financiado', 'R$'], ['taxa', 'Juros', '', '% a.a.'], ['meses', 'Prazo', '', 'meses'], ['extra', 'Amortização extra/mês', 'R$'], { seg: 'sis', opts: [['sac', 'SAC'], ['price', 'Price']], l: 'Sistema' }],
+    res(c) {
+      const pv = cnum(c.valor), i = cm(cnum(c.taxa)), n = Math.max(1, Math.round(cnum(c.meses))), ex = cnum(c.extra), sac = c.sis === 'sac';
+      const fixa = pmtPrice(pv, i, n), am = pv / n; let s = pv, m = 0, juros = 0, first = 0, lastP = 0; const yrs = [];
+      let pagoAno = 0;
+      while (s > 0.01 && m < n) { const j = s * i, p = sac ? am + j : fixa, amo = Math.min(s, p - j + ex); juros += j; s -= amo; m++; const pg = amo + j; if (m === 1) first = pg; lastP = pg; pagoAno += pg; if (m % 12 === 0 || s <= 0.01) { yrs.push({ a: Math.ceil(m / 12), s: Math.max(0, s), pg: pagoAno }); pagoAno = 0; } }
+      const semEx = sac ? pv * i * (n + 1) / 2 : fixa * n - pv;
+      return cres('Total de juros', brl(juros)) + cgrid([['1ª parcela', brl(first)], ['Última parcela', brl(lastP)], ['Quitado em', tempoTxt(m)], ['Juros economizados', ex > 0 ? brl(semEx - juros) : '—', 'pos']]) + `<div class="tscroll" style="margin-top:12px;max-height:260px;overflow:auto;box-shadow:none;border:1px solid var(--line)"><table class="tbl" style="min-width:0"><thead><tr><th>Ano</th><th>Pago no ano</th><th>Saldo devedor</th></tr></thead><tbody>${yrs.map(y => `<tr><th>${y.a}º</th><td>${f2(y.pg)}</td><td>${f2(y.s)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+  },
+  salario: {
+    t: 'Salário líquido', s: 'Quanto cai na conta depois de INSS e IR (tabelas 2026).', ic: 'brief', k: 1,
+    ins: [['bruto', 'Salário bruto', 'R$'], ['dep', 'Dependentes', '', ''], ['outros', 'Outros descontos', 'R$']],
+    res(c) {
+      const b = cnum(c.bruto), i = inssV(b), ir = irrfV(b, i, cnum(c.dep)), liq = b - i - ir - cnum(c.outros);
+      return cres('Salário líquido', brl(liq)) + cgrid([['INSS', '−' + brl(i), 'neg'], ['Imposto de renda', ir > 0.004 ? '−' + brl(ir) : 'isento', ir > 0.004 ? 'neg' : 'pos'], ['Outros descontos', '−' + brl(cnum(c.outros))], ['FGTS (depositado pela empresa)', brl(b * .08), 'acc'], ['Descontos sobre o bruto', b ? pct((b - liq) / b, 1) : '—']]) + `<p class="mut sm" style="margin-top:8px">Considera a isenção de IR para salários até R$ 5.000 e a redução gradual até R$ 7.350 (regra de 2026).</p>`;
+    }
+  },
+  cltpj: {
+    t: 'CLT x PJ', s: 'Compara o que sobra no ano em cada regime.', ic: 'swap', k: 3,
+    ins: [['clt', 'Salário CLT', 'R$'], ['ben', 'Benefícios CLT/mês', 'R$'], ['pj', 'Faturamento PJ/mês', 'R$'], ['aliq', 'Imposto PJ (Simples)', '', '%'], ['contador', 'Contador/mês', 'R$'], ['pro', 'Pró-labore', 'R$']],
+    res(c) {
+      const b = cnum(c.clt), ben = cnum(c.ben);
+      const cltAno = 11 * liqCLT(b, 0) + liqCLT(b * 4 / 3, 0) + liqCLT(b, 0) + b * .08 * (13 + 1 / 3) + ben * 12;
+      const pjMes = f => { const pro = cnum(c.pro), inss = Math.min(pro, 8475.55) * .11; return f - f * cnum(c.aliq) / 100 - cnum(c.contador) - inss - irrfV(pro, inss, 0); };
+      const pjAno = pjMes(cnum(c.pj)) * 12;
+      let lo = 0, hi = b * 5 + 20000; for (let k = 0; k < 50; k++) { const mid = (lo + hi) / 2; if (pjMes(mid) * 12 < cltAno) lo = mid; else hi = mid; }
+      const win = pjAno >= cltAno ? 'PJ' : 'CLT';
+      return cres('Sobra mais no ano', `${win} · +${brl(Math.abs(pjAno - cltAno))}`) + cgrid([['CLT no ano', brl(cltAno)], ['PJ no ano', brl(pjAno)], ['CLT por mês (média)', brl(cltAno / 12)], ['PJ por mês', brl(pjAno / 12)], ['PJ precisa faturar pra empatar', `${brl(hi)}/mês`, 'acc']]) + `<p class="mut sm" style="margin-top:8px">CLT inclui 13º, férias com 1/3, FGTS e benefícios. PJ considera o imposto do Simples, contador, INSS e IR do pró-labore — sem férias nem 13º.</p>`;
+    }
+  },
+  decimo: {
+    t: 'Décimo terceiro', s: 'Valor das duas parcelas, já com descontos.', ic: 'gift', k: 5,
+    ins: [['sal', 'Salário bruto', 'R$'], ['meses', 'Meses trabalhados no ano', '', ''], ['dep', 'Dependentes', '', '']],
+    res(c) {
+      const v = cnum(c.sal) * Math.min(12, cnum(c.meses)) / 12, i = inssV(v), ir = irrfV(v, i, cnum(c.dep)), p1 = v / 2, p2 = v - i - ir - p1;
+      return cres('13º líquido', brl(p1 + p2)) + cgrid([['1ª parcela (até 30/11)', brl(p1), 'pos'], ['2ª parcela (até 20/12)', brl(p2)], ['13º bruto', brl(v)], ['INSS + IR', '−' + brl(i + ir), 'neg']]) + `<p class="mut sm" style="margin-top:8px">A 1ª parcela vem sem descontos; INSS e IR saem todos da 2ª.</p>`;
+    }
+  },
+  ferias: {
+    t: 'Férias', s: 'Quanto você recebe nas férias, com 1/3 e venda de dias.', ic: 'sun', k: 7,
+    ins: [['sal', 'Salário bruto', 'R$'], ['dias', 'Dias de férias', '', 'dias'], { seg: 'vende', opts: [['nao', 'Não vender'], ['sim', 'Vender 10 dias']], l: 'Abono' }, ['dep', 'Dependentes', '', '']],
+    res(c) {
+      const sal = cnum(c.sal), vende = c.vende === 'sim', dias = vende ? Math.min(20, cnum(c.dias)) : cnum(c.dias);
+      const fer = sal / 30 * dias, terco = fer / 3, i = inssV(fer + terco), ir = irrfV(fer + terco, i, cnum(c.dep));
+      const abono = vende ? sal / 30 * 10 * 4 / 3 : 0, liq = fer + terco - i - ir + abono;
+      return cres('Você recebe', brl(liq)) + cgrid([['Férias', brl(fer)], ['1/3 constitucional', brl(terco)], ['Abono (10 dias + 1/3)', vende ? brl(abono) : '—', 'pos'], ['INSS + IR', '−' + brl(i + ir), 'neg']]) + `<p class="mut sm" style="margin-top:8px">O abono de férias vendidas é isento de INSS e IR. Os dias de férias são pagos até 2 dias antes de começar.</p>`;
+    }
   }
 };
-const cin = (g, k, l, pre, suf) => `<label class="cin"><span>${l}</span><span class="cbox">${pre ? `<i>${pre}</i>` : ''}<input inputmode="decimal" data-calc="${g}.${k}" value="${esc(CALC[g][k])}">${suf ? `<i>${suf}</i>` : ''}</span></label>`;
+function calcBody(g) {
+  const c = CALC[g], d = CALCS[g];
+  const ins = d.ins.map(x => {
+    if (x.h) return `<div class="chead">${x.h}</div>`;
+    if (x.seg) return `<div class="cin cfull"><span>${x.l}</span><div class="seg">${x.opts.map(([v, l]) => `<button type="button" class="${String(c[x.seg]) === v ? 'on' : ''}" data-act="calcset" data-g="${g}" data-f="${x.seg}" data-v="${v}">${l}</button>`).join('')}</div></div>`;
+    const [k, l, pre, suf, txt] = x;
+    return `<label class="cin"><span>${l}</span><span class="cbox">${pre ? `<i>${pre}</i>` : ''}<input ${txt ? 'type="text"' : 'inputmode="decimal"'} data-calc="${g}.${k}" value="${esc(c[k])}" autocomplete="off">${suf ? `<i>${suf}</i>` : ''}</span></label>`;
+  }).join('');
+  return `<p class="mut" style="margin:-6px 0 14px">${d.s}</p><div class="cins">${ins}</div><div id="cr-${g}">${d.res(c)}</div>`;
+}
 function viewCalcBody() {
   calcInit();
-  const box = (g, t, s, ins) => `<section class="card calc"><h3>${t}</h3><p class="mut sm" style="margin:2px 0 12px">${s}</p><div class="cins">${ins}</div><div id="cr-${g}">${CALC_RES[g]()}</div></section>`;
-  return box('jc', 'Juros compostos', 'Quanto seu dinheiro vira com aportes todo mês.', cin('jc', 'ini', 'Valor inicial', 'R$') + cin('jc', 'ap', 'Aporte mensal', 'R$') + cin('jc', 'taxa', 'Taxa ao ano', '', '%') + cin('jc', 'anos', 'Prazo', '', 'anos')) +
-    box('meta', 'Meta · primeiro milhão', 'Quanto tempo falta e quanto aportar pra chegar lá.', cin('meta', 'alvo', 'Meta', 'R$') + cin('meta', 'ini', 'Já tenho', 'R$') + cin('meta', 'ap', 'Aporte mensal', 'R$') + cin('meta', 'taxa', 'Taxa ao ano', '', '%') + cin('meta', 'anos', 'Quero chegar em', '', 'anos')) +
-    box('rf', 'Comparador de renda fixa', 'CDB, LCI/LCA e poupança no mesmo prazo, já com IR.', cin('rf', 'valor', 'Valor', 'R$') + cin('rf', 'meses', 'Prazo', '', 'meses') + cin('rf', 'cdi', 'CDI ao ano', '', '%') + cin('rf', 'cdb', 'CDB', '', '% CDI') + cin('rf', 'lci', 'LCI/LCA', '', '% CDI')) +
-    box('renda', 'Viver de renda', 'Patrimônio pra tirar uma renda mensal sem gastar o principal.', cin('renda', 'renda', 'Renda mensal', 'R$') + cin('renda', 'taxa', 'Rendimento ao ano', '', '%') + cin('renda', 'ipca', 'Inflação ao ano', '', '%'));
+  return `<div class="calcgrid">${Object.entries(CALCS).map(([g, d]) => `<button class="ctile" data-act="calcopen" data-g="${g}"><span class="cbadge sm" style="--c:var(--k${d.k})">${icon(d.ic, 16)}</span><b>${d.t}</b><small>${d.s}</small></button>`).join('')}</div><p class="mut sm" style="margin:10px 2px 0">Salário, reserva, décimo terceiro e férias já vêm preenchidos com os dados da sua conta. São estimativas; confira os valores oficiais.</p>`;
 }
+ACT.calcopen = el => { calcInit(); const g = el.dataset.g; openInfo(CALCS[g].t, calcBody(g)); FM.calc = g; };
+ACT.calcset = el => { const g = el.dataset.g; CALC[g][el.dataset.f] = el.dataset.v; if (FM) { FM.info = calcBody(g); drawSheet(); } };
 document.addEventListener('input', e => {
   const k = e.target && e.target.dataset && e.target.dataset.calc; if (!k) return;
   const [g, f] = k.split('.'); CALC[g][f] = e.target.value;
-  const r = $('cr-' + g); if (r) r.innerHTML = CALC_RES[g]();
+  const r = $('cr-' + g); if (r) r.innerHTML = CALCS[g].res(CALC[g]);
+  if (FM && FM.calc === g) FM.info = calcBody(g);
 });
 
 
