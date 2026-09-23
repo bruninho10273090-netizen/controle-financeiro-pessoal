@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.financeiroapp",
+      "sha256_cert_fingerprints": ["D5:E4:CC:F7:E5:E6:DF:B8:01:B6:C9:CB:EA:E1:52:4E:9E:59:50:35:C3:86:4B:D3:20:0E:A8:88:F0:6B:63:44"]
+    }
+  }
+]

@@ -671,6 +671,8 @@ body.auth #app{padding:0;max-width:none}
 .chinfo-v b{font:400 24px/1.1 var(--serif);white-space:nowrap}.chinfo-v small{font-size:11.5px;color:var(--pos)}
 @media (min-width:980px){.sheet:has(.bigchart){max-width:820px}}
 
+/* ---------- app Android ---------- */
+.applink{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;padding:8px;background:none;border:0;font:600 13.5px var(--sans);color:var(--acc)}
 /* ---------- total das faturas (Início) ---------- */
 .cardtot{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line-2);border-radius:18px;padding:14px 16px;margin:0 0 10px;box-shadow:var(--shadow);transition:transform .18s var(--ease)}
 .cardtot:active{transform:scale(.985)}
@@ -3775,6 +3777,13 @@ ACT.priv = () => {
 
 // ---------- app instalável ----------
 let INSTALL_EVT = null;
+// app Android (arquivo .apk na página de versões do GitHub; o link "latest" sempre aponta para a versão mais nova)
+const APK_URL = 'https://github.com/financeiro-app/financeiro-app.github.io/releases/latest/download/controle-financeiro.apk';
+const isAndroid = () => /android/i.test(navigator.userAgent || '');
+ACT.apkdl = () => openInfo('App para Android', `<p class="mut" style="margin-bottom:12px">É o mesmo app do site, com ícone próprio e abrindo em tela cheia. Você entra com o mesmo e-mail e senha.</p>
+  <ol class="steps"><li>Toque em <b>Baixar o app</b>. Se o Chrome avisar sobre o tipo de arquivo, confirme <b>Baixar mesmo assim</b>.</li><li>Abra o arquivo baixado. Na primeira vez, o Android pede para <b>permitir instalar apps desta fonte</b>: permita.</li><li>Toque em <b>Instalar</b> e depois em <b>Abrir</b>.</li></ol>
+  <a class="btn primary" style="width:100%;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none" href="${APK_URL}" rel="noopener">${icon('save', 18)} Baixar o app</a>
+  <p class="mut sm" style="margin-top:10px">O Android pede essa permissão porque o app ainda não está na Play Store. Ele só abre este mesmo site, com seus dados na sua conta.</p>`);
 const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); INSTALL_EVT = e; if (UI.tab === 'more' && authUser) render(); });
 window.addEventListener('appinstalled', () => { INSTALL_EVT = null; toast('App instalado'); if (UI.tab === 'more' && authUser) render(); });
@@ -4311,7 +4320,7 @@ function viewMore() {
       set('save', 'Backup', 'Exportar ou importar todos os seus dados', 'dados')) +
     group('Privacidade e app',
       set(PRIV ? 'eyeoff' : 'eye', PRIV ? 'Valores escondidos' : 'Esconder valores', PRIV ? 'Toque para mostrar de novo' : 'Troca os valores por •••• em todas as telas', 'priv') +
-      (isStandalone() ? '' : set('phone', 'Instalar o app', 'Ícone na tela do celular, abre em tela cheia e sem internet', 'install'))) +
+      (isStandalone() ? '' : isAndroid() ? set('phone', 'Baixar o app para Android', 'Ícone próprio, abre em tela cheia', 'apkdl') : set('phone', 'Instalar o app', 'Ícone na tela do celular, abre em tela cheia e sem internet', 'install'))) +
     `<div class="group-t">Aparência</div><div class="seg">${[['light', 'Clara'], ['dark', 'Escura'], ['auto', 'Automática']].map(([k, l]) => `<button class="${th === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div>` +
     (authUser ? group('Conta', set('logout', 'Sair da conta', email, 'logout')) : '') +
     `<p class="mut sm pad" style="margin:18px 2px 0;text-align:center">Seus dados ficam salvos na sua conta e sincronizados entre aparelhos.</p>`;
@@ -5415,7 +5424,8 @@ function renderAuth() {
       <div class="fld"><label class="fl" for="authEmail">E-mail</label><input class="in" id="authEmail" type="email" autocomplete="email" placeholder="voce@email.com" value="${esc(authEmailVal)}"></div>
       <div class="fld"><label class="fl" for="authPass">Senha</label><input class="in" id="authPass" type="password" placeholder="${up ? 'Mínimo de 6 caracteres' : '••••••••'}" autocomplete="${up ? 'new-password' : 'current-password'}"></div>
       <button class="btn primary auth-btn" data-act="authSubmit" ${authBusy ? 'disabled' : ''}>${authBusy ? 'Aguarde…' : (up ? 'Criar conta' : 'Entrar')}</button>
-      <button class="btn ghost auth-alt" data-act="authToggle">${up ? 'Já tenho conta' : 'Criar uma conta nova'}</button>`);
+      <button class="btn ghost auth-alt" data-act="authToggle">${up ? 'Já tenho conta' : 'Criar uma conta nova'}</button>
+      ${isAndroid() && !isStandalone() ? `<button class="applink" data-act="apkdl">${icon('phone', 16)} Baixar o app para Android</button>` : ''}`);
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && (e.target.id === 'authEmail' || e.target.id === 'authPass') && ACT.authSubmit) { e.preventDefault(); ACT.authSubmit(); } });
 ACT.authToggle = () => { authMode = authMode === 'signup' ? 'login' : 'signup'; authErr = ''; renderAuth(); };
