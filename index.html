@@ -280,6 +280,16 @@ body.auth main{padding-bottom:32px}
   body.auth #app{padding-left:48px;max-width:480px;margin:80px auto}
 }
 
+/* ---------- relatório: impressão / salvar em PDF ---------- */
+@media print{
+  body *{visibility:hidden}
+  .report-print,.report-print *{visibility:visible}
+  .sheet-back:has(.report-print){position:static;background:none;display:block;height:auto;padding:0}
+  .sheet:has(.report-print){position:static;max-height:none;overflow:visible;box-shadow:none;border-radius:0;padding:0;animation:none;max-width:100%;margin:0}
+  .report-print{position:static;width:auto}
+  .no-print{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -986,6 +996,20 @@ function cardLines(ym, back) {
 }
 
 // ---------- INÍCIO ----------
+// alertas simples: fatura fechando em breve, ou gasto do mês bem acima da média recente
+function homeAlerts() {
+  const msgs = [];
+  const todayDay = +TODAY.slice(8, 10);
+  const cd = Math.min(28, Math.max(1, S.closeDay || 1));
+  const dim = +Core.lastDay(CUR_YM).slice(8, 10);
+  const diasFecha = cd >= todayDay ? cd - todayDay : (dim - todayDay) + cd;
+  if (diasFecha <= 3) msgs.push(diasFecha === 0 ? 'A fatura do cartão fecha hoje.' : `A fatura do cartão fecha em ${diasFecha} dia${diasFecha > 1 ? 's' : ''} (dia ${cd}).`);
+  let somaAnt = 0, nAnt = 0;
+  for (let i = 1; i <= 3; i++) { somaAnt += M.saidasConf(Core.addM(CUR_YM, -i)); nAnt++; }
+  const mediaAnt = nAnt ? somaAnt / nAnt : 0, saiAtual = M.saidasConf(CUR_YM);
+  if (mediaAnt > 0.004 && saiAtual > mediaAnt * 1.3) msgs.push(`As saídas deste mês (${brl(saiAtual)}) já estão ${Math.round((saiAtual / mediaAnt - 1) * 100)}% acima da média dos últimos 3 meses (${brl(mediaAnt)}).`);
+  return msgs;
+}
 function viewHome() {
   const ym = UI.ym, d = M.dashboard(ym);
   const fixos = sum(M.fixedOf(ym, 'out').filter(x => !x.f.inFatura), x => x.v);
@@ -1046,7 +1070,9 @@ function viewHome() {
   const recBody = pend.length ? recRows + `<div class="kv tot"><span>Total do mês</span><b>${brl(sum(pend, t => t.v))}</b></div><button class="link" data-act="gorec">Ver outros meses</button>` : `<p class="mut sm">Nada a receber neste mês.</p><button class="link" data-act="gorec">Ver outros meses</button>`;
   const recCard = pendAll.length ? `<section class="card"><button class="card-h btn-h" data-act="tog" data-t="rec" aria-expanded="${UI.open.rec ? 'true' : 'false'}"><h3>A receber em ${ymLabel(ym)}</h3><b>${brl(sum(pend, t => t.v))} <span class="mut">${UI.open.rec ? '▴' : '▾'}</span></b></button>${UI.open.rec ? recBody : ''}</section>` : '';
   const envShow = (vaIn > 0.004 || S.env.reduce((s, e) => s + e.monthly, 0) > 0.004) ? envs : '';
-  return monthNav() + hero + stats + fatCard + pat + recCard + envShow + catCard + cxCard + invCard;
+  const alerts = ym === CUR_YM ? homeAlerts() : [];
+  const alertBox = alerts.length ? `<div class="warn">${alerts.map(m => `<div>${esc(m)}</div>`).join('')}</div>` : '';
+  return monthNav() + alertBox + hero + stats + fatCard + pat + recCard + envShow + catCard + cxCard + invCard;
 }
 
 // ---------- EXTRATO ----------
@@ -1141,6 +1167,30 @@ function monthDetail(ym) {
 }
 
 // ---------- CAIXINHAS ----------
+// previsão de data da meta: lê "Meta 4000" (ou parecido) do campo de nota e projeta pelo ritmo recente de aportes
+function parseMetaNote(note) {
+  const m = /meta\s*[:\-]?\s*([\d.,]+)/i.exec(String(note || ''));
+  if (!m) return null;
+  const v = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+  return isFinite(v) && v > 0 ? v : null;
+}
+function cxAvgAporte(name, months = 3) {
+  let tot = 0;
+  for (let i = 0; i < months; i++) {
+    const ym = Core.addM(CUR_YM, -i);
+    tot += sum(S.ap.filter(a => Core.key(a.cx) === Core.key(name)), a => a.d.slice(0, 7) === ym ? a.v : 0);
+  }
+  return tot / months;
+}
+function cxForecast(c, atual) {
+  const meta = parseMetaNote(c.note);
+  if (meta == null || atual >= meta) return '';
+  const avg = cxAvgAporte(c.name);
+  if (avg <= 0.004) return '';
+  const months = Math.max(1, Math.ceil((meta - atual) / avg));
+  const chega = ymLabel(Core.addM(CUR_YM, months));
+  return `<div class="cx-b acc">Nessa velocidade (${brl(avg)}/mês), chega aos ${brl(meta)} em ~${months} ${months === 1 ? 'mês' : 'meses'} (${chega})</div>`;
+}
 function viewCx() {
   const ym = UI.ym, d = M.dashboard(ym), fut = d.target > M.today;
   const projRows = new Map(d.pj.rows.map(r => [r.c.id, r.proj]));
@@ -1156,6 +1206,7 @@ function viewCx() {
       <div class="cx-b mut"><span>${pct(r.rate, 2)} ao ano${r.c.mult !== 1 ? ` (${Math.round(r.c.mult * 100)}% da Selic)` : ''}, ${r.dias} dias úteis</span><span>${pct(r.pct, 1)} do total</span></div>
       ${fut ? `<div class="cx-b"><span>Projeção em ${ymLabel(ym)}</span><b>${brl(projRows.get(r.c.id) || 0)}</b></div>` : ''}
       ${r.c.note ? `<div class="cx-n">${esc(r.c.note)}</div>` : ''}
+      ${cxForecast(r.c, r.atual)}
     </button>`).join('');
   const aps = S.ap.slice().sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : parseInt(b.id.slice(1)) - parseInt(a.id.slice(1))).slice(0, UI.open.allap ? 999 : 8);
   const apCard = card('Aportes recentes', aps.map(a => `<button class="row" data-act="edap" data-id="${a.id}"><span class="r-main"><b>${esc(a.cx)}</b><span class="tags"><i class="tag">${dmy(a.d)}/${a.d.slice(0, 4)}</i>${a.re ? '<i class="tag">Realocação</i>' : a.ext ? '<i class="tag">De terceiros</i>' : ''}</span></span><span class="r-amt ${a.v < 0 ? 'neg' : 'acc'}">${brlS(a.v)}</span></button>`).join('') + (S.ap.length > 8 ? `<button class="link" data-act="tog" data-t="allap">${UI.open.allap ? 'Mostrar menos' : 'Mostrar todos'}</button>` : ''));
@@ -1163,6 +1214,53 @@ function viewCx() {
 }
 
 // ---------- MAIS ----------
+// patrimônio ao longo do tempo: recalcula as caixinhas com data de corte no fim de cada mês (mesma lógica de cxRows,
+// só que "hoje" vira o fim do mês); investimentos usam a cotação atual, pois o app não guarda histórico de preço.
+function patrimHistory(maxMonths = 12) {
+  const invT = M.invest().total;
+  let startYm = S.startYm || CUR_YM;
+  if (Core.ymIdx(CUR_YM) - Core.ymIdx(startYm) + 1 > maxMonths) startYm = Core.idxYm(Core.ymIdx(CUR_YM) - maxMonths + 1);
+  const out = [];
+  for (let k = Core.ymIdx(startYm); k <= Core.ymIdx(CUR_YM); k++) {
+    const ym = Core.idxYm(k);
+    const asOf = Core.pd(ym === CUR_YM ? TODAY : Core.lastDay(ym));
+    out.push({ ym, v: M.cxRows(asOf).tot + invT });
+  }
+  return out;
+}
+function patrimChart() {
+  const rows = patrimHistory();
+  if (rows.length < 2) return card('Patrimônio ao longo do tempo', '<p class="mut sm">Ainda não há histórico suficiente. Volte aqui depois de alguns meses de uso.</p>');
+  const max = Math.max(1, ...rows.map(r => r.v)), min = Math.min(0, ...rows.map(r => r.v));
+  const W = 336, H = 120, base = H - 18, top = 10, span = Math.max(1, max - min), bw = W / rows.length;
+  const y = v => base - (v - min) / span * (base - top);
+  const svg = `<svg viewBox="0 0 ${W} ${H}" class="mchart" role="img" aria-label="Patrimônio ao longo do tempo"><line x1="0" x2="${W}" y1="${base}" y2="${base}" class="axis"/>${rows.map((r, i) => { const x = i * bw + 4, h = Math.max(1, base - y(r.v)); return `<rect x="${x}" y="${y(r.v)}" width="${Math.max(1, bw - 8)}" height="${h}" rx="3" class="${r.v >= 0 ? 'bp' : 'bn'} ${r.ym === CUR_YM ? 'cur' : ''}"/><text x="${x + Math.max(1, bw - 8) / 2}" y="${H - 4}" text-anchor="middle" class="ax">${MES[+r.ym.slice(5, 7) - 1][0]}</text>`; }).join('')}</svg>`;
+  return card('Patrimônio ao longo do tempo', svg + `<p class="mut sm" style="margin-top:6px">Caixinhas pelo saldo de cada mês; investimentos pelo valor atual (sem histórico de cotação).</p>`);
+}
+// relatório simples em tela cheia, pensado para impressão / "Salvar como PDF" do navegador
+function reportHtml() {
+  const ym = UI.ym, d = M.dashboard(ym);
+  const meses = [Core.addM(ym, -2), Core.addM(ym, -1), ym].map(m => ({ m, ent: M.entradas(m), sai: M.saidasConf(m) }));
+  const cats = M.porCategoria(ym).slice(0, 8);
+  const cxRows = d.cx.rows.slice().sort((a, b) => b.atual - a.atual);
+  return `<div class="report-print">
+    <h2 style="margin-bottom:2px">Relatório financeiro</h2>
+    <p class="mut sm" style="margin-bottom:14px">Gerado em ${dmy(TODAY)}/${TODAY.slice(0, 4)} · referente a ${ymLong(ym)}</p>
+    <h4>Resumo dos últimos 3 meses</h4>
+    ${meses.map(r => kv(ymLabel(r.m), `${brl(r.ent)} − ${brl(r.sai)} = ${brl(r.ent - r.sai)}`)).join('')}
+    <h4 style="margin-top:16px">Patrimônio em ${ymLabel(ym)}</h4>
+    ${kv('Patrimônio total', brl(d.patrimonio))}
+    ${kv('Caixinhas', brl(d.cx.tot))}
+    ${kv('Investimentos', brl(d.invT))}
+    <h4 style="margin-top:16px">Caixinhas</h4>
+    ${cxRows.length ? cxRows.map(r => kv(esc(r.c.name), brl(r.atual))).join('') : '<p class="mut sm">Nenhuma caixinha.</p>'}
+    <h4 style="margin-top:16px">Gastos por categoria em ${ymLabel(ym)}</h4>
+    ${cats.length ? cats.map(c => kv(esc(c.c), brl(c.v))).join('') : '<p class="mut sm">Sem gastos neste mês.</p>'}
+    <button type="button" class="btn primary no-print" style="width:100%;margin-top:18px" data-act="printgo">Imprimir / salvar em PDF</button>
+  </div>`;
+}
+ACT.openreport = () => openInfo('Relatório', reportHtml());
+ACT.printgo = () => window.print();
 function viewMore() {
   if (UI.sub === 'inv') return viewInv();
   if (UI.sub === 'fixos') return viewFixos();
@@ -1171,10 +1269,12 @@ function viewMore() {
   return `<h1 class="ph">Mais</h1>` + ((typeof SHARE !== 'undefined' && SHARE) ? accountCard() : '') +
     item('trend', 'Investimentos', 'Carteira, metas e rebalanceamento do aporte', 'openinv') +
     item('cog', 'Itens fixos e VA/VR', 'Salário, moradia, VA/VR e outros itens fixos', 'openfix') +
+    patrimChart() +
     item('card', 'VA/VR e salário', S.vaSep === false ? 'Somado ao salário (sem controle separado)' : hasVA() ? 'Separado do salário: o saldo do VA/VR fica à parte' : 'Sem VA/VR. Toque para configurar', 'vasetup') +
     item('card', 'Fechamento da fatura', `Dia ${S.closeDay || 1}: compras a partir dele vão para a fatura do mês seguinte`, 'closeday') +
     item('tag', 'Categorias', 'Edite as opções de saída e de entrada', 'cats') +
     item('save', 'Backup e dados', (typeof SHARE !== 'undefined' && SHARE) ? 'Exportar ou importar os dados desta conta' : 'Exportar, importar ou restaurar a planilha', 'dados') +
+    item('chart', 'Exportar relatório (PDF)', 'Resumo dos últimos meses para imprimir ou salvar em PDF', 'openreport') +
     `<div class="fld pad"><label class="fl">Aparência</label><div class="seg wide">${[['auto', 'Automática'], ['light', 'Clara'], ['dark', 'Escura']].map(([k, l]) => `<button class="${th === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div></div>` +
     (authUser ? `<div class="pad"><p class="mut sm" style="margin-bottom:8px">Conectado como ${esc(authUser.email || '')}</p><button class="btn danger" data-act="logout">Sair da conta</button></div>` : '') +
     `<p class="mut sm pad">Seus dados ficam salvos na sua conta. Faça um backup de vez em quando.</p>`;
