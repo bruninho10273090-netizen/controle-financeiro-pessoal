@@ -591,6 +591,53 @@ body.auth #app{padding:0;max-width:none}
   .home-grid .col,.ext-grid .col,.cards-grid .col,.pat-grid .col{min-width:0}
 }
 
+/* cartões coloridos */
+.mcard{display:inline-block;width:20px;height:14px;border-radius:4px;background:linear-gradient(140deg,var(--g1),var(--g2) 55%,var(--g3));vertical-align:-2px;margin-right:6px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.mcard.sm{width:15px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cbadge.cardb{background:linear-gradient(140deg,var(--g1),var(--g2) 55%,var(--g3))!important;color:#F4EFE8}
+.cardmini{position:relative;overflow:hidden;isolation:isolate;display:block;width:100%;text-align:left;border:0;border-radius:18px;padding:14px 16px;margin-bottom:10px;color:#F4EFE8;background:linear-gradient(140deg,var(--g1),var(--g2) 55%,var(--g3));box-shadow:0 16px 30px -20px rgba(4,30,42,.8);transition:transform .18s var(--ease)}
+.cardmini::before{content:"";position:absolute;inset:0;background:var(--grain);z-index:-1}
+.cardmini::after{content:"";position:absolute;right:-20%;top:-90%;width:60%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 62%);z-index:-1}
+.cardmini:active{transform:scale(.985)}
+.cardmini .cm-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.cardmini .cm-top b{font-weight:600;font-size:15px}.cardmini .cm-top small{font-size:11.5px;opacity:.8}
+.cardmini .cm-v{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cardmini .cm-v>div+div{border-left:1px solid rgba(255,255,255,.2);padding-left:12px}
+.cardmini .cm-v span{display:block;font-size:11.5px;opacity:.78;margin-bottom:2px}
+.cardmini .cm-v b{font:400 23px/1.1 var(--serif);letter-spacing:-.01em;white-space:nowrap}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:300px;margin:0 auto}
+.sw{aspect-ratio:1;border-radius:50%;border:0;background:linear-gradient(140deg,var(--g1),var(--g2) 55%,var(--g3));box-shadow:0 0 0 2px var(--card);transition:transform .2s var(--spring),box-shadow .2s}
+.sw.on{box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--ink);transform:scale(1.06)}
+.sw:active{transform:scale(.9)}
+/* previsões */
+.chartleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--mut);margin-bottom:6px}
+.chartleg span{display:inline-flex;align-items:center;gap:6px}
+.chartleg i{display:inline-block;width:10px;height:10px;border-radius:3px}
+.chartleg i.dash{width:14px;height:0;border-top:2px dashed;border-radius:0}
+.area-chart .fut-com{stroke:var(--acc);stroke-dasharray:5 4;stroke-width:2}
+.area-chart .fut-sem{stroke:var(--tan);stroke-dasharray:5 4;stroke-width:2}
+.area-chart .dot.com{fill:var(--acc);stroke:var(--card)}.area-chart .dot.sem{fill:var(--tan);stroke:var(--card)}
+.proj2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.proj2>div{background:var(--card-2);border-radius:14px;padding:11px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.proj2 span{font-size:11.5px;color:var(--mut)}.proj2 b{font:400 21px/1.15 var(--serif);white-space:nowrap}.proj2 small{font-size:11.5px;color:var(--mut)}
+.sim{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.simres{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.simres>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.simres span{font-size:12px;color:var(--mut)}.simres b{font:400 22px/1.15 var(--serif);white-space:nowrap}.simres small{font-size:11.5px;color:var(--pos)}
+/* calculadoras */
+.calc h3{font:400 22px/1.15 var(--serif)}
+.cins{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.cin{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--mut);min-width:0}
+.cbox{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card-2);border-radius:12px;padding:0 11px;min-height:44px;transition:border-color .2s,box-shadow .2s}
+.cbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 4px var(--acc-soft);background:var(--card)}
+.cbox i{font-style:normal;color:var(--mut);font-weight:500;font-size:12.5px;white-space:nowrap}
+.cbox input{flex:1;min-width:0;width:100%;border:0;background:transparent;font:600 15px var(--sans);color:var(--ink);outline:none;padding:0}
+.cres{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;background:var(--acc-soft);margin-bottom:10px}
+.cres span{font-size:12.5px;color:var(--acc);font-weight:600}.cres b{font-size:32px;line-height:1.1;color:var(--ink)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.cgrid>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cgrid span{font-size:11.5px;color:var(--mut)}.cgrid b{font-weight:600;font-size:14.5px;white-space:nowrap}
+
 /* ---------- relatório: impressão / salvar em PDF ---------- */
 @media print{
   body *{visibility:hidden}
@@ -1346,6 +1393,23 @@ function cbadge(cat, sm) {
   return `<span class="cbadge${sm ? ' sm' : ''}" style="--c:var(--k${m.k})">${m.ic ? icon(m.ic, sm ? 16 : 19) : esc(String(cat || '?').trim().charAt(0).toUpperCase())}</span>`;
 }
 const cardTone = i => [1, 2, 3, 6][i % 4];
+const CARD_COLORS = [
+  ['navy', 'Azul-marinho', '#0C4C66', '#083B50', '#052B3B'], ['teal', 'Petróleo', '#58A0AF', '#407E8D', '#2B5E6B'],
+  ['tan', 'Areia', '#BCA884', '#A28E69', '#7F6C48'], ['graphite', 'Grafite', '#44545D', '#2C3940', '#1B252A'],
+  ['black', 'Preto', '#3A3A3A', '#1E1E1E', '#0B0B0B'], ['purple', 'Roxo', '#9A62E0', '#7A3FC8', '#55289A'],
+  ['orange', 'Laranja', '#FF9A52', '#EE7426', '#C45612'], ['wine', 'Vinho', '#9A4556', '#76303F', '#521F2A'],
+  ['forest', 'Verde', '#4F8A67', '#35674B', '#224532'], ['gold', 'Dourado', '#C9A85A', '#A8873D', '#7E6428'],
+  ['silver', 'Prata', '#9AA3AA', '#7A848B', '#58626A'], ['red', 'Vermelho', '#E0584F', '#C23A32', '#8F2721']
+];
+function cardPal(c) {
+  const i = S.cards ? S.cards.findIndex(x => x.id === c.id) : 0;
+  const k = c.color || ['navy', 'teal', 'tan', 'graphite'][Math.max(0, i) % 4];
+  return CARD_COLORS.find(x => x[0] === k) || CARD_COLORS[0];
+}
+const cardVars = c => { const q = cardPal(c); return `--g1:${q[2]};--g2:${q[3]};--g3:${q[4]}`; };
+const mcard = (c, sm) => `<span class="mcard${sm ? ' sm' : ''}" style="${cardVars(c)}"></span>`;
+const cardBadge = c => `<span class="cbadge cardb" style="${cardVars(c)}">${icon('card', 19)}</span>`;
+const cardOf = t => { const cs = M.cardsList(); return cs.find(c => c.id === M.cardIdOf(t)) || cs[0]; };
 
 // ---------- pedaços reutilizáveis ----------
 function topbar(title, greet, back) {
@@ -1462,7 +1526,8 @@ function cardLines(ym, back, cardId) {
 // ---------- linhas do extrato ----------
 function txRow(t) {
   const isIn = t.t === 'in';
-  const sub = [esc(t.cat), esc(payLabel(t))].filter(Boolean).join(' · ');
+  const payH = t.t === 'out' && t.pay === 'cartao' ? `${mcard(cardOf(t), true)}${esc(payLabel(t))}` : esc(payLabel(t));
+  const sub = [esc(t.cat), payH].filter(Boolean).join(' · ');
   const right = isIn && t.st === 'rec' ? `<i class="pill ${t.d < TODAY ? 'late' : ''}">${t.d < TODAY ? 'atrasado' : dmy(t.d)}</i>` : (t.recFor ? '<small>repasse</small>' : '');
   return `<button class="tx" data-act="edtx" data-id="${t.id}">${cbadge(t.cat)}<span class="tm"><b>${esc(t.desc)}</b><small>${sub}</small></span><span class="tv"><b class="${isIn ? 'cr' : ''}">${isIn ? '+' : '−'}${brl(t.v).replace('−', '')}</b>${right}</span></button>`;
 }
@@ -1512,11 +1577,12 @@ function viewHome() {
 
   // cartões (juntos: total do mês; separados: um por linha)
   const cs = M.cardsList();
-  const cardRows = cs.map((c, i) => {
-    const v = M.aPagarForCard(ym, c.id), nx = M.aPagarForCard(Core.addM(ym, 1), c.id);
-    return `<button class="tx" data-act="opencard" data-id="${c.id}" data-ym="${ym}"><span class="cbadge" style="--c:var(--k${cardTone(i)})">${icon('card', 19)}</span><span class="tm"><b>${esc(c.name)}</b><small>fecha todo dia ${c.closeDay || 1}</small></span><span class="tv"><b>${brl(v)}</b><small>próxima ${brl(nx)}</small></span></button>`;
+  const cardRows = cs.map(c => {
+    const aberta = ym === CUR_YM ? openFatYm(c) : Core.addM(ym, 1), fechada = Core.addM(aberta, -1);
+    const inf = fatInfo(c, aberta);
+    return `<button class="cardmini" style="${cardVars(c)}" data-act="opencard" data-id="${c.id}" data-ym="${aberta}"><div class="cm-top"><b>${esc(c.name)}</b><small>${ym === CUR_YM ? (inf.days <= 0 ? 'fecha hoje' : `fecha em ${inf.days} dia${inf.days > 1 ? 's' : ''}`) : `fecha dia ${c.closeDay || 1}`}</small></div><div class="cm-v"><div><span>${ym === CUR_YM ? 'Fechada' : 'Fatura'} · ${ymLabel(fechada)}</span><b>${brl(M.aPagarForCard(fechada, c.id))}</b></div><div><span>${ym === CUR_YM ? 'Aberta' : 'Próxima'} · ${ymLabel(aberta)}</span><b>${brl(M.aPagarForCard(aberta, c.id))}</b></div></div></button>`;
   }).join('');
-  const cardsSec = sh('Cartões', `<button class="link" data-act="go" data-tab="cards">Ver faturas</button>`) + (cs.length > 1 ? `<div class="list" style="padding:12px 16px;display:flex;justify-content:space-between;align-items:baseline"><span class="mut sm">Todos os cartões em ${ymLabel(ym)}</span><b style="font:400 24px/1 var(--serif)">${brl(fat)}</b></div>` : '') + `<div class="list">${cardRows}</div>`;
+  const cardsSec = sh('Cartões', `<button class="link" data-act="go" data-tab="cards">Ver faturas</button>`) + cardRows;
 
   // VA/VR
   const vaSec = hasVA() && M.vaSep ? sh('VA/VR', `<button class="link" data-act="addenv">Lançar gasto</button>`) + `<section class="card"><div class="ringwrap">${ring(vaP, pct(Math.min(vaP, 9.99), 0))}<div style="flex:1;min-width:0"><div class="mut sm">Restante do mês</div><div style="font:400 30px/1.1 var(--serif);margin:2px 0 4px" class="${signCls(vaIn - vaGasto)}">${brl(vaIn - vaGasto)}</div><div class="mut sm">${brl(vaGasto)} gastos de ${brl(vaIn)}${Math.abs(vaPrev) > 0.004 ? ` · acumulado ${brlS(vaPrev)}` : ''}</div></div></div>${((typeof SHARE !== 'undefined' && SHARE) ? [] : ['Combustível', 'Mercado', 'Comida']).filter(c => S.cats.includes(c)).length ? `<div class="chips" style="margin-top:14px">${['Combustível', 'Mercado', 'Comida'].filter(c => S.cats.includes(c)).map(c => `<button class="chip sm" data-act="addenv" data-c="${c}">${icon(catMeta(c).ic || 'plus', 14)}${c}</button>`).join('')}<button class="chip sm ghost" data-act="envreset">Zerar</button></div>` : ''}</section>` : '';
@@ -1598,11 +1664,11 @@ function viewLanc() {
   const strip = `<div class="sumstrip"><div><span>Entradas</span><b class="pos" data-count="${ent}" data-key="xent" data-fmt="k">${brlK(ent)}</b></div><div><span>Saídas</span><b data-count="${sai}" data-key="xsai" data-fmt="k">${brlK(sai)}</b></div><div><span>Sobra</span><b class="${signCls(sob)}" data-count="${sob}" data-key="xsob" data-fmt="k">${brlK(sob)}</b></div></div>`;
   const cs = M.cardsList();
   const fl = [['all', 'Tudo'], ['out', 'Saídas'], ['in', 'Entradas'], ['cartao', 'Cartão'], ['conta', 'Pix/débito'], ...(hasVA() ? [['vavr', 'VA/VR']] : []), ['ap', 'Guardado'], ...(cs.length > 1 ? cs.map(c => ['card:' + c.id, c.name]) : [])];
-  const chips = fl.map(([k, l]) => `<button class="chip ${UI.filter === k ? 'on' : ''}" data-act="filter" data-v="${esc(k)}">${esc(l)}</button>`).join('');
+  const chips = fl.map(([k, l]) => `<button class="chip ${UI.filter === k ? 'on' : ''}" data-act="filter" data-v="${esc(k)}">${k.startsWith('card:') ? mcard(cs.find(c => 'card:' + c.id === k), true) : ''}${esc(l)}</button>`).join('');
   const search = `<div class="search">${icon('search', 18)}<input id="extq" type="search" placeholder="Buscar descrição, categoria ou valor" value="${esc(UI.q)}" autocomplete="off" enterkeyhint="search" aria-label="Buscar no extrato"></div>`;
   const fx = M.fixedOf(ym, 'in').concat(M.fixedOf(ym, 'out')).filter(x => Math.abs(x.v) > 0.004 && !x.f.inFatura);
   const fixSec = sh('Contas fixas do mês', `<button class="link" data-act="openfix">Gerenciar</button>`) + (fx.length ? `<div class="list">${fx.map(x => `<button class="tx" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}">${cbadge(x.f.name)}<span class="tm"><b>${esc(x.f.name)}</b><small>${x.f.kind === 'in' ? 'entrada fixa' : 'saída fixa'}${typeof Core.schedAt(x.f.sched, ym) === 'string' ? ` · ${esc(Core.schedAt(x.f.sched, ym))}` : ''}</small></span><span class="tv"><b class="${x.f.kind === 'in' ? 'cr' : ''}">${x.f.kind === 'in' ? '+' : '−'}${brl(x.v).replace('−', '')}</b></span></button>`).join('')}</div>` : `<section class="card"><p class="mut sm">Nenhuma conta fixa neste mês.</p></section>`);
-  const fatSec = sh('Faturas deste mês', `<button class="link" data-act="go" data-tab="cards">Cartões</button>`) + `<div class="list">${cs.map((c, i) => `<button class="tx" data-act="opencard" data-id="${c.id}" data-ym="${ym}"><span class="cbadge" style="--c:var(--k${cardTone(i)})">${icon('card', 19)}</span><span class="tm"><b>${esc(c.name)}</b><small>fatura de ${ymLabel(ym)}</small></span><span class="tv"><b>${brl(M.aPagarForCard(ym, c.id))}</b></span></button>`).join('')}</div>`;
+  const fatSec = sh('Faturas deste mês', `<button class="link" data-act="go" data-tab="cards">Cartões</button>`) + `<div class="list">${cs.map((c, i) => `<button class="tx" data-act="opencard" data-id="${c.id}" data-ym="${ym}">${cardBadge(c)}<span class="tm"><b>${esc(c.name)}</b><small>fatura de ${ymLabel(ym)}</small></span><span class="tv"><b>${brl(M.aPagarForCard(ym, c.id))}</b></span></button>`).join('')}</div>`;
   return monthNav() + `<div class="ext-grid"><div class="col">${strip}${search}<div class="filterbar">${chips}</div><div id="dlist">${lancListHtml()}</div></div><div class="col">${fatSec}${fixSec}</div></div>`;
 }
 function viewMeses() {
@@ -1638,7 +1704,7 @@ function monthDetail(ym) {
 // ---------- CARTÕES ----------
 function pcardHtml(c, i) {
   const y = openFatYm(c), v = M.aPagarForCard(y, c.id), inf = fatInfo(c, y);
-  return `<button class="pcard v${(i % 4) + 1} ${c.id === UI.fcard ? 'on' : ''}" data-act="pcardsel" data-id="${c.id}" aria-label="${esc(c.name)}">
+  return `<button class="pcard ${c.id === UI.fcard ? 'on' : ''}" style="${cardVars(c)}" data-act="pcardsel" data-id="${c.id}" aria-label="${esc(c.name)}">
     <div class="pc-top"><div><div class="pc-nm">${esc(c.name)}</div><div class="pc-cd">Fecha todo dia ${c.closeDay || 1}</div></div><span class="chipi"></span></div>
     <div class="pc-foot"><div><div class="pc-lab">Fatura aberta · ${ymLabel(y)}</div><div class="pc-val">${brl(v)}</div></div><div class="pc-nx">${inf.days <= 0 ? 'fecha hoje' : `fecha em<br><b>${inf.days} dia${inf.days > 1 ? 's' : ''}</b>`}</div></div>
   </button>`;
@@ -1692,7 +1758,7 @@ function refreshCardDetail(flash) {
   countUp(det, false);
 }
 function cardsManage() {
-  openInfo('Seus cartões', `<p class="mut" style="margin-bottom:12px">Cada cartão tem seu próprio dia de fechamento e sua própria fatura. Ao lançar uma compra no cartão, você escolhe em qual ela entra.</p><div class="list" style="box-shadow:none">${S.cards.map((c, i) => `<button class="tx" data-act="cardedit" data-id="${c.id}"><span class="cbadge" style="--c:var(--k${cardTone(i)})">${icon('card', 19)}</span><span class="tm"><b>${esc(c.name)}</b><small>fecha todo dia ${c.closeDay || 1}</small></span><span class="tv mut">${icon('right', 18)}</span></button>`).join('')}</div><div class="row-btns"><button class="btn primary" data-act="cardnew">${icon('plus', 18)} Novo cartão</button></div>`);
+  openInfo('Seus cartões', `<p class="mut" style="margin-bottom:12px">Cada cartão tem seu próprio dia de fechamento e sua própria fatura. Ao lançar uma compra no cartão, você escolhe em qual ela entra.</p><div class="list" style="box-shadow:none">${S.cards.map((c, i) => `<button class="tx" data-act="cardedit" data-id="${c.id}">${cardBadge(c)}<span class="tm"><b>${esc(c.name)}</b><small>fecha todo dia ${c.closeDay || 1}</small></span><span class="tv mut">${icon('right', 18)}</span></button>`).join('')}</div><div class="row-btns"><button class="btn primary" data-act="cardnew">${icon('plus', 18)} Novo cartão</button></div>`);
 }
 ACT.cardsmanage = () => cardsManage();
 ACT.opencards = () => { UI.tab = 'cards'; UI.sub = null; render(); cardsManage(); };
@@ -1757,13 +1823,17 @@ function areaChart(rows) {
 function viewPat() {
   const d = M.dashboard(CUR_YM), tot = d.cx.tot + d.invT;
   const hero = `<div class="pat-hero"><div class="lab">Total hoje</div><div class="v" data-count="${tot}" data-key="pat">${brl(tot)}</div><div class="split"><span><i style="background:var(--teal)"></i>Caixinhas ${brl(d.cx.tot)}</span><span><i style="background:var(--tan)"></i>Investimentos ${brl(d.invT)}</span></div></div>`;
-  const seg = `<div class="seg wide" style="margin-top:16px"><button class="${UI.pat === 'cx' ? 'on' : ''}" data-act="patseg" data-v="cx">Caixinhas</button><button class="${UI.pat === 'inv' ? 'on' : ''}" data-act="patseg" data-v="inv">Investimentos</button></div>`;
-  return topbar('Patrimônio') + `<div class="pat-grid"><div class="col">${hero}${areaChart(patrimHistory())}</div><div class="col">${seg}${UI.pat === 'inv' ? viewInvBody() : viewCxBody()}</div></div>`;
+  const seg = `<div class="seg wide" style="margin-top:16px"><button class="${UI.pat === 'cx' ? 'on' : ''}" data-act="patseg" data-v="cx">Caixinhas</button><button class="${UI.pat === 'inv' ? 'on' : ''}" data-act="patseg" data-v="inv">Investimentos</button><button class="${UI.pat === 'calc' ? 'on' : ''}" data-act="patseg" data-v="calc">Calculadoras</button></div>`;
+  return topbar('Patrimônio') + `<div class="pat-grid"><div class="col">${hero}${patChart()}</div><div class="col">${seg}${UI.pat === 'inv' ? viewInvBody() : UI.pat === 'calc' ? viewCalcBody() : viewCxBody()}</div></div>`;
 }
 function viewCxBody() {
   const ym = UI.ym, d = M.dashboard(ym), fut = d.target > M.today;
   const projRows = new Map(d.pj.rows.map(r => [r.c.id, r.proj]));
-  const summary = `<div class="sumstrip"><div><span>Guardado</span><b>${brlK(d.cx.guardado)}</b></div><div><span>Rendimento</span><b class="pos">+${brlK(d.cx.rend)}</b></div><div><span>Líquido</span><b>${brlK(d.cx.liquido)}</b></div></div>`;
+  const semRow = r => r.atual * Math.pow(1 + r.rate, Math.max(0, Core.bd(M.today, d.target) - 1) / 252);
+  const semTot = sum(d.cx.rows, semRow);
+  const summary = fut
+    ? `<div class="sumstrip"><div><span>Guardando as sobras</span><b class="acc">${brlK(d.pj.tot)}</b></div><div><span>Sem aportes</span><b>${brlK(semTot)}</b></div><div><span>Juros até lá</span><b class="pos">+${brlK(semTot - d.cx.tot)}</b></div></div><p class="mut sm" style="margin:-4px 2px 12px">Previsão para ${dmy(Core.fromDn(d.target))}/${Core.fromDn(d.target).slice(0, 4)} — hoje as caixinhas somam ${brl(d.cx.tot)}.</p>`
+    : `<div class="sumstrip"><div><span>Guardado</span><b>${brlK(d.cx.guardado)}</b></div><div><span>Rendimento</span><b class="pos">+${brlK(d.cx.rend)}</b></div><div><span>Líquido</span><b>${brlK(d.cx.liquido)}</b></div></div>`;
   const actions = `<div class="row-btns" style="margin:0 0 4px"><button class="btn primary" data-act="add" data-m="ap">${icon('plus', 18)} Guardar</button><button class="btn" data-act="distrib">${icon('pie', 18)} Distribuir sobra</button></div>`;
   const list = d.cx.rows.map((r, i) => {
     const meta = parseMetaNote(r.c.note), p = meta ? r.atual / meta : r.pct, k = [2, 3, 1, 4, 5, 6, 7, 8][i % 8];
@@ -1772,7 +1842,7 @@ function viewCxBody() {
       <div class="hb-b"><i style="width:${Math.min(100, p * 100).toFixed(1)}%;background:var(--k${k})"></i></div>
       <div class="cx-b"><span>${meta ? `${pct(Math.min(1, p), 0)} da meta de ${brl(meta)}` : `${pct(r.pct, 1)} do total`}</span><span class="pos">${brlS(r.rend)}</span></div>
       <div class="cx-b"><span>${pct(r.rate, 2)} ao ano${r.c.mult !== 1 ? ` · ${Math.round(r.c.mult * 100)}% da Selic` : ''}</span><span>${r.dias} dias úteis</span></div>
-      ${fut ? `<div class="cx-b"><span>Projeção em ${ymLabel(ym)}</span><b>${brl(projRows.get(r.c.id) || 0)}</b></div>` : ''}
+      ${fut ? `<div class="cx-b acc"><span>Em ${ymLabel(ym)} com as sobras</span><b>${brl(projRows.get(r.c.id) || 0)}</b></div><div class="cx-b"><span>Sem aportes</span><b>${brl(semRow(r))}</b></div>` : ''}
       ${r.c.note && !meta ? `<div class="cx-n">${esc(r.c.note)}</div>` : ''}
       ${cxForecast(r.c, r.atual)}
     </button>`;
@@ -1796,6 +1866,110 @@ function viewInvBody() {
   return cfg + qc + cl + reb + assets;
 }
 function viewInv() { return viewInvBody(); }
+
+// ---------- previsões: juros compostos das caixinhas ----------
+// "sem aportes": só o rendimento de cada caixinha (taxa própria, dias úteis/252), sem dinheiro novo.
+// "com as sobras": a sobra prevista de cada mês entra em cada caixinha pelo % que ela recebe da sobra e rende a partir dali (Core.project).
+function projAt(target) {
+  const rows = M.cxRows(M.today).rows, invT = M.invest().total, hoje = sum(rows, r => r.atual);
+  const sem = sum(rows, r => r.atual * Math.pow(1 + r.rate, Math.max(0, Core.bd(M.today, target) - 1) / 252));
+  const com = target <= M.today ? hoje : M.project(rows, target).tot;
+  return { hoje: hoje + invT, sem: sem + invT, com: com + invT };
+}
+const sobraPct = () => Math.min(1, sum(S.cx, c => c.pct || 0));
+function simResHtml(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return '';
+  const t = Core.pd(iso), p = projAt(t);
+  if (t <= M.today) return `<p class="mut sm" style="margin-top:8px">Escolha uma data futura.</p>`;
+  return `<div class="simres"><div><span>Sem aportar mais nada</span><b>${brl(p.sem)}</b><small>+${brl(p.sem - p.hoje)} de juros</small></div><div><span>Guardando as sobras</span><b>${brl(p.com)}</b><small>+${brl(p.com - p.hoje)} (sobras + juros)</small></div></div>`;
+}
+document.addEventListener('input', e => { if (e.target && e.target.id === 'simdate') { UI.simDate = e.target.value; const r = $('simres'); if (r) r.innerHTML = simResHtml(e.target.value); } });
+function patChart() {
+  const hist = patrimHistory(), fut = [];
+  for (let k = 1; k <= 12; k++) { const ym = Core.addM(CUR_YM, k), q = projAt(Core.pd(Core.lastDay(ym))); fut.push({ ym, sem: q.sem, com: q.com }); }
+  const W = 360, H = 170, pt = 14, pb = 24, n = hist.length + fut.length;
+  const all = hist.map(r => r.v).concat(fut.map(r => r.sem), fut.map(r => r.com));
+  const max = Math.max(...all), min = Math.min(...all), span = (max - min) || Math.max(1, Math.abs(max) * .1), lo = min - span * .12, hi = max + span * .12;
+  const x = i => 8 + i * (W - 16) / (n - 1), y = v => pt + (1 - (v - lo) / (hi - lo)) * (H - pt - pb);
+  const hp = hist.map((r, i) => [x(i), y(r.v)]), last = hp[hp.length - 1];
+  const path = pts => pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' ');
+  const semP = [last].concat(fut.map((r, i) => [x(hist.length + i), y(r.sem)])), comP = [last].concat(fut.map((r, i) => [x(hist.length + i), y(r.com)]));
+  let len = 0; for (let i = 1; i < hp.length; i++) len += Math.hypot(hp[i][0] - hp[i - 1][0], hp[i][1] - hp[i - 1][1]);
+  const labels = hist.map(r => r.ym).concat(fut.map(r => r.ym));
+  const lbl = labels.map((ym, i) => (i % 3 && i !== labels.length - 1) ? '' : `<text x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === labels.length - 1 ? 'end' : 'middle'}" class="ax">${MES[+ym.slice(5, 7) - 1]}${ym.slice(5, 7) === '01' || i === labels.length - 1 ? '/' + ym.slice(2, 4) : ''}</text>`).join('');
+  const f6 = fut[5], f12 = fut[11];
+  const ce = comP[comP.length - 1], se = semP[semP.length - 1];
+  const svg = `<svg class="area-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimônio realizado e previsto"><defs><linearGradient id="agr" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--acc);stop-opacity:.26"/><stop offset="1" style="stop-color:var(--acc);stop-opacity:0"/></linearGradient></defs><line class="gl" x1="0" x2="${W}" y1="${H - pb}" y2="${H - pb}"/><line class="gl" x1="${last[0].toFixed(1)}" x2="${last[0].toFixed(1)}" y1="${pt}" y2="${H - pb}"/><text x="${(last[0] + 4).toFixed(1)}" y="${pt + 2}" class="ax">hoje</text>${hp.length > 1 ? `<path d="${path(hp)} L${last[0].toFixed(1)} ${H - pb} L${hp[0][0].toFixed(1)} ${H - pb} Z" fill="url(#agr)"/><path class="ln" d="${path(hp)}" style="--len:${Math.ceil(len)}"/>` : ''}<path class="ln fut-sem" d="${path(semP)}"/><path class="ln fut-com" d="${path(comP)}"/><circle class="dot last" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4"/><circle class="dot com" cx="${ce[0].toFixed(1)}" cy="${ce[1].toFixed(1)}" r="3.5"/><circle class="dot sem" cx="${se[0].toFixed(1)}" cy="${se[1].toFixed(1)}" r="3.5"/>${lbl}</svg>`;
+  const def = UI.simDate || Core.lastDay(Core.addM(CUR_YM, 3));
+  return `<section class="card" style="margin-top:14px;padding:16px 14px 12px">
+    <div class="chartleg"><span><i style="background:var(--acc)"></i>Realizado</span><span><i class="dash" style="border-color:var(--acc)"></i>Guardando as sobras</span><span><i class="dash" style="border-color:var(--tan)"></i>Sem novos aportes</span></div>
+    ${svg}
+    <div class="proj2"><div><span>Em 6 meses · ${ymLabel(f6.ym)}</span><b>${brl(f6.com)}</b><small>sem aportes ${brl(f6.sem)}</small></div><div><span>Em 12 meses · ${ymLabel(f12.ym)}</span><b>${brl(f12.com)}</b><small>sem aportes ${brl(f12.sem)}</small></div></div>
+    <div class="sim"><label class="fl" for="simdate">Quanto vou ter em</label><input class="in" type="date" id="simdate" min="${Core.fromDn(M.today + 1)}" value="${def}"><div id="simres">${simResHtml(def)}</div></div>
+    <p class="mut sm" style="margin-top:10px">Com as sobras: a sobra prevista de cada mês entra nas caixinhas pelo percentual de cada uma (hoje ${pct(sobraPct(), 0)} da sobra) e passa a render juros compostos dali em diante. Investimentos ficam pelo valor atual.</p>
+  </section>`;
+}
+
+// ---------- calculadoras (as mais usadas: juros compostos, primeiro milhão, renda fixa, viver de renda) ----------
+const CALC = { jc: null, meta: null, rf: null, renda: null };
+function calcInit() {
+  if (CALC.jc) return;
+  const tot = Math.round(M.dashboard(CUR_YM).total), selic = String(S.selic || 10.75).replace('.', ',');
+  CALC.jc = { ini: String(tot), ap: '500', taxa: selic, anos: '10' };
+  CALC.meta = { alvo: '1000000', ini: String(tot), ap: '1000', taxa: selic, anos: '15' };
+  CALC.rf = { valor: '10000', meses: '24', cdi: Math.max(0, (S.selic || 10.75) - .1).toFixed(2).replace('.', ','), cdb: '110', lci: '92' };
+  CALC.renda = { renda: '5000', taxa: selic, ipca: '4,5' };
+}
+const cnum = s => { const v = Core.calc(String(s || '').replace(/\./g, '')); return isNaN(v) ? 0 : v; };
+const cm = a => Math.pow(1 + a / 100, 1 / 12) - 1;
+function fvc(pv, pmt, i, n) { const g = Math.pow(1 + i, n); return i ? pv * g + pmt * (g - 1) / i : pv + pmt * n; }
+const CALC_RES = {
+  jc() {
+    const c = CALC.jc, i = cm(cnum(c.taxa)), n = Math.round(cnum(c.anos) * 12), ini = cnum(c.ini), ap = cnum(c.ap);
+    const tot = fvc(ini, ap, i, n), inv = ini + ap * n, jur = tot - inv, anos = Math.max(1, Math.round(n / 12)), step = Math.ceil(anos / 15);
+    const yrs = []; for (let a = step; a <= anos; a += step) yrs.push({ a, t: fvc(ini, ap, i, a * 12), v: ini + ap * a * 12 });
+    const mx = Math.max(1, ...yrs.map(q => q.t)), bw = 300 / Math.max(1, yrs.length);
+    const bars = `<svg viewBox="0 0 300 96" class="mchart" role="img" aria-label="Evolução ano a ano">${yrs.map((q, k) => { const ht = q.t / mx * 76, hv = q.v / mx * 76, x0 = k * bw + 2; return `<rect x="${x0}" y="${80 - ht}" width="${bw - 4}" height="${ht}" rx="2" style="fill:var(--tan)"/><rect x="${x0}" y="${80 - hv}" width="${bw - 4}" height="${hv}" rx="2" style="fill:var(--acc)"/>${yrs.length <= 10 || k % 2 === 0 ? `<text x="${x0 + (bw - 4) / 2}" y="93" text-anchor="middle" class="ax">${q.a}a</text>` : ''}`; }).join('')}</svg>`;
+    return `<div class="cres"><span>Você terá</span><b class="serif">${brl(tot)}</b></div><div class="cgrid"><div><span>Total investido</span><b>${brl(inv)}</b></div><div><span>Em juros</span><b class="pos">${brl(jur)}</b></div><div><span>Renda mensal no fim</span><b>${brl(tot * i)}</b></div><div><span>Juros sobre o investido</span><b>${inv ? pct(jur / inv, 0) : '—'}</b></div></div><div class="chartleg" style="margin-top:12px"><span><i style="background:var(--acc)"></i>Investido</span><span><i style="background:var(--tan)"></i>Juros</span></div>${bars}`;
+  },
+  meta() {
+    const c = CALC.meta, i = cm(cnum(c.taxa)), alvo = cnum(c.alvo), ini = cnum(c.ini), ap = cnum(c.ap), n = Math.round(cnum(c.anos) * 12);
+    let m = 0, v = ini; while (v < alvo && m < 1200) { v = v * (1 + i) + ap; m++; }
+    const g = Math.pow(1 + i, n), need = n ? Math.max(0, i ? (alvo - ini * g) * i / (g - 1) : (alvo - ini) / n) : 0;
+    const tempo = m >= 1200 ? 'mais de 100 anos' : `${Math.floor(m / 12)} ano${Math.floor(m / 12) === 1 ? '' : 's'}${m % 12 ? ` e ${m % 12} ${m % 12 === 1 ? 'mês' : 'meses'}` : ''}`;
+    return `<div class="cres"><span>Com ${brl(ap)} por mês você chega lá em</span><b class="serif">${ini >= alvo ? 'já chegou' : tempo}</b></div><div class="cgrid"><div><span>Pra chegar em ${esc(c.anos)} anos</span><b>${brl(need)}/mês</b></div><div><span>Data prevista</span><b>${m < 1200 && ini < alvo ? ymLabel(Core.addM(CUR_YM, m)) : '—'}</b></div></div>`;
+  },
+  rf() {
+    const c = CALC.rf, v = cnum(c.valor), n = cnum(c.meses), cdi = cnum(c.cdi), dias = n * 30;
+    const ir = dias <= 180 ? .225 : dias <= 360 ? .2 : dias <= 720 ? .175 : .15;
+    const cdb = v * (Math.pow(1 + cdi / 100 * cnum(c.cdb) / 100, n / 12) - 1) * (1 - ir);
+    const lci = v * (Math.pow(1 + cdi / 100 * cnum(c.lci) / 100, n / 12) - 1);
+    const pmo = cdi > 8.5 ? .005 : Math.pow(1 + cdi * .7 / 100, 1 / 12) - 1, poup = v * (Math.pow(1 + pmo, n) - 1);
+    const rows = [['CDB', cdb, `${esc(c.cdb)}% do CDI · IR ${pct(ir, 1)}`], ['LCI / LCA', lci, `${esc(c.lci)}% do CDI · isento`], ['Poupança', poup, 'isenta']];
+    const best = Math.max(...rows.map(r => r[1]));
+    return rows.map(r => `<div class="kv"><span>${r[0]} <small class="mut">${r[2]}</small></span><b class="${r[1] === best ? 'pos' : ''}">${brl(v + r[1])}${r[1] === best ? ' · melhor' : ''}</b></div>`).join('') + `<p class="mut sm" style="margin-top:8px">Pra empatar com a LCI de ${esc(c.lci)}%, o CDB precisa pagar ${(cnum(c.lci) / (1 - ir)).toFixed(1).replace('.', ',')}% do CDI nesse prazo.</p>`;
+  },
+  renda() {
+    const c = CALC.renda, real = (1 + cnum(c.taxa) / 100) / (1 + cnum(c.ipca) / 100) - 1, im = Math.pow(1 + real, 1 / 12) - 1;
+    const need = im > 0 ? cnum(c.renda) / im : 0, tem = M.dashboard(CUR_YM).total;
+    return `<div class="cres"><span>Patrimônio necessário</span><b class="serif">${im > 0 ? brl(need) : '—'}</b></div><div class="cgrid"><div><span>Juro real ao ano</span><b>${pct(real, 2)}</b></div><div><span>Você já tem</span><b>${need ? pct(Math.min(1, tem / need), 1) : '—'}</b></div></div><div class="hb-b" style="margin-top:10px"><i style="width:${need ? Math.min(100, tem / need * 100).toFixed(1) : 0}%"></i></div><p class="mut sm" style="margin-top:8px">Vivendo só do rendimento acima da inflação, sem consumir o patrimônio.</p>`;
+  }
+};
+const cin = (g, k, l, pre, suf) => `<label class="cin"><span>${l}</span><span class="cbox">${pre ? `<i>${pre}</i>` : ''}<input inputmode="decimal" data-calc="${g}.${k}" value="${esc(CALC[g][k])}">${suf ? `<i>${suf}</i>` : ''}</span></label>`;
+function viewCalcBody() {
+  calcInit();
+  const box = (g, t, s, ins) => `<section class="card calc"><h3>${t}</h3><p class="mut sm" style="margin:2px 0 12px">${s}</p><div class="cins">${ins}</div><div id="cr-${g}">${CALC_RES[g]()}</div></section>`;
+  return box('jc', 'Juros compostos', 'Quanto seu dinheiro vira com aportes todo mês.', cin('jc', 'ini', 'Valor inicial', 'R$') + cin('jc', 'ap', 'Aporte mensal', 'R$') + cin('jc', 'taxa', 'Taxa ao ano', '', '%') + cin('jc', 'anos', 'Prazo', '', 'anos')) +
+    box('meta', 'Meta · primeiro milhão', 'Quanto tempo falta e quanto aportar pra chegar lá.', cin('meta', 'alvo', 'Meta', 'R$') + cin('meta', 'ini', 'Já tenho', 'R$') + cin('meta', 'ap', 'Aporte mensal', 'R$') + cin('meta', 'taxa', 'Taxa ao ano', '', '%') + cin('meta', 'anos', 'Quero chegar em', '', 'anos')) +
+    box('rf', 'Comparador de renda fixa', 'CDB, LCI/LCA e poupança no mesmo prazo, já com IR.', cin('rf', 'valor', 'Valor', 'R$') + cin('rf', 'meses', 'Prazo', '', 'meses') + cin('rf', 'cdi', 'CDI ao ano', '', '%') + cin('rf', 'cdb', 'CDB', '', '% CDI') + cin('rf', 'lci', 'LCI/LCA', '', '% CDI')) +
+    box('renda', 'Viver de renda', 'Patrimônio pra tirar uma renda mensal sem gastar o principal.', cin('renda', 'renda', 'Renda mensal', 'R$') + cin('renda', 'taxa', 'Rendimento ao ano', '', '%') + cin('renda', 'ipca', 'Inflação ao ano', '', '%'));
+}
+document.addEventListener('input', e => {
+  const k = e.target && e.target.dataset && e.target.dataset.calc; if (!k) return;
+  const [g, f] = k.split('.'); CALC[g][f] = e.target.value;
+  const r = $('cr-' + g); if (r) r.innerHTML = CALC_RES[g]();
+});
+
 
 // ---------- AJUSTES ----------
 // relatório simples em tela cheia, pensado para impressão / "Salvar como PDF" do navegador
@@ -2182,25 +2356,29 @@ ACT.vasetup = () => {
     }
   });
 };
+function cardColorField(v) {
+  const prev = { id: v._id || 'x', color: v.color };
+  return { t: 'html', html: `<div class="fld"><label class="fl">Cor do cartão</label><div class="pcard on" style="${cardVars(prev)};width:100%;max-width:300px;margin:0 auto 14px;transform:none;opacity:1;cursor:default"><div class="pc-top"><div><div class="pc-nm">${esc(v.name || 'Seu cartão')}</div><div class="pc-cd">Fecha todo dia ${esc(v.closeDay || 1)}</div></div><span class="chipi"></span></div><div class="pc-foot"><div><div class="pc-lab">Fatura aberta</div><div class="pc-val">R$ 0,00</div></div></div></div><div class="swatches">${CARD_COLORS.map(q => `<button type="button" class="sw ${(v.color || 'navy') === q[0] ? 'on' : ''}" style="--g1:${q[2]};--g2:${q[3]};--g3:${q[4]}" data-act="fset" data-k="color" data-v="${q[0]}" aria-label="${q[1]}" title="${q[1]}"></button>`).join('')}</div></div>` };
+}
 ACT.cardnew = () => openForm({
-  title: 'Novo cartão', back: () => cardsManage(), v: { name: '', closeDay: '1' },
-  fields: [{ t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Cartão do casal' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)', ph: 'Ex.: 10' }],
+  title: 'Novo cartão', back: () => cardsManage(), v: { name: '', closeDay: '1', color: ['navy', 'teal', 'tan', 'graphite', 'purple', 'orange'][(S.cards || []).length % 6] },
+  fields: v => [{ t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Nubank, Inter' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)', ph: 'Ex.: 10' }, cardColorField(v)],
   save: v => {
     if (!v.name.trim()) return 'Dê um nome ao cartão.';
     const d = parseInt(v.closeDay); if (!(d >= 1 && d <= 28)) return 'Digite um dia de 1 a 28.';
-    commit(S => { S.cards = S.cards || []; S.cards.push({ id: nid('card'), name: v.name.trim(), closeDay: d }); }, 'Cartão criado');
+    commit(S => { S.cards = S.cards || []; S.cards.push({ id: nid('card'), name: v.name.trim(), closeDay: d, color: v.color }); }, 'Cartão criado');
   }
 });
 ACT.cardedit = el => {
   const c = (S.cards || []).find(x => x.id === el.dataset.id); if (!c) return;
   openForm({
-    title: 'Editar cartão', back: () => cardsManage(), v: { name: c.name, closeDay: String(c.closeDay || 1) },
-    fields: [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)' }],
+    title: 'Editar cartão', back: () => cardsManage(), v: { name: c.name, closeDay: String(c.closeDay || 1), color: cardPal(c)[0], _id: c.id },
+    fields: v => [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)' }, cardColorField(v)],
     del: S.cards.length > 1 ? () => { commit(S => { S.tx.forEach(t => { if (t.cardId === c.id) delete t.cardId; }); S.fixed.forEach(f => { if (f.cardId === c.id) delete f.cardId; }); S.cards = S.cards.filter(x => x.id !== c.id); }, 'Cartão removido'); } : null,
     save: v => {
       if (!v.name.trim()) return 'Dê um nome ao cartão.';
       const d = parseInt(v.closeDay); if (!(d >= 1 && d <= 28)) return 'Digite um dia de 1 a 28.';
-      commit(S => { const g = S.cards.find(x => x.id === c.id); g.name = v.name.trim(); g.closeDay = d; }, 'Cartão atualizado');
+      commit(S => { const g = S.cards.find(x => x.id === c.id); g.name = v.name.trim(); g.closeDay = d; g.color = v.color; }, 'Cartão atualizado');
     }
   });
 };
