@@ -689,6 +689,8 @@ body.auth #app{padding:0;max-width:none}
 .cdates span{display:inline-flex;align-items:center;gap:6px}
 .cdates svg{color:var(--mut)}
 .steps{margin:0 0 0 18px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.45}
+/* ==== CONTAS-TAGS-VOZ: CSS ==== */
+
 /* ---------- relatórios ---------- */
 .tab.desk{display:none}
 .rperiod{margin:0 0 14px}
@@ -1763,7 +1765,7 @@ function viewHome() {
 
   const nm = userName();
   return topbar(`${greeting()}${nm ? `, ${esc(nm)}` : ''}`, todayLong()) + monthNav() + alertBox + hero + qa +
-    `<div class="home-grid"><div class="col">${catSec}${recentSec}</div><div class="col">${cardsSec}${vaSec}${recSec}${patSec}</div></div>`;
+    `<div class="home-grid"><div class="col">${catSec}${recentSec}</div><div class="col">${typeof accountsHomeHtml === 'function' ? accountsHomeHtml() : ''}${cardsSec}${vaSec}${recSec}${patSec}</div></div>`;
 }
 
 // ---------- EXTRATO ----------
@@ -2433,6 +2435,7 @@ function repRows(a, b) {
   const dayIn = (ym, day) => ym + '-' + pad(Math.min(+Core.lastDay(ym).slice(8), Math.max(1, day || 1)));
   for (const t of S.tx) {
     const base = { desc: t.desc || t.cat || '—', cat: t.cat || 'Outros', id: t.id };
+    if (t.t === 'tr') continue; // transferência entre contas não é entrada nem saída
     if (t.t === 'in') { if (t.st !== 'rec') push({ ...base, d: t.d, kind: 'in', pay: 'conta', v: t.v }); continue; }
     if (t.pay === 'cartao') {
       const n = t.par || 1, bv = n > 1 ? Math.floor(Math.round(t.v / n * 1e4) / 100) / 100 : t.v, cid = M.cardIdOf(t);
@@ -3037,6 +3040,8 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { }); });
 }
 
+// ==== CONTAS-TAGS-VOZ: JS ====
+
 // ---------- AJUSTES ----------
 // relatório simples em tela cheia, pensado para impressão / "Salvar como PDF" do navegador
 function reportHtml() {
@@ -3072,6 +3077,7 @@ function viewMore() {
     `<div class="profile"><span class="av">${esc(initials())}</span><div style="min-width:0"><b>${esc(userName() || 'Você')}</b><small>${esc(email)}</small></div><button class="chip sm edit" data-act="profedit">${icon('edit', 14)} Editar</button></div>` +
     group('Finanças',
       set('card', 'Cartões', `${S.cards.length} ${S.cards.length > 1 ? 'cartões' : 'cartão'} · dia de fechamento de cada um`, 'cardsmanage') +
+      (typeof accountsSetItem === 'function' ? accountsSetItem(set) : '') +
       set('repeat', 'Itens fixos', 'Salário, moradia, assinaturas e outras contas do mês', 'openfix') +
       set('ticket', 'VA/VR e salário', S.vaSep === false ? 'Somado ao salário' : hasVA() ? 'Separado do salário' : 'Sem VA/VR · toque para configurar', 'vasetup') +
       set('tag', 'Categorias', 'Opções de saída e de entrada', 'cats') +
