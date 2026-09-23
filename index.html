@@ -517,7 +517,7 @@ body.auth #app{padding:0;max-width:none}
 
 /* ---------- desktop ---------- */
 @media (min-width:980px){
-  #app{max-width:1120px;margin:0 auto;padding:36px 48px 64px calc(264px + 48px)}
+  #app{max-width:calc(1480px + 264px);margin:0;padding:32px 40px 64px calc(264px + 40px)}
   #nav{top:0;right:auto;bottom:0;width:264px;height:100vh;border-top:0;border-right:1px solid var(--line);background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none;padding:26px 18px 20px}
   .nav-in{max-width:none;height:100%;display:flex;flex-direction:column}
   .nav-in .brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px}
@@ -560,7 +560,7 @@ body.auth #app{padding:0;max-width:none}
   .auth-card{width:100%;box-shadow:none;border:0;background:transparent}
   .filterbar{margin:0 0 6px;padding:0 0 4px;flex-wrap:wrap}
   .ext-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
-  .pat-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0 24px;align-items:start}
+  .pat-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:0 24px;align-items:start}
 }
 
 /* ---------- complementos das telas ---------- */
@@ -649,6 +649,22 @@ body.auth #app{padding:0;max-width:none}
 .ctile small{font-size:12px;color:var(--mut);line-height:1.4}
 .chead{grid-column:1/-1;font-weight:600;font-size:13.5px;margin:6px 0 -2px;color:var(--ink)}
 .cfull{grid-column:1/-1}
+
+.chartbtn{position:relative;cursor:zoom-in;border-radius:12px;transition:background .2s}
+.chartbtn:hover{background:var(--card-2)}
+.chhint{position:absolute;right:6px;top:-2px;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 8px;opacity:.9}
+.chwrap{border-radius:14px;background:var(--card-2);padding:8px 4px 2px}
+.bigchart .reveal{transform-box:fill-box;transform-origin:left;animation:grow 1.3s var(--ease) both .15s}
+.bigchart .chhit{fill:transparent;cursor:crosshair}
+.bigchart .chcur{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.5}
+.bigchart .ax{font-size:11px}
+.chinfo{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);min-height:84px;animation:fadeIn .25s ease}
+.chinfo-h{font-size:12.5px;color:var(--mut);font-weight:600;margin-bottom:8px}
+.chinfo-v{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chinfo-v>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.chinfo-v span{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}.chinfo-v span i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chinfo-v b{font:400 24px/1.1 var(--serif);white-space:nowrap}.chinfo-v small{font-size:11.5px;color:var(--pos)}
+@media (min-width:980px){.sheet:has(.bigchart){max-width:820px}}
 
 /* ---------- relatório: impressão / salvar em PDF ---------- */
 @media print{
@@ -1916,12 +1932,75 @@ function patChart() {
   const def = UI.simDate || Core.lastDay(Core.addM(CUR_YM, 3));
   return `<section class="card" style="margin-top:14px;padding:16px 14px 12px">
     <div class="chartleg"><span><i style="background:var(--acc)"></i>Realizado</span><span><i class="dash" style="border-color:var(--acc)"></i>Guardando as sobras</span><span><i class="dash" style="border-color:var(--tan)"></i>Sem novos aportes</span></div>
-    ${svg}
+    <div class="chartbtn" data-act="chartopen" role="button" tabindex="0" aria-label="Ampliar o gráfico">${svg}<span class="chhint">${icon('search', 13)} Toque para ampliar</span></div>
     <div class="proj2"><div><span>Em 6 meses · ${ymLabel(f6.ym)}</span><b>${brl(f6.com)}</b><small>sem aportes ${brl(f6.sem)}</small></div><div><span>Em 12 meses · ${ymLabel(f12.ym)}</span><b>${brl(f12.com)}</b><small>sem aportes ${brl(f12.sem)}</small></div></div>
     <div class="sim"><label class="fl" for="simdate">Quanto vou ter em</label><input class="in" type="date" id="simdate" min="${Core.fromDn(M.today + 1)}" value="${def}"><div id="simres">${simResHtml(def)}</div></div>
     <p class="mut sm" style="margin-top:10px">Com as sobras: a sobra prevista de cada mês entra nas caixinhas pelo percentual de cada uma (hoje ${pct(sobraPct(), 0)} da sobra) e passa a render juros compostos dali em diante. Investimentos ficam pelo valor atual.</p>
   </section>`;
 }
+
+
+// ---------- gráfico ampliado (toque no gráfico do patrimônio) ----------
+let CH = null;
+const brlShort = v => { const a = Math.abs(v), s = v < 0 ? '−' : ''; return a >= 1e6 ? `${s}R$ ${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace('.', ',')} mi` : a >= 1e3 ? `${s}R$ ${Math.round(a / 1e3)} mil` : brl(v); };
+function chartInfoHtml(i) {
+  const p = CH.pts[i]; if (!p) return '';
+  const lab = `${MES_L[+p.ym.slice(5, 7) - 1]} de ${p.ym.slice(0, 4)}`;
+  if (p.real != null) return `<div class="chinfo-h">${lab} · realizado</div><div class="chinfo-v"><div><span>Patrimônio</span><b>${brl(p.real)}</b></div></div>`;
+  return `<div class="chinfo-h">${lab} · previsão</div><div class="chinfo-v"><div><span><i style="background:var(--acc)"></i>Guardando as sobras</span><b>${brl(p.com)}</b><small>+${brl(p.com - CH.hoje)} desde hoje</small></div><div><span><i style="background:var(--tan)"></i>Sem novos aportes</span><b>${brl(p.sem)}</b><small>+${brl(p.sem - CH.hoje)} de juros</small></div></div>`;
+}
+function chartDetailHtml() {
+  const n = UI.chartN || 12, hist = patrimHistory(12), fut = [];
+  for (let k = 1; k <= n; k++) { const ym = Core.addM(CUR_YM, k), q = projAt(Core.pd(Core.lastDay(ym))); fut.push({ ym, sem: q.sem, com: q.com }); }
+  const pts = hist.map(r => ({ ym: r.ym, real: r.v })).concat(fut);
+  const W = 640, H = 300, pl = 58, pr = 14, pt = 18, pb = 30, N = pts.length;
+  const all = hist.map(r => r.v).concat(fut.map(r => r.sem), fut.map(r => r.com));
+  const max = Math.max(...all), min = Math.min(...all), span = (max - min) || Math.max(1, Math.abs(max) * .1), lo = Math.max(0, min - span * .1), hi = max + span * .08;
+  const x = i => pl + i * (W - pl - pr) / Math.max(1, N - 1), y = v => pt + (1 - (v - lo) / (hi - lo)) * (H - pt - pb);
+  const path = arr => arr.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' ');
+  const hp = hist.map((r, i) => [x(i), y(r.v)]), last = hp[hp.length - 1];
+  const comP = [last].concat(fut.map((r, i) => [x(hist.length + i), y(r.com)])), semP = [last].concat(fut.map((r, i) => [x(hist.length + i), y(r.sem)]));
+  const ticks = [0, 1, 2, 3, 4].map(k => lo + (hi - lo) * k / 4);
+  const every = Math.max(1, Math.ceil(N / 8));
+  CH = { pts, x, y, H, pt, pb, hoje: hist.length ? hist[hist.length - 1].v : 0 };
+  const sel = N - 1;
+  const svg = `<svg class="area-chart bigchart" id="bigchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução do patrimônio">
+    <defs><linearGradient id="agr2" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--acc);stop-opacity:.3"/><stop offset="1" style="stop-color:var(--acc);stop-opacity:0"/></linearGradient>
+    <linearGradient id="agr3" x1="0" x2="0" y1="0" y2="1"><stop offset="0" style="stop-color:var(--acc);stop-opacity:.12"/><stop offset="1" style="stop-color:var(--acc);stop-opacity:0"/></linearGradient>
+    <clipPath id="chclip"><rect class="reveal" x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>
+    ${ticks.map(t => `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${pl - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="ax">${brlShort(t)}</text>`).join('')}
+    <line class="gl" x1="${last[0].toFixed(1)}" x2="${last[0].toFixed(1)}" y1="${pt}" y2="${H - pb}"/><text x="${(last[0] + 5).toFixed(1)}" y="${pt + 4}" class="ax">hoje</text>
+    <g clip-path="url(#chclip)">
+      ${hp.length > 1 ? `<path d="${path(hp)} L${last[0].toFixed(1)} ${H - pb} L${hp[0][0].toFixed(1)} ${H - pb} Z" fill="url(#agr2)"/><path class="ln" d="${path(hp)}"/>` : ''}
+      <path d="${path(comP)} L${comP[comP.length - 1][0].toFixed(1)} ${H - pb} L${last[0].toFixed(1)} ${H - pb} Z" fill="url(#agr3)"/>
+      <path class="ln fut-sem" d="${path(semP)}"/><path class="ln fut-com" d="${path(comP)}"/>
+      ${hp.map(q => `<circle class="dot" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3"/>`).join('')}
+    </g>
+    ${pts.map((p, i) => (i % every && i !== N - 1) ? '' : `<text x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? 'start' : i === N - 1 ? 'end' : 'middle'}" class="ax">${MES[+p.ym.slice(5, 7) - 1]}${p.ym.slice(5, 7) === '01' || i === 0 || i === N - 1 ? '/' + p.ym.slice(2, 4) : ''}</text>`).join('')}
+    <g id="chmark"></g>
+    ${pts.map((p, i) => { const w = (W - pl - pr) / Math.max(1, N - 1); return `<rect class="chhit" x="${(x(i) - w / 2).toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${H - pt - pb}" data-act="chpt" data-i="${i}"/>`; }).join('')}
+  </svg>`;
+  const seg = `<div class="seg" style="margin-bottom:14px">${[[6, '6 meses'], [12, '1 ano'], [24, '2 anos'], [60, '5 anos']].map(([k, l]) => `<button type="button" class="${n === k ? 'on' : ''}" data-act="chrange" data-n="${k}">${l}</button>`).join('')}</div>`;
+  const endF = fut[fut.length - 1];
+  const table = `<div class="tscroll" style="margin-top:14px;max-height:280px;overflow:auto;box-shadow:none;border:1px solid var(--line)"><table class="tbl" style="min-width:0"><thead><tr><th>Mês</th><th>Guardando as sobras</th><th>Sem aportes</th></tr></thead><tbody>${fut.map((r, i) => `<tr data-act="chpt" data-i="${hist.length + i}"><th>${ymLabel(r.ym)}</th><td>${fmtNum(r.com)}</td><td>${fmtNum(r.sem)}</td></tr>`).join('')}</tbody></table></div>`;
+  return `${seg}<div class="chartleg"><span><i style="background:var(--acc)"></i>Realizado</span><span><i class="dash" style="border-color:var(--acc)"></i>Guardando as sobras</span><span><i class="dash" style="border-color:var(--tan)"></i>Sem novos aportes</span></div>
+    <div class="chwrap">${svg}</div>
+    <div class="chinfo" id="chinfo">${chartInfoHtml(sel)}</div>
+    <div class="proj2" style="margin-top:12px"><div><span>Em ${n >= 12 ? `${n / 12} ano${n > 12 ? 's' : ''}` : `${n} meses`} guardando as sobras</span><b>${brl(endF.com)}</b><small>${endF.com >= CH.hoje ? '+' : ''}${brl(endF.com - CH.hoje)}</small></div><div><span>Só com juros</span><b>${brl(endF.sem)}</b><small>+${brl(endF.sem - CH.hoje)}</small></div></div>
+    ${table}<p class="mut sm" style="margin-top:10px">Toque (ou passe o mouse) em qualquer ponto do gráfico pra ver o valor daquele mês.</p>`;
+}
+function chartMark(i) {
+  if (!CH) return; const p = CH.pts[i], m = $('chmark'), inf = $('chinfo'); if (!p || !m) return;
+  const X = CH.x(i).toFixed(1);
+  const dots = p.real != null ? `<circle class="dot last" cx="${X}" cy="${CH.y(p.real).toFixed(1)}" r="5"/>` : `<circle class="dot com" cx="${X}" cy="${CH.y(p.com).toFixed(1)}" r="5"/><circle class="dot sem" cx="${X}" cy="${CH.y(p.sem).toFixed(1)}" r="5"/>`;
+  m.innerHTML = `<line x1="${X}" x2="${X}" y1="${CH.pt}" y2="${CH.H - CH.pb}" class="chcur"/>${dots}`;
+  if (inf) inf.innerHTML = chartInfoHtml(i);
+}
+function openChart() { openInfo('Evolução do patrimônio', chartDetailHtml()); FM.chart = true; setTimeout(() => chartMark(CH.pts.length - 1), 50); }
+ACT.chartopen = () => openChart();
+ACT.chrange = el => { UI.chartN = +el.dataset.n; if (FM) { FM.info = chartDetailHtml(); drawSheet(); setTimeout(() => chartMark(CH.pts.length - 1), 30); } };
+ACT.chpt = el => chartMark(+el.dataset.i);
+document.addEventListener('mousemove', e => { const r = e.target && e.target.classList && e.target.classList.contains('chhit') ? e.target : null; if (r) chartMark(+r.dataset.i); });
 
 // ---------- calculadoras ----------
 // Tabelas de 2026 (INSS e IRRF com a redução para rendas até R$ 7.350). São estimativas: confira no holerite.
