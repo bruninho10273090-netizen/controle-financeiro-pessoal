@@ -1628,11 +1628,7 @@ function viewHome() {
 
   // cartões (juntos: total do mês; separados: um por linha)
   const cs = M.cardsList();
-  const cardRows = cs.map(c => {
-    const aberta = ym === CUR_YM ? openFatYm(c) : Core.addM(ym, 1), fechada = Core.addM(aberta, -1);
-    const inf = fatInfo(c, aberta);
-    return `<button class="cardmini" style="${cardVars(c)}" data-act="opencard" data-id="${c.id}" data-ym="${aberta}"><div class="cm-top"><b>${esc(c.name)}</b><small>${ym === CUR_YM ? (inf.days <= 0 ? 'fecha hoje' : `fecha em ${inf.days} dia${inf.days > 1 ? 's' : ''}`) : `fecha dia ${c.closeDay || 1}`}</small></div><div class="cm-v"><div><span>${ym === CUR_YM ? 'Fechada' : 'Fatura'} · ${ymLabel(fechada)}</span><b>${brl(M.aPagarForCard(fechada, c.id))}</b></div><div><span>${ym === CUR_YM ? 'Aberta' : 'Próxima'} · ${ymLabel(aberta)}</span><b>${brl(M.aPagarForCard(aberta, c.id))}</b></div></div></button>`;
-  }).join('');
+  const cardRows = cs.map(c => cardMiniHtml(c, ym)).join('');
   const cardsSec = sh('Cartões', `<button class="link" data-act="go" data-tab="cards">Ver faturas</button>`) + cardRows;
 
   // VA/VR
@@ -1659,6 +1655,12 @@ function viewHome() {
 }
 
 // ---------- EXTRATO ----------
+// cartão no tamanho da Home: fatura fechada + fatura aberta
+function cardMiniHtml(c, ym) {
+    const aberta = ym === CUR_YM ? openFatYm(c) : Core.addM(ym, 1), fechada = Core.addM(aberta, -1);
+    const inf = fatInfo(c, aberta);
+    return `<button class="cardmini" style="${cardVars(c)}" data-act="opencard" data-id="${c.id}" data-ym="${aberta}"><div class="cm-top"><b>${esc(c.name)}</b><small>${ym === CUR_YM ? (inf.days <= 0 ? 'fecha hoje' : `fecha em ${inf.days} dia${inf.days > 1 ? 's' : ''}`) : `fecha dia ${c.closeDay || 1}`}</small></div><div class="cm-v"><div><span>${ym === CUR_YM ? 'Fechada' : 'Fatura'} · ${ymLabel(fechada)}</span><b>${brl(M.aPagarForCard(fechada, c.id))}</b></div><div><span>${ym === CUR_YM ? 'Aberta' : 'Próxima'} · ${ymLabel(aberta)}</span><b>${brl(M.aPagarForCard(aberta, c.id))}</b></div></div></button>`;
+}
 function viewExt() {
   const n = nRec();
   const tabs = `<div class="seg wide"><button class="${UI.ext === 'lanc' ? 'on' : ''}" data-act="ext" data-v="lanc">Lançamentos</button><button class="${UI.ext === 'rec' ? 'on' : ''}" data-act="ext" data-v="rec">A receber${n ? ` · ${n}` : ''}</button><button class="${UI.ext === 'meses' ? 'on' : ''}" data-act="ext" data-v="meses">Mês a mês</button></div>`;
@@ -1719,7 +1721,7 @@ function viewLanc() {
   const search = `<div class="search">${icon('search', 18)}<input id="extq" type="search" placeholder="Buscar descrição, categoria ou valor" value="${esc(UI.q)}" autocomplete="off" enterkeyhint="search" aria-label="Buscar no extrato"></div>`;
   const fx = M.fixedOf(ym, 'in').concat(M.fixedOf(ym, 'out')).filter(x => Math.abs(x.v) > 0.004 && !x.f.inFatura);
   const fixSec = sh('Contas fixas do mês', `<button class="link" data-act="openfix">Gerenciar</button>`) + (fx.length ? `<div class="list">${fx.map(x => `<button class="tx" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}">${cbadge(x.f.name)}<span class="tm"><b>${esc(x.f.name)}</b><small>${x.f.kind === 'in' ? 'entrada fixa' : 'saída fixa'}${typeof Core.schedAt(x.f.sched, ym) === 'string' ? ` · ${esc(Core.schedAt(x.f.sched, ym))}` : ''}</small></span><span class="tv"><b class="${x.f.kind === 'in' ? 'cr' : ''}">${x.f.kind === 'in' ? '+' : '−'}${brl(x.v).replace('−', '')}</b></span></button>`).join('')}</div>` : `<section class="card"><p class="mut sm">Nenhuma conta fixa neste mês.</p></section>`);
-  const fatSec = sh('Faturas deste mês', `<button class="link" data-act="go" data-tab="cards">Cartões</button>`) + `<div class="list">${cs.map((c, i) => `<button class="tx" data-act="opencard" data-id="${c.id}" data-ym="${ym}">${cardBadge(c)}<span class="tm"><b>${esc(c.name)}</b><small>fatura de ${ymLabel(ym)}</small></span><span class="tv"><b>${brl(M.aPagarForCard(ym, c.id))}</b></span></button>`).join('')}</div>`;
+  const fatSec = sh('Cartões', `<button class="link" data-act="go" data-tab="cards">Ver faturas</button>`) + cs.map(c => cardMiniHtml(c, ym)).join('');
   return monthNav() + `<div class="ext-grid"><div class="col">${strip}${search}<div class="filterbar">${chips}</div><div id="dlist">${lancListHtml()}</div></div><div class="col">${fatSec}${fixSec}</div></div>`;
 }
 function viewMeses() {
