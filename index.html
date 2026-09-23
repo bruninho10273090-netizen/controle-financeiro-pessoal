@@ -465,7 +465,7 @@ body.kb .sheet{padding-bottom:10px}
 /* ---------- login / onboarding ---------- */
 body.auth #nav{display:none}
 body.auth #app{padding:0;max-width:none}
-.auth{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr}
+#app .auth{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr}
 .auth-side{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 100% 0%,var(--hero-2),transparent 60%),radial-gradient(90% 90% at 0% 100%,rgba(64,126,141,.4),transparent 60%),#083B50;color:#F4EFE8;padding:calc(34px + env(safe-area-inset-top)) 24px 70px;isolation:isolate}
 .auth-side::before{content:"";position:absolute;inset:0;background:var(--grain);z-index:-1}
 .auth-side .deco{position:absolute;right:-40px;bottom:-30px;width:210px;height:140px;z-index:-1;opacity:.9}
@@ -552,12 +552,17 @@ body.auth #app{padding:0;max-width:none}
   .sheet-back.enter .sheet{animation:pop .35s var(--spring) both}
   .sheet-back.leave .sheet{animation:fadeOut .18s ease both}
   .grab{display:none}
-  .auth{grid-template-rows:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .auth-side{padding:56px;display:flex;flex-direction:column;justify-content:space-between}
-  .auth-side h1{font-size:60px}
+  #app .auth{grid-template-rows:none;grid-template-columns:minmax(420px,.95fr) minmax(0,1.05fr)}
+  .auth-side{padding:56px clamp(40px,5vw,80px);display:flex;flex-direction:column;justify-content:center}
+  .auth-side>div{max-width:520px}
+  .auth-brand{position:absolute;top:48px;left:clamp(40px,5vw,80px);margin:0}
+  .auth-side h1{font-size:clamp(52px,5vw,72px);max-width:11ch}
+  .auth-side p{font-size:16px;margin-top:20px}
   .auth-side .deco{width:360px;height:240px;right:-60px;bottom:-40px}
-  .auth-main{margin:0;display:grid;place-items:center;padding:40px}
-  .auth-card{width:100%;box-shadow:none;border:0;background:transparent}
+  .auth-main{margin:0;display:grid;place-items:center;padding:48px clamp(32px,6vw,96px)}
+  .auth-card{width:100%;max-width:420px;padding:40px 36px 32px;background:var(--card);border:1px solid color-mix(in srgb,var(--line) 60%,transparent);box-shadow:var(--shadow-lg)}
+  .auth-card h3{font-size:34px}
+  .auth-card .sub{margin-bottom:24px}
   .filterbar{margin:0 0 6px;padding:0 0 4px;flex-wrap:wrap}
   .ext-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
   .pat-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:0 24px;align-items:start}
