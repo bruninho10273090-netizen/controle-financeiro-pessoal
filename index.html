@@ -671,6 +671,53 @@ body.auth #app{padding:0;max-width:none}
 .chinfo-v b{font:400 24px/1.1 var(--serif);white-space:nowrap}.chinfo-v small{font-size:11.5px;color:var(--pos)}
 @media (min-width:980px){.sheet:has(.bigchart){max-width:820px}}
 
+/* ---------- resumo inteligente, saúde financeira, imposto de renda ---------- */
+.insight{display:grid;grid-template-columns:minmax(0,1fr);gap:0;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid color-mix(in srgb,var(--line) 60%,transparent);margin:0 0 14px;overflow:hidden}
+.ins-score{display:flex;align-items:center;gap:14px;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 16px;text-align:left;font:inherit;color:inherit;width:100%}
+.ins-score:hover{background:var(--card-2)}
+.isc{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font:400 24px/1 var(--serif);color:var(--sc);background:color-mix(in srgb,var(--sc) 12%,var(--card));box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--sc) 55%,transparent)}
+.ist{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ist small{font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.ist b{font:400 21px/1.15 var(--serif)}
+.ist em{font-style:normal;font-size:12.5px;color:var(--acc);font-weight:600}
+.ins-list{display:flex;flex-direction:column;padding:4px 0}
+.ins{display:grid;grid-template-columns:30px minmax(0,1fr) 16px;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:10px 16px;font:inherit;font-size:13.5px;line-height:1.4;color:var(--ink);transition:background .15s}
+.ins+.ins{border-top:1px solid var(--line)}
+.ins:hover{background:var(--card-2)}
+.ins>svg{color:var(--mut)}
+.ii{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:var(--acc-soft);color:var(--acc)}
+.ins.bad .ii{background:var(--neg-soft);color:var(--neg)}.ins.warn .ii{background:var(--amb-soft);color:var(--amb)}.ins.good .ii{background:var(--pos-soft);color:var(--pos)}
+.ins-more{padding:8px 16px 10px;font-size:13px;text-align:left}
+.sheetlist .ins{padding-left:2px;padding-right:2px}
+.gauge{width:190px;max-width:100%;height:auto;display:block}
+.gauge .g-bg{fill:none;stroke:var(--card-3);stroke-width:14;stroke-linecap:round}
+.gauge .g-v{fill:none;stroke-width:14;stroke-linecap:round;transition:stroke-dasharray 1s var(--ease)}
+.gauge .g-n{font:400 44px var(--serif);fill:var(--ink)}
+.hs{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.hs>div{flex:1;min-width:160px}
+.hs-l{display:block;font:400 26px/1.15 var(--serif);margin-bottom:4px}
+.hp{padding:12px 0;border-top:1px solid var(--line)}
+.hp-t{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.hp-t b{font-weight:600;font-size:14px}.hp-t span{font-weight:600;font-size:14px}.hp-t small{color:var(--mut);font-weight:400;font-size:12px}
+.hp-bar{height:6px;border-radius:99px;background:var(--card-3);margin:7px 0 5px;overflow:hidden}
+.hp-bar i{display:block;height:100%;border-radius:99px}
+.hp-v{font-size:12.5px;color:var(--ink-2)}
+.hp-tip{font-size:12.5px;color:var(--mut);margin-top:3px;line-height:1.45}
+.ft{margin-bottom:14px}
+.ft-t{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ft-t b{font-weight:600;font-size:14px}.ft-t span{font-weight:600;font-size:15px}.ft-t small{font-weight:400;color:var(--mut);font-size:11.5px;margin-left:4px}
+.ft-bar{position:relative;height:10px;border-radius:99px;background:var(--card-3);margin:7px 0 4px}
+.ft-bar i{display:block;height:100%;border-radius:99px}
+.ft-bar em{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);opacity:.4;border-radius:2px}
+.clsw{display:inline-flex;gap:4px}
+.irg{padding:10px 0;border-top:1px solid var(--line)}
+.irg:first-child{border-top:0;padding-top:0}
+.irg-h{display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:4px}.irg-h b{font-weight:600}.irg-h span{font-weight:700}
+@media (min-width:980px){
+  .insight{grid-template-columns:260px minmax(0,1fr)}
+  .ins-score{border-bottom:0;border-right:1px solid var(--line);flex-direction:column;align-items:flex-start;justify-content:center;padding:18px 20px}
+  .isc{width:62px;height:62px;font-size:28px}
+}
 /* ---------- planejamento: orçamento, contas, metas, dívidas ---------- */
 .plan-seg button{position:relative;padding-left:4px;padding-right:4px}
 .plan-seg .nb{font-style:normal;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:var(--neg);color:#fff;font-size:11px;font-weight:700;margin-left:6px;vertical-align:1px}
@@ -1807,8 +1854,6 @@ function viewHome() {
       <button class="kpi" data-act="go" data-tab="pat"><span>Guardado</span><b data-count="${d.guard}" data-key="guard" data-fmt="k">${brlK(d.guard)}</b></button>
     </div>
   </section>`;
-  const alerts = ym === CUR_YM ? homeAlerts() : [];
-  const alertBox = alerts.length ? `<div class="warn alertx">${icon('bell', 18)}<div>${alerts.map(m => `<div>${esc(m)}</div>`).join('')}</div></div>` : '';
   const qa = `<div class="qa">${qaItem('out', 'Saída', 'add', 'data-m="out"', true)}${qaItem('in', 'Entrada', 'add', 'data-m="in"')}${qaItem('box', 'Guardar', 'add', 'data-m="ap"')}${qaItem('plan', 'Planejar', 'openplan')}${qaItem('pie', 'Distribuir', 'distrib')}${qaItem('upload', 'Importar', 'impstart')}${qaItem('chart', 'Relatórios', 'openrel')}</div>`;
 
   // cartões (juntos: total do mês; separados: um por linha)
@@ -1835,7 +1880,7 @@ function viewHome() {
   const patSec = sh('Patrimônio', `<button class="link" data-act="go" data-tab="pat">Detalhes</button>`) + `<button class="card" style="width:100%;text-align:left;display:block" data-act="go" data-tab="pat"><div class="mut sm">Caixinhas e investimentos</div><div style="font:400 34px/1.1 var(--serif);margin:4px 0 10px" data-count="${d.total}" data-key="pathome">${brl(d.total)}</div><div class="stackbar" style="margin:0 0 8px">${d.total > 0.004 ? `<i style="width:${(d.cx.tot / d.total * 100).toFixed(2)}%;background:var(--teal)"></i><i style="width:${(d.invT / d.total * 100).toFixed(2)}%;background:var(--tan)"></i>` : ''}</div><div class="mut sm" style="display:flex;justify-content:space-between"><span>Caixinhas ${brl(d.cx.tot)}</span><span>Investimentos ${brl(d.invT)}</span></div></button>`;
 
   const nm = userName();
-  return topbar(`${greeting()}${nm ? `, ${esc(nm)}` : ''}`, todayLong()) + monthNav() + alertBox + hero + qa +
+  return topbar(`${greeting()}${nm ? `, ${esc(nm)}` : ''}`, todayLong()) + monthNav() + hero + qa + (ym === CUR_YM ? insightCard() : '') +
     `<div class="home-grid"><div class="col">${catSec}${recentSec}</div><div class="col">${typeof accountsHomeHtml === 'function' ? accountsHomeHtml() : ''}${cardsSec}${vaSec}${recSec}${patSec}</div></div>`;
 }
 
@@ -2869,13 +2914,125 @@ ACT.debtpay = el => {
 };
 const debtTotal = () => sum(S.debts || [], d => debtSaldo(d));
 
+
+// ---------- saúde financeira (nota de 0 a 100) e regra 50/30/20 ----------
+// padrão: os últimos 3 meses fechados (ou os meses que existirem, para quem começou agora)
+function healthRange() {
+  let from = Core.addM(CUR_YM, -3), to = Core.addM(CUR_YM, -1);
+  if (S.startYm && S.startYm > from) from = S.startYm;
+  if (from > to) from = to = CUR_YM;
+  return [from + '-01', Core.lastDay(to)];
+}
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function healthScore(a, b) {
+  const yms = repMonths(a, b).filter(m => m <= CUR_YM), n = Math.max(1, yms.length);
+  const ent = sum(yms, m => M.entradas(m)), sai = sum(yms, m => M.saidasConf(m)), sob = ent - sai, rate = ent > 0.004 ? sob / ent : 0;
+  const gastoMes = sai / n, res = reservaAtual(), resV = res ? res.v : 0, meses = gastoMes > 0.004 ? resV / gastoMes : 0;
+  const fix = sum(yms, m => sum(M.fixedOf(m, 'out'), x => x.v)), parc = sum(yms, m => sum(M.installments(m).filter(x => x.n > 1), x => x.v));
+  const comp = ent > 0.004 ? (fix + parc) / ent : 1;
+  const azul = yms.filter(m => M.entradas(m) - M.saidasConf(m) >= -0.004).length;
+  const ds = (S.debts || []).filter(d => debtSaldo(d) > 0.004), dParc = sum(ds, d => +d.parcela || 0), grows = ds.some(d => debtPayoff(d).grows);
+  const dRatio = ent > 0.004 ? dParc / (ent / n) : 0;
+  const parts = [
+    { k: 'pou', t: 'Quanto você guarda', max: 30, f: clamp01(rate / 0.2), v: ent > 0.004 ? pct(Math.max(rate, 0), 0) + ' do que entra' : 'sem entradas no período', tip: rate >= 0.2 ? 'Ótimo: você guarda 20% ou mais do que entra.' : rate > 0 ? 'Tente chegar a 20% do que entra. Comece pelos gastos que mais cresceram.' : 'Neste período saiu mais do que entrou. Veja onde cortar no relatório de categorias.' },
+    { k: 'res', t: 'Reserva de emergência', max: 25, f: clamp01(meses / 6), v: res ? `${meses.toFixed(1).replace('.', ',')} ${meses >= 0.95 && meses < 1.05 ? 'mês' : 'meses'} de gastos` : 'nenhuma caixinha de reserva', tip: !res ? 'Crie uma caixinha chamada “Reserva de emergência”: o ideal é guardar 6 meses de gastos.' : meses >= 6 ? 'Reserva completa: 6 meses ou mais de gastos guardados.' : `Faltam ${brl(Math.max(0, gastoMes * 6 - resV))} para chegar a 6 meses de gastos.` },
+    { k: 'com', t: 'Renda comprometida', max: 20, f: clamp01((0.9 - comp) / 0.4), v: ent > 0.004 ? pct(Math.min(comp, 9.99), 0) + ' em fixos e parcelas' : '—', tip: comp <= 0.5 ? 'Contas fixas e parcelas cabem com folga na renda.' : 'Mais da metade da renda já sai todo mês em contas fixas e parcelas. Evite novos parcelamentos.' },
+    { k: 'azu', t: 'Meses no azul', max: 15, f: azul / n, v: `${azul} de ${yms.length}`, tip: azul === yms.length ? 'Todos os meses fecharam com sobra.' : 'Nos meses no vermelho, o cartão costuma ser o vilão: confira as faturas.' },
+    { k: 'div', t: 'Dívidas', max: 10, f: grows ? 0 : !ds.length ? 1 : clamp01((0.4 - dRatio) / 0.3), v: !ds.length ? 'nenhuma cadastrada' : `parcelas = ${pct(dRatio, 0)} da renda`, tip: grows ? 'Uma dívida tem parcela menor que os juros e está crescendo: priorize quitá-la.' : !ds.length ? 'Sem dívidas cadastradas no Planejamento.' : dRatio <= 0.1 ? 'Parcelas de dívidas leves para a sua renda.' : 'Use o plano de quitação no Planejamento para sair mais rápido.' }
+  ];
+  parts.forEach(p => { p.pts = Math.round(p.f * p.max); });
+  const score = sum(parts, p => p.pts);
+  const label = score >= 80 ? 'Ótima' : score >= 60 ? 'Boa' : score >= 40 ? 'Pede atenção' : 'Precisa de cuidado';
+  return { score, label, parts, yms, ent, sai };
+}
+const scoreColor = s => s >= 80 ? 'var(--pos)' : s >= 60 ? 'var(--acc)' : s >= 40 ? 'var(--amb)' : 'var(--neg)';
+function scoreGauge(s) {
+  const L = Math.PI * 80;
+  return `<svg class="gauge" viewBox="0 0 200 116" role="img" aria-label="Nota ${s} de 100"><path d="M20 104A80 80 0 0 1 180 104" class="g-bg"/><path d="M20 104A80 80 0 0 1 180 104" class="g-v" style="stroke:${scoreColor(s)};stroke-dasharray:${(L * s / 100).toFixed(1)} ${L.toFixed(1)}"/><text x="100" y="96" text-anchor="middle" class="g-n">${s}</text><text x="100" y="113" text-anchor="middle" class="ax">de 100</text></svg>`;
+}
+// regra 50/30/20: necessidades x desejos x o que sobra (poupança e dívidas)
+const NEED_RE = /mercado|supermerc|feira|hortifruti|acougue|padaria|moradia|aluguel|apartamento|condom|\bcasa\b|\bluz\b|energia|agua|\bgas\b|internet|telefone|celular|saude|farmacia|remedio|medic|dentist|hospital|plano de saude|seguro|transporte|combust|gasolina|posto|\buber\b|motorista|onibus|metro|estacion|pedagio|educa|escola|faculdade|creche|juros|financ|emprestimo|imposto|iptu|ipva|dizimo|pensao|racao|veterin|dividas/;
+const catClass = c => (S.catClass || {})[c] || (NEED_RE.test(norm(c)) ? 'n' : 'd');
+function fifty(a, b) {
+  const rows = repRows(a, [b, TODAY].sort()[0]).filter(r => !(M.vaSep && r.pay === 'vavr'));
+  const E = sum(rows.filter(r => r.kind === 'in'), r => r.v), outs = rows.filter(r => r.kind === 'out');
+  const cats = repSumBy(outs, r => r.cat).map(c => ({ c: c.k, v: c.v, cl: catClass(c.k) }));
+  const N = sum(cats.filter(c => c.cl === 'n'), c => c.v), D = sum(cats.filter(c => c.cl === 'd'), c => c.v);
+  return { E, N, D, P: E - N - D, cats };
+}
+ACT.catclass = el => { const c = el.dataset.c, to = el.dataset.v; commit(S => { S.catClass = S.catClass || {}; S.catClass[c] = to; }, `${c}: ${to === 'n' ? 'necessidade' : 'desejo'}`); };
+
+// ---------- resumo inteligente da Início ----------
+function homeInsights() {
+  const L = [], nm = s => esc(s);
+  const bills = billsOf(CUR_YM).concat(billsOf(Core.addM(CUR_YM, 1)).filter(b => b.days != null && b.days <= 3));
+  const late = bills.filter(b => b.late);
+  if (late.length) L.push({ p: 100, tone: 'bad', ic: 'alert', t: late.length === 1 ? `${nm(late[0].name)} venceu em ${dmy(late[0].due)} (${brl(late[0].v)}) e não está marcada como paga.` : `${late.length} contas venceram sem marcar como pagas (${brl(sum(late, b => b.v))}).`, act: 'data-act="openplan" data-v="contas"' });
+  bills.filter(b => !b.paid && !b.late && b.days != null && b.days >= 0 && b.days <= 3).slice(0, 2).forEach(b => L.push({ p: 92 - b.days, tone: 'warn', ic: 'calendar', t: `${nm(b.name)} ${b.days === 0 ? 'vence hoje' : b.days === 1 ? 'vence amanhã' : `vence em ${b.days} dias`}: ${brl(b.v)}.`, act: 'data-act="openplan" data-v="contas"' }));
+  const br = budgetRows(CUR_YM), over = br.filter(r => r.st === 'over').sort((x, y) => (y.g - y.lim) - (x.g - x.lim)), risk = br.filter(r => r.st === 'risk');
+  if (over.length) L.push({ p: 85, tone: 'bad', ic: 'target', t: over.length === 1 ? `${nm(over[0].c)} passou ${brl(over[0].g - over[0].lim)} do limite do mês.` : `${over.length} categorias passaram do limite: ${over.slice(0, 3).map(r => nm(r.c)).join(', ')}.`, act: 'data-act="openplan" data-v="orc"' });
+  if (risk.length) L.push({ p: 72, tone: 'warn', ic: 'target', t: `${nm(risk[0].c)}: no ritmo atual, passa do limite por volta do dia ${risk[0].dayOver}.`, act: 'data-act="openplan" data-v="orc"' });
+  M.cardsList().forEach(c => {
+    const y = openFatYm(c), inf = fatInfo(c, y), Li = cardLimitInfo(c), nmC = M.cardsList().length > 1 ? ` do ${nm(c.name)}` : '';
+    if (inf.days >= 0 && inf.days <= 3 && M.faturaPlanForCard(y, c.id) > 0.004) L.push({ p: 60, tone: 'info', ic: 'card', t: `A fatura${nmC} fecha ${inf.days === 0 ? 'hoje' : `em ${inf.days} dia${inf.days > 1 ? 's' : ''}`}. O que você comprar depois só vence em ${dmy(cardDueEff(c, Core.addM(y, 1)))}.`, act: `data-act="opencard" data-id="${c.id}"` });
+    if (Li && Li.pct >= 0.8) L.push({ p: 76, tone: Li.pct >= 1 ? 'bad' : 'warn', ic: 'card', t: `${nm(c.name)}: ${pct(Math.min(Li.pct, 9.99), 0)} do limite já usado (${Li.free > 0 ? `sobram ${brl(Li.free)}` : 'sem limite livre'}).`, act: `data-act="opencard" data-id="${c.id}"` });
+  });
+  let ant = 0, nAnt = 0; for (let i = 1; i <= 3; i++) { const v = M.saidasConf(Core.addM(CUR_YM, -i)); if (v > 0.004) { ant += v; nAnt++; } }
+  const media = nAnt ? ant / nAnt : 0, saiAtual = M.saidasConf(CUR_YM);
+  if (media > 0.004 && saiAtual > media * 1.3) L.push({ p: 66, tone: 'warn', ic: 'trend', t: `As saídas deste mês já estão ${Math.round((saiAtual / media - 1) * 100)}% acima da sua média (${brl(media)}).`, act: 'data-act="go" data-tab="ext"' });
+  const avg = catAvgMap(), B = S.budgets || {};
+  const up = M.porCategoria(CUR_YM).filter(c => !B[c.c] && (avg.get(c.c) || 0) > 30 && c.v > avg.get(c.c) * 1.25 && c.v - avg.get(c.c) > 50).sort((x, y) => (y.v - avg.get(y.c)) - (x.v - avg.get(x.c)))[0];
+  if (up) L.push({ p: 55, tone: 'info', ic: 'pie', t: `${nm(up.c)}: ${brl(up.v)} este mês, ${Math.round((up.v / avg.get(up.c) - 1) * 100)}% acima da sua média.`, act: `data-act="catopen" data-c="${nm(up.c)}" data-ym="${CUR_YM}"` });
+  const behind = S.cx.map(c => ({ c, g: goalInfo(c) })).filter(x => x.g && x.g.status === 'behind').sort((x, y) => (y.g.need - y.g.avg) - (x.g.need - x.g.avg))[0];
+  if (behind) L.push({ p: 40, tone: 'info', ic: 'target', t: `Meta ${nm(behind.c.name)}: guarde ${brl(behind.g.need)} por mês para chegar até ${ymLabel(behind.g.d.slice(0, 7))}.`, act: 'data-act="openplan" data-v="metas"' });
+  const det = detectSubs();
+  if (det.length) L.push({ p: 34, tone: 'info', ic: 'repeat', t: det.length === 1 ? `“${nm(det[0].name)}” parece uma assinatura: ${brl(det[0].v * 12)} por ano.` : `${det.length} cobranças parecem assinaturas: ${brl(sum(det, x => x.v) * 12)} por ano.`, act: 'data-act="openplan" data-v="contas"' });
+  const d = M.dashboard(CUR_YM);
+  if (d.guard > 0.004) L.push({ p: 10, tone: 'good', ic: 'box', t: `Você já guardou ${brl(d.guard)} este mês.`, act: 'data-act="go" data-tab="pat"' });
+  else if (d.meta > 0.004) L.push({ p: 9, tone: 'good', ic: 'trend', t: `A previsão é sobrar ${brl(d.meta)} este mês. Dá para guardar já.`, act: 'data-act="distrib"' });
+  return L.sort((x, y) => y.p - x.p);
+}
+const insRow = x => `<button class="ins ${x.tone}" ${x.act}><span class="ii">${icon(x.ic, 16)}</span><span class="it">${x.t}</span>${icon('right', 16)}</button>`;
+function insightCard() {
+  const L = homeInsights(), H = healthScore(...healthRange());
+  return `<section class="insight"><button class="ins-score" data-act="openrep" data-id="saude" style="--sc:${scoreColor(H.score)}"><span class="isc">${H.score}</span><span class="ist"><small>Saúde financeira</small><b>${H.label}</b><em>Ver o que pesa na nota</em></span></button>` +
+    `<div class="ins-list">${L.length ? L.slice(0, 3).map(insRow).join('') : `<p class="mut sm" style="padding:10px 4px">Tudo em dia por aqui.</p>`}${L.length > 3 ? `<button class="link ins-more" data-act="insall">Ver todos os avisos (${L.length})</button>` : ''}</div></section>`;
+}
+ACT.insall = () => openInfo('Avisos do mês', `<div class="ins-list sheetlist">${homeInsights().map(insRow).join('')}</div>`);
+ACT.openrep = el => { if (!['rel', 'more', 'plan'].includes(UI.tab)) UI.prevTab = UI.tab; UI.tab = 'rel'; UI.rep = el.dataset.id; UI.repTx = false; UI.sub = null; render(); window.scrollTo && window.scrollTo(0, 0); };
+
+// ---------- imposto de renda ----------
+const IR_T = [['', 'Não entra'], ['saude', 'Saúde'], ['educacao', 'Educação'], ['prev', 'Previdência (PGBL)']];
+function irType(c) {
+  const m = S.irCats || {}; if (c in m) return m[c];
+  const n = norm(c);
+  return /medic|dentist|odont|hospital|plano de saude|psicolog|fisioter|fonoaud|terapia|exame|laborat|clinica/.test(n) ? 'saude' : /escola|faculdade|universidade|mensalidade|pos-?graduacao|creche/.test(n) ? 'educacao' : /pgbl|previdencia/.test(n) ? 'prev' : '';
+}
+const irYear = () => UI.irY || (+CUR_YM.slice(5, 7) <= 5 ? +CUR_YM.slice(0, 4) - 1 : +CUR_YM.slice(0, 4));
+ACT.iry = el => { UI.irY = irYear() + +el.dataset.d; render(); };
+function irYearBar() {
+  const y = irYear(), cur = +CUR_YM.slice(0, 4);
+  return `<div class="mswitch no-print" style="margin-bottom:14px"><button class="ib" data-act="iry" data-d="-1" aria-label="Ano anterior">${icon('left', 18)}</button><span class="mlabel" style="cursor:default">Ano de ${y}<small>${y >= cur ? 'em andamento · declaração em ' + (y + 1) : 'declaração de ' + (y + 1)}</small></span><button class="ib" data-act="iry" data-d="1" aria-label="Próximo ano" ${y >= cur ? 'disabled style="opacity:.3"' : ''}>${icon('right', 18)}</button></div>`;
+}
+ACT.ircats = () => {
+  const cats = uniq(repCatOpts('out')), v = {};
+  cats.forEach((c, i) => { v['i' + i] = irType(c); });
+  openForm({
+    title: 'Despesas dedutíveis', v, saveLabel: 'Salvar',
+    fields: [{ t: 'note', html: 'Marque as categorias que entram como despesa dedutível. Saúde não tem limite; educação tem limite anual por pessoa; previdência (PGBL) até 12% da renda tributável.' }, ...cats.map((c, i) => ({ t: 'select', k: 'i' + i, label: c, opts: IR_T }))],
+    save: v => { const m = {}; cats.forEach((c, i) => { m[c] = v['i' + i] || ''; }); commit(S => { S.irCats = m; }, 'Categorias do imposto de renda salvas'); }
+  });
+};
+
 // ---------- RELATÓRIOS ----------
 // Padrões (os mais usados em apps de finanças: resumo, categorias, entradas x saídas, tendência, forma de pagamento,
 // maiores gastos, fixos x variáveis, faturas, hábitos, receitas, patrimônio) + personalizados salvos em S.reps.
 // Base: lançamentos do período. Compras parceladas entram mês a mês (uma parcela por mês a partir do mês da compra,
 // igual à visão por categoria); itens fixos entram no mês (dia 1, ou no dia da cobrança se forem no cartão).
 const REP_PERIODS = [['mes', 'Este mês'], ['mesant', 'Mês passado'], ['3m', 'Últimos 3 meses'], ['6m', 'Últimos 6 meses'], ['12m', 'Últimos 12 meses'], ['ano', 'Este ano'], ['anoant', 'Ano passado'], ['custom', 'Escolher datas']];
-const REP_GROUPS = [['cat', 'Categoria'], ['mes', 'Mês'], ['pay', 'Forma de pagamento'], ['card', 'Cartão'], ['desc', 'Descrição / estabelecimento'], ['dow', 'Dia da semana'], ['dia', 'Dia']];
+const REP_GROUPS = [['cat', 'Categoria'], ['mes', 'Mês'], ['pay', 'Forma de pagamento'], ['card', 'Cartão'], ['desc', 'Descrição / estabelecimento'], ['dow', 'Dia da semana'], ['dia', 'Dia'], ['tag', 'Tag'], ['acc', 'Conta bancária']];
+const allTags = () => uniq(S.tx.flatMap(t => t.tags || [])).sort((x, y) => x.localeCompare(y, 'pt-BR'));
+const repGroupOpts = () => REP_GROUPS.filter(([k]) => (k !== 'tag' || allTags().length) && (k !== 'acc' || (S.accounts || []).length > 1));
 const PAY_L = { conta: 'Pix/débito', cartao: 'Cartão', vavr: 'VA/VR', fixo: 'Contas fixas' };
 const RP = () => UI.rp || (UI.rp = { p: '6m', from: '', to: '' });
 const dBR = iso => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '';
@@ -2910,7 +3067,7 @@ function repRows(a, b) {
   const rows = [], push = r => { if (r.d >= a && r.d <= b && r.v > 0.004) rows.push(r); };
   const dayIn = (ym, day) => ym + '-' + pad(Math.min(+Core.lastDay(ym).slice(8), Math.max(1, day || 1)));
   for (const t of S.tx) {
-    const base = { desc: t.desc || t.cat || '—', cat: t.cat || 'Outros', id: t.id };
+    const base = { desc: t.desc || t.cat || '—', cat: t.cat || 'Outros', id: t.id, tags: t.tags || [], acc: t.acc };
     if (t.t === 'tr') continue; // transferência entre contas não é entrada nem saída
     if (t.t === 'in') { if (t.st !== 'rec') push({ ...base, d: t.d, kind: 'in', pay: 'conta', v: t.v }); continue; }
     if (t.pay === 'cartao') {
@@ -2921,8 +3078,8 @@ function repRows(a, b) {
     push({ ...base, d: t.d, kind: 'out', pay: t.pay === 'vavr' ? 'vavr' : 'conta', v: t.v });
   }
   for (const ym of repMonths(a, b)) {
-    for (const x of M.fixedIn(ym)) push({ d: ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'in', pay: 'fixo', v: x.v, fixed: true, id: x.f.id });
-    for (const x of M.fixedOf(ym, 'out')) push({ d: x.f.inFatura && x.f.cardDay ? dayIn(ym, x.f.cardDay) : ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'out', pay: x.f.inFatura ? 'cartao' : 'fixo', cardId: x.f.inFatura ? M.cardIdOf(x.f) : undefined, v: x.v, fixed: true, id: x.f.id });
+    for (const x of M.fixedIn(ym)) push({ d: x.f.day ? ymDay(ym, x.f.day) : ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'in', pay: 'fixo', v: x.v, fixed: true, id: x.f.id, acc: x.f.acc });
+    for (const x of M.fixedOf(ym, 'out')) push({ acc: x.f.acc, d: x.f.inFatura && x.f.cardDay ? dayIn(ym, x.f.cardDay) : x.f.day ? ymDay(ym, x.f.day) : ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'out', pay: x.f.inFatura ? 'cartao' : 'fixo', cardId: x.f.inFatura ? M.cardIdOf(x.f) : undefined, v: x.v, fixed: true, id: x.f.id });
   }
   rows.sort((x, y) => x.d < y.d ? 1 : x.d > y.d ? -1 : 0);
   RC = { m: M, k: a + b, rows };
@@ -3019,6 +3176,21 @@ const mLab = ym => `${MES[+ym.slice(5, 7) - 1]}${ym.slice(5, 7) === '01' ? '/' +
 
 // ---- relatórios padrão ----
 const REPS = {
+  saude: {
+    t: 'Saúde financeira', s: 'Nota de 0 a 100 com o que ajuda e o que atrapalha, e a divisão 50/30/20 do seu dinheiro.', ic: 'heart', k: 4,
+    run(a, b) {
+      const H = healthScore(a, b); if (!H.yms.length) return { html: rsec('Saúde financeira', rnone('Escolha um período que já começou.')), csv: [['Indicador']] };
+      const F = fifty(a, b), pc = x => F.E > 0.004 ? x / F.E : 0;
+      const parts = H.parts.map(p => `<div class="hp"><div class="hp-t"><b>${p.t}</b><span>${p.pts} <small>de ${p.max}</small></span></div><div class="hp-bar"><i style="width:${(p.f * 100).toFixed(0)}%;background:${scoreColor(p.f * 100)}"></i></div><div class="hp-v">${p.v}</div><p class="hp-tip">${p.tip}</p></div>`).join('');
+      const bar = (l, v, target, c) => `<div class="ft"><div class="ft-t"><b>${l}</b><span>${pct(pc(v), 0)} <small>ideal ${target}%</small></span></div><div class="ft-bar"><i style="width:${Math.min(100, Math.max(0, pc(v) * 100)).toFixed(1)}%;background:${c}"></i><em style="left:${target}%"></em></div><small class="mut">${brl(v)}</small></div>`;
+      const cls = F.cats.length ? dd('saude_cls', 'Ajustar categorias', `${F.cats.length}`, `<p class="mut sm" style="margin:-2px 0 8px">O app separa sozinho pelo nome da categoria. Toque para corrigir.</p><div class="rlist">${F.cats.map(c => `<div class="rrow top"><span class="rl"><i style="background:${catColor(c.c)}"></i><b>${esc(c.c)}</b><small>${brl(c.v)}</small></span><span class="rv"><span class="clsw"><button class="chip sm ${c.cl === 'n' ? 'on' : ''}" data-act="catclass" data-c="${esc(c.c)}" data-v="n">Necessidade</button><button class="chip sm ${c.cl === 'd' ? 'on' : ''}" data-act="catclass" data-c="${esc(c.c)}" data-v="d">Desejo</button></span></span></div>`).join('')}</div>`) : '';
+      return {
+        html: `<div class="rep-2">${rsec('Sua nota', `<div class="hs">${scoreGauge(H.score)}<div><b class="hs-l" style="color:${scoreColor(H.score)}">${H.label}</b><p class="mut sm">Com base em ${H.yms.length === 1 ? ymLabel(H.yms[0]) : `${ymLabel(H.yms[0])} a ${ymLabel(H.yms[H.yms.length - 1])}`}. Cada item vale pontos: quanto mais perto do ideal, mais pontos.</p></div></div>${parts}`)}` +
+          rsec('Regra 50/30/20', `<p class="mut sm" style="margin:-2px 0 12px">Um jeito simples de dividir o que entra: até 50% para o necessário, até 30% para desejos e pelo menos 20% sobrando para guardar ou quitar dívidas.</p>${bar('Necessidades', F.N, 50, 'var(--k6)')}${bar('Desejos', F.D, 30, 'var(--k5)')}${bar('Sobra (guardar ou quitar dívidas)', Math.max(0, F.P), 20, 'var(--pos)')}${F.P < -0.004 ? `<p class="neg sm" style="margin-top:6px">As saídas passaram as entradas em ${brl(-F.P)} no período.</p>` : ''}`) + cls + `</div>`,
+        csv: [['Indicador', 'Pontos', 'Máximo', 'Situação'], ...H.parts.map(p => [p.t, String(p.pts), String(p.max), p.v]), ['Nota', String(H.score), '100', H.label], [], ['50/30/20', 'Valor', '% das entradas', 'Ideal'], ['Necessidades', F.N, pc(F.N) * 100, '50'], ['Desejos', F.D, pc(F.D) * 100, '30'], ['Sobra', F.P, pc(F.P) * 100, '20']]
+      };
+    }
+  },
   resumo: {
     t: 'Resumo do período', s: 'Entradas, saídas, sobra, taxa de poupança e destaques, comparados ao período anterior.', ic: 'file', k: 1,
     run(a, b) {
@@ -3194,6 +3366,32 @@ const REPS = {
         csv: [['Mês', 'Guardado (líquido)', 'Patrimônio no fim do mês'], ...yms.map(m => { const h = hist.find(x => x.ym === m); return [ymLabel(m), sum(aps.filter(x => x.d.slice(0, 7) === m), x => x.v), h ? h.v : '']; })]
       };
     }
+  },
+  ir: {
+    t: 'Imposto de renda', s: 'Rendimentos, despesas dedutíveis, bens e dívidas do ano, para organizar a declaração.', ic: 'receipt', k: 7, noPeriod: true,
+    run(a, b) {
+      const Y = a.slice(0, 4), end = Y + '-12-31', asOf = end < TODAY ? end : TODAY, partial = end >= TODAY;
+      const rows = repRows(a, asOf), ins = repSumBy(rows.filter(r => r.kind === 'in'), r => r.cat), E = sum(ins, x => x.v);
+      const outs = rows.filter(r => r.kind === 'out' && irType(r.cat));
+      const grp = t => outs.filter(r => irType(r.cat) === t), sa = grp('saude'), ed = grp('educacao'), pv = grp('prev');
+      const cxs = M.cxRows(Core.pd(asOf)).rows.filter(r => r.atual > 0.004), assets = (S.inv.assets || []).filter(x => (x.qty || 0) > 0);
+      const accs = typeof accBalances === 'function' && (S.accounts || []).length ? accBalances(asOf) : [];
+      const debts = (S.debts || []).map(d => ({ d, s: debtSaldo(d, asOf) })).filter(x => x.s > 0.004);
+      const bens = sum(cxs, r => r.atual) + sum(assets, x => x.qty * (x.price || 0)) + sum(accs, x => Math.max(0, x.bal));
+      const dedTab = (l, list, note) => list.length ? `<div class="irg"><div class="irg-h"><b>${l}</b><span>${brl(sum(list, r => r.v))}</span></div>${repSumBy(list, r => r.cat).map(c => `<div class="kv"><span>${esc(c.k)} <small class="mut">${c.n} lançamento${c.n > 1 ? 's' : ''}</small></span><b>${brl(c.v)}</b></div>`).join('')}${note ? `<p class="mut sm">${note}</p>` : ''}</div>` : '';
+      const ded = dedTab('Saúde', sa, 'Sem limite de valor. Guarde recibos e notas com o CPF ou CNPJ de quem atendeu.') + dedTab('Educação', ed, 'Tem limite anual por pessoa (R$ 3.561,50 pela regra atual). Só vale ensino regular: escola, faculdade, pós.') + dedTab('Previdência (PGBL)', pv, 'Deduz até 12% da renda tributável, e só para quem também contribui ao INSS.');
+      const bensRows = [...cxs.map(r => [esc(r.c.name), 'Caixinha / aplicação', fmtNum(r.atual)]), ...assets.map(x => [esc(x.ticker), `${String(x.qty).replace('.', ',')} unidade${x.qty === 1 ? '' : 's'}`, fmtNum(x.qty * (x.price || 0))]), ...accs.map(x => [esc(x.a.name), 'Conta bancária', fmtNum(x.bal)])];
+      return {
+        html: `${partial ? `<div class="warn sm">O ano ainda está em andamento: os valores vão até hoje (${dBR(TODAY)}).</div>` : ''}` +
+          rkpis([['Rendimentos no ano', brl(E), '', 'pos'], ['Despesas dedutíveis', brl(sum(outs, r => r.v))], ['Bens e direitos', brl(bens)], ['Dívidas', brl(sum(debts, x => x.s)), '', debts.length ? 'neg' : '']]) +
+          `<div class="rep-2">${rsec('Rendimentos', ins.length ? rList(ins.map(x => ({ l: x.k, v: x.v, c: catColor(x.k), sub: `${x.n} lançamento${x.n > 1 ? 's' : ''}` }))) + '<p class="mut sm" style="margin-top:8px">Confira com o informe de rendimentos da empresa e dos bancos: é ele que vale na declaração.</p>' : rnone('Nenhuma entrada no ano.'))}` +
+          rsec('Despesas dedutíveis', (ded || rnone('Nenhuma categoria marcada como dedutível.')) + `<button class="btn no-print" style="width:100%;margin-top:10px" data-act="ircats">${icon('tag', 16)} Escolher categorias dedutíveis</button>`) + `</div>` +
+          rsec(`Bens e direitos em 31/12/${Y}${partial ? ' (valores de hoje)' : ''}`, bensRows.length ? rTable(['Item', 'Tipo', 'Valor'], bensRows) + '<p class="mut sm">Na declaração, ações, FIIs e ETFs entram pelo custo de compra (preço médio da corretora), não pelo valor de mercado mostrado aqui. Aplicações entram pelo saldo informado pelo banco.</p>' : rnone('Nenhum bem registrado.')) +
+          rsec(`Dívidas em 31/12/${Y}`, debts.length ? rTable(['Dívida', 'Saldo'], debts.map(x => [esc(x.d.name), fmtNum(x.s)])) + '<p class="mut sm">Dívidas acima de R$ 5.000 devem ser declaradas em “Dívidas e ônus reais”.</p>' : rnone('Nenhuma dívida cadastrada no Planejamento.')) +
+          `<p class="mut sm" style="margin-top:6px">Este relatório ajuda a organizar a declaração, mas não substitui o programa da Receita Federal nem os informes oficiais.</p>`,
+        csv: [['Seção', 'Item', 'Detalhe', 'Valor'], ...ins.map(x => ['Rendimentos', x.k, `${x.n} lançamentos`, x.v]), ...outs.map(r => ['Dedutível · ' + (IR_T.find(t => t[0] === irType(r.cat)) || ['', ''])[1], r.cat, dBR(r.d) + ' · ' + r.desc, r.v]), ...cxs.map(r => ['Bens', r.c.name, 'Caixinha', r.atual]), ...assets.map(x => ['Bens', x.ticker, `${x.qty} unidades (valor de mercado)`, x.qty * (x.price || 0)]), ...accs.map(x => ['Bens', x.a.name, 'Conta bancária', x.bal]), ...debts.map(x => ['Dívidas', x.d.name, '', x.s])]
+      };
+    }
   }
 };
 
@@ -3205,12 +3403,14 @@ function customFilter(r, a, b) {
   if (r.cats && r.cats.length) rows = rows.filter(x => r.cats.includes(x.cat));
   if (r.kind !== 'in' && r.pays && r.pays.length) rows = rows.filter(x => x.kind === 'in' || r.pays.includes(x.pay));
   if (r.kind !== 'in' && r.cards && r.cards.length) rows = rows.filter(x => x.kind === 'in' || (x.pay === 'cartao' && r.cards.includes(x.cardId)));
-  if (r.q && String(r.q).trim()) { const q = norm(r.q).trim(); rows = rows.filter(x => norm(`${x.desc} ${x.cat}`).includes(q)); }
+  if (r.tags && r.tags.length) rows = rows.filter(x => (x.tags || []).some(t => r.tags.includes(t)));
+  if (r.q && String(r.q).trim()) { const q = norm(r.q).trim(); rows = rows.filter(x => norm(`${x.desc} ${x.cat} ${(x.tags || []).join(' ')}`).includes(q)); }
   return rows;
 }
 function customGroups(r, rows, a, b) {
-  const g = r.group, dn = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  const kf = { cat: x => x.cat, mes: x => x.d.slice(0, 7), pay: payKey, card: x => x.pay === 'cartao' ? x.cardId || M.cardsList()[0].id : '_', desc: x => norm(x.desc).trim(), dow: x => String(dowOf(x.d)), dia: x => x.d }[g] || (x => x.cat);
+  const g = r.group, dn = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], A = S.accounts || [];
+  if (g === 'tag') rows = rows.flatMap(x => (x.tags && x.tags.length ? x.tags : ['']).map(tg => Object.assign({}, x, { _tag: tg })));
+  const kf = { tag: x => x._tag, acc: x => x.kind === 'in' || x.pay === 'conta' || x.pay === 'fixo' ? (A.some(a => a.id === x.acc) ? x.acc : A[0] ? A[0].id : '_') : '_', cat: x => x.cat, mes: x => x.d.slice(0, 7), pay: payKey, card: x => x.pay === 'cartao' ? x.cardId || M.cardsList()[0].id : '_', desc: x => norm(x.desc).trim(), dow: x => String(dowOf(x.d)), dia: x => x.d }[g] || (x => x.cat);
   const map = new Map();
   if (g === 'mes') repMonths(a, b).forEach(m => map.set(m, { k: m, ent: 0, sai: 0, n: 0, rows: [] }));
   if (g === 'dow') [1, 2, 3, 4, 5, 6, 0].forEach(i => map.set(String(i), { k: String(i), ent: 0, sai: 0, n: 0, rows: [] }));
@@ -3224,6 +3424,8 @@ function customGroups(r, rows, a, b) {
     else if (g === 'card') { const c = M.cardsList().find(x => x.id === o.k); o.l = c ? c.name : 'Fora do cartão'; o.c = c ? cardPal(c)[3] : 'var(--line-2)'; }
     else if (g === 'desc') { o.l = o.rows[0] ? o.rows[0].desc : o.k; o.c = catColor(o.rows[0] ? o.rows[0].cat : ''); }
     else if (g === 'dow') { o.l = dn[+o.k]; o.c = 'var(--acc)'; }
+    else if (g === 'tag') { o.l = o.k ? '#' + o.k : 'Sem tag'; o.c = o.k ? catColor(o.k) : 'var(--line-2)'; }
+    else if (g === 'acc') { const a = A.find(x => x.id === o.k); o.l = a ? a.name : 'Fora das contas (cartão, VA/VR)'; o.c = a ? catColor(a.name) : 'var(--line-2)'; }
     else { o.l = dBR(o.k); o.c = 'var(--acc)'; }
   });
   if (g === 'dia') out.sort((x, y) => x.k < y.k ? -1 : 1);
@@ -3267,7 +3469,7 @@ const multiField = (k, label, opts, sel, allWord) => `<div class="fld"><label cl
 ACT.fmulti = el => { if (!FM) return; const k = el.dataset.k, v = el.dataset.v, arr = FM.v[k] || []; FM.v[k] = arr.includes(v) ? arr.filter(x => x !== v) : arr.concat(v); drawSheet(); };
 function repForm(r) {
   const isNew = !r;
-  const v = r ? JSON.parse(JSON.stringify(r)) : { name: '', p: '6m', from: '', to: '', kind: 'out', group: 'cat', chart: 'bar', fix: 'all', cats: [], pays: [], cards: [], q: '' };
+  const v = r ? JSON.parse(JSON.stringify(r)) : { name: '', p: '6m', from: '', to: '', kind: 'out', group: 'cat', chart: 'bar', fix: 'all', cats: [], pays: [], cards: [], tags: [], q: '' };
   if (v.p === 'custom' && !v.from) [v.from, v.to] = repRange('6m');
   openForm({
     title: isNew ? 'Novo relatório' : 'Editar relatório', v, saveLabel: isNew ? 'Criar relatório' : 'Salvar',
@@ -3277,12 +3479,13 @@ function repForm(r) {
       v.p === 'custom' ? { t: 'date', k: 'from', label: 'De' } : null,
       v.p === 'custom' ? { t: 'date', k: 'to', label: 'Até' } : null,
       { t: 'seg', k: 'kind', label: 'O que entra', opts: [['out', 'Saídas'], ['in', 'Entradas'], ['all', 'As duas']] },
-      { t: 'select', k: 'group', label: 'Agrupar por', opts: REP_GROUPS },
+      { t: 'select', k: 'group', label: 'Agrupar por', opts: repGroupOpts() },
       { t: 'seg', k: 'chart', label: 'Gráfico', opts: [['bar', 'Barras'], ['pie', 'Pizza'], ['line', 'Linha'], ['table', 'Só tabela']] },
       { t: 'seg', k: 'fix', label: 'Contas fixas', opts: [['all', 'Incluir'], ['var', 'Só variáveis'], ['fix', 'Só fixas']] },
       { t: 'html', html: multiField('cats', 'Categorias', repCatOpts(v.kind), v.cats, 'todas') },
       v.kind !== 'in' ? { t: 'html', html: multiField('pays', 'Forma de pagamento', Object.entries(PAY_L), v.pays, 'todas') } : null,
       v.kind !== 'in' && M.cardsList().length > 1 ? { t: 'html', html: multiField('cards', 'Cartões', M.cardsList().map(c => [c.id, c.name]), v.cards, 'todos') } : null,
+      allTags().length ? { t: 'html', html: multiField('tags', 'Tags', allTags(), v.tags, 'todas') } : null,
       { t: 'text', k: 'q', label: 'Descrição contém (opcional)', ph: 'Ex.: ifood, posto, farmácia' }
     ],
     hook: k => { if (k === 'kind') { const ok = repCatOpts(FM.v.kind); FM.v.cats = (FM.v.cats || []).filter(c => ok.includes(c)); } },
@@ -3291,7 +3494,7 @@ function repForm(r) {
       if (!String(v.name || '').trim()) return 'Dê um nome ao relatório.';
       if (v.p === 'custom' && !(v.from && v.to)) return 'Escolha as datas do período.';
       const id = isNew ? nid('r') : r.id;
-      const clean = { id, name: String(v.name).trim().slice(0, 60), p: v.p, from: v.p === 'custom' ? v.from : '', to: v.p === 'custom' ? v.to : '', kind: v.kind, group: v.group, chart: v.chart, fix: v.fix, cats: v.cats || [], pays: v.kind !== 'in' ? v.pays || [] : [], cards: v.kind !== 'in' ? v.cards || [] : [], q: String(v.q || '').trim() };
+      const clean = { id, name: String(v.name).trim().slice(0, 60), p: v.p, from: v.p === 'custom' ? v.from : '', to: v.p === 'custom' ? v.to : '', kind: v.kind, group: v.group, chart: v.chart, fix: v.fix, cats: v.cats || [], pays: v.kind !== 'in' ? v.pays || [] : [], cards: v.kind !== 'in' ? v.cards || [] : [], tags: v.tags || [], q: String(v.q || '').trim() };
       UI.tab = 'rel'; UI.rep = 'c:' + id; UI.repTx = false;
       commit(S => { S.reps = S.reps || []; if (isNew) S.reps.push(clean); else { const i = S.reps.findIndex(x => x.id === id); if (i >= 0) S.reps[i] = clean; else S.reps.push(clean); } }, isNew ? 'Relatório criado' : 'Relatório salvo');
       window.scrollTo && window.scrollTo(0, 0);
@@ -3308,7 +3511,7 @@ function repPeriodBar(r) {
 function curRep() {
   if (!UI.rep) return null;
   if (UI.rep.startsWith('c:')) { const r = (S.reps || []).find(x => 'c:' + x.id === UI.rep); return r ? { custom: true, r, t: r.name, range: repRange(r.p, r.from, r.to) } : null; }
-  const d = REPS[UI.rep]; return d ? { custom: false, r: d, t: d.t, range: repRange(RP().p, RP().from, RP().to) } : null;
+  const d = REPS[UI.rep]; return d ? { custom: false, r: d, t: d.t, range: d.noPeriod ? [irYear() + '-01-01', irYear() + '-12-31'] : repRange(RP().p, RP().from, RP().to) } : null;
 }
 function runRep(c) { const [a, b] = c.range; return c.custom ? customRun(c.r, a, b) : c.r.run(a, b); }
 function viewRel() {
@@ -3318,7 +3521,7 @@ function viewRel() {
     const [a, b] = c.range, out = runRep(c);
     const acts = `<div class="ractions no-print"><button class="btn sm" data-act="repcsv">${icon('save', 16)} Baixar CSV</button><button class="btn sm" data-act="repcsvtx">${icon('list', 16)} Lançamentos (CSV)</button><button class="btn sm" data-act="printgo">${icon('file', 16)} PDF / imprimir</button>${c.custom ? `<button class="btn sm" data-act="repedit">${icon('edit', 16)} Editar</button>` : ''}</div>`;
     return `<header class="topbar"><button class="backbtn" data-act="repback" aria-label="Voltar aos relatórios">${icon('left', 20)}</button><div class="tt" style="flex:1"><div class="greet">${c.custom ? 'Relatório personalizado' : 'Relatório padrão'}</div><h1>${esc(c.t)}</h1></div></header>` +
-      repPeriodBar(c.custom ? c.r : null) + acts +
+      (c.custom ? repPeriodBar(c.r) : c.r.noPeriod ? irYearBar() : repPeriodBar(null)) + acts +
       `<div class="report-print rep-page"><div class="print-only"><h2 style="font:400 26px var(--serif)">${esc(c.t)}</h2><p class="mut sm" style="margin-bottom:12px">${periodLabel(a, b)} · gerado em ${dBR(TODAY)}${c.custom ? ' · ' + esc(customDesc(c.r)) : ''}</p></div>${out.html}</div>`;
   }
   const [a, b] = repRange(RP().p, RP().from, RP().to), t = repTotals(a, b);
