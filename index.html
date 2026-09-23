@@ -690,6 +690,53 @@ body.auth #app{padding:0;max-width:none}
 .cdates svg{color:var(--mut)}
 .steps{margin:0 0 0 18px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.45}
 /* ==== CONTAS-TAGS-VOZ: CSS ==== */
+/* contas bancárias: Início, extrato filtrado, transferência */
+.accs{padding:2px 16px}
+.accrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;column-gap:12px;row-gap:1px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:11px 0;color:inherit;font:inherit;transition:opacity .15s}
+.accrow+.accrow{border-top:1px solid var(--line)}
+.accrow:active{opacity:.7}
+.accrow .cbadge{grid-row:1/3}
+.accrow .an{font-weight:600;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accrow .ab{font-weight:600;font-size:14.5px;white-space:nowrap;text-align:right;letter-spacing:-.005em}
+.accrow small{grid-column:2/4;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accdot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:linear-gradient(140deg,var(--g1),var(--g2) 55%,var(--g3));box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.accsum{display:grid;grid-template-columns:34px minmax(0,1fr) auto;column-gap:12px;row-gap:1px;align-items:center;background:var(--card);border:1px solid color-mix(in srgb,var(--line) 60%,transparent);border-radius:var(--r);padding:11px 14px;margin:6px 0 4px;box-shadow:var(--shadow-sm)}
+.accsum .cbadge{grid-row:1/3}
+.accsum .an{font-weight:600;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accsum small{grid-column:2/4;font-size:12.5px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accsum small b{font-weight:600;color:var(--ink)}.accsum small b.neg{color:var(--neg)}
+.accsum .link{padding:0;font-size:13px;white-space:nowrap}
+.tx .tv b.trv{color:var(--ink-2)}
+.chip small{font-size:11.5px;opacity:.6;margin-left:1px}
+.chipx{display:inline-grid;place-items:center;width:20px;height:20px;margin:0 -6px 0 1px;border-radius:50%;background:color-mix(in srgb,var(--bg) 20%,transparent)}
+.seg[data-k="mode"] button.on[data-v="tr"]{color:var(--acc)}
+.seg[data-k="mode"]:has(button:nth-child(4)) button{font-size:12.5px;padding-left:2px;padding-right:2px}
+/* tags */
+.flrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.taglink{background:none;border:0;padding:0 2px;font-size:12.5px;font-weight:600;color:var(--acc);white-space:nowrap}
+.tagrow{margin-top:8px;gap:6px;align-items:center}
+.tagchip{background:var(--acc-soft);border-color:transparent;color:var(--acc);gap:4px}
+.tagchip svg{opacity:.7}
+.tagin{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.tagin .in{width:150px;min-height:34px;padding:6px 10px;font-size:13.5px;border-radius:10px}
+.tagsug{margin-top:8px;gap:6px}
+.tagsug:empty{display:none}
+/* lançar por texto ou voz */
+.qline{display:flex;gap:8px;align-items:center;margin:0 0 16px}
+.qbox{flex:1;min-width:0;display:flex;align-items:center;gap:6px;border:1px dashed var(--line-2);background:var(--card-2);border-radius:14px;padding:0 4px 0 10px;min-height:46px;transition:border-color .2s,box-shadow .2s,background .2s}
+.qbox:focus-within{border-style:solid;border-color:var(--acc);background:var(--card);box-shadow:0 0 0 4px var(--acc-soft)}
+.qbox>svg{color:var(--acc);flex:none}
+.qbox input{flex:1;min-width:0;width:100%;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none;padding:10px 0;text-overflow:ellipsis}
+.qbox input::placeholder{color:var(--mut)}
+.qmic{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--ink-2);display:grid;place-items:center;transition:background .2s,color .2s}
+.qmic:active{background:var(--card-3)}
+.qmic.on{background:var(--neg);color:#fff;animation:qpulse 1.3s ease-in-out infinite}
+@keyframes qpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--neg) 45%,transparent)}50%{box-shadow:0 0 0 7px transparent}}
+.qgo{display:none;min-height:46px;padding:8px 14px;font-size:13.5px;flex:none}
+.qline.has .qgo{display:inline-flex}
+.qmsg{font-size:12.5px;color:var(--amb);margin:-10px 2px 14px}
+@media (max-width:370px){.qbox input{font-size:13px}}
+@media (min-width:980px){.qgo{display:inline-flex}}
 
 /* ---------- relatórios ---------- */
 .tab.desk{display:none}
@@ -844,6 +891,7 @@ const Core = (() => {
     const idx = {};
     const B = m => idx[m] || (idx[m] = { in: [], conta: [], vavr: [], card: [] });
     for (const t of S.tx) {
+      if (t.t === 'tr') continue; // transferência entre contas: não é entrada nem saída
       const b = B(t.d.slice(0, 7));
       if (t.t === 'in') b.in.push(t); else if (t.pay === 'cartao') b.card.push(t); else if (t.pay === 'vavr') b.vavr.push(t); else b.conta.push(t);
     }
@@ -1689,9 +1737,10 @@ function cardLines(ym, back, cardId) {
 
 // ---------- linhas do extrato ----------
 function txRow(t) {
+  if (t.t === 'tr') return trRowHtml(t); // transferência entre contas: linha neutra
   const isIn = t.t === 'in';
   const isCard = t.t === 'out' && t.pay === 'cartao', payH = esc(payLabel(t));
-  const sub = [esc(t.cat), payH].filter(Boolean).join(' · ');
+  const sub = [esc(t.cat), payH].filter(Boolean).join(' · ') + txSubExtra(t);
   const right = isIn && t.st === 'rec' ? `<i class="pill ${t.d < TODAY ? 'late' : ''}">${t.d < TODAY ? 'atrasado' : dmy(t.d)}</i>` : (t.recFor ? '<small>repasse</small>' : '');
   return `<button class="tx${isCard ? ' tx-card' : ''}"${isCard ? ` style="${cardVars(cardOf(t))}"` : ''} data-act="edtx" data-id="${t.id}">${cbadge(t.cat)}<span class="tm"><b>${esc(t.desc)}</b><small>${sub}</small></span><span class="tv"><b class="${isIn ? 'cr' : ''}">${isIn ? '+' : '−'}${brl(t.v).replace('−', '')}</b>${right}</span></button>`;
 }
@@ -1800,6 +1849,7 @@ function lancItems() {
   S.tx.filter(t => t.d.startsWith(ym)).forEach(t => items.push({ k: 'tx', t, d: t.d, n: parseInt(t.id.slice(1)) || 0 }));
   S.ap.filter(a => a.d.startsWith(ym)).forEach(a => items.push({ k: 'ap', a, d: a.d, n: parseInt(a.id.slice(1)) || 0 }));
   const f = UI.filter, q = norm(UI.q).trim();
+  const fAcc = f.startsWith('acc:') ? f.slice(4) : null, fTag = f.startsWith('tag:') ? norm(f.slice(4)) : null;
   items = items.filter(i => {
     const t = i.k === 'tx' ? i.t : null;
     if (f === 'out' && !(t && t.t === 'out')) return false;
@@ -1809,29 +1859,36 @@ function lancItems() {
     if (f === 'vavr' && !(t && t.t === 'out' && t.pay === 'vavr')) return false;
     if (f === 'cartao' && !(t && t.t === 'out' && t.pay === 'cartao')) return false;
     if (f.startsWith('card:') && !(t && t.t === 'out' && t.pay === 'cartao' && M.cardIdOf(t) === f.slice(5))) return false;
-    if (q) { const s = t ? norm(`${t.desc} ${t.cat} ${fmtNum(t.v)}`) : norm(`guardado ${i.a.cx}`); if (!s.includes(q)) return false; }
+    if (fAcc && !(t ? txInAcc(t, fAcc) : apInAcc(i.a, fAcc))) return false;
+    if (fTag && !(t && txTags(t).some(g => norm(g) === fTag))) return false;
+    if (q) { const s = t ? norm(`${t.desc} ${t.cat} ${fmtNum(t.v)}${txSearchExtra(t)}`) : norm(`guardado ${i.a.cx}`); if (!s.includes(q)) return false; }
     return true;
   });
   return items.sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : b.n - a.n);
 }
 function lancListHtml() {
   const items = lancItems(), mes = MES_L[+UI.ym.slice(5, 7) - 1].toLowerCase();
-  if (!items.length) return UI.q ? empty('Nada encontrado', `Nenhum lançamento com “${esc(UI.q)}” em ${mes}.`, 'search') : empty(`Nada em ${mes}`, 'Toque no + para registrar uma saída, entrada ou valor guardado.', 'list');
+  // filtro por conta: resumo da conta no topo e o total do dia vira o movimento da conta (transferências e aportes entram)
+  const fAcc = UI.filter.startsWith('acc:') && accById(UI.filter.slice(4)) ? UI.filter.slice(4) : null, head = fAcc ? accFilterHead(fAcc) : '';
+  if (!items.length) return head + (UI.q ? empty('Nada encontrado', `Nenhum lançamento com “${esc(UI.q)}” em ${mes}.`, 'search') : empty(`Nada em ${mes}`, 'Toque no + para registrar uma saída, entrada ou valor guardado.', 'list'));
   const groups = {}; items.forEach(i => (groups[i.d] = groups[i.d] || []).push(i));
-  return Object.keys(groups).map(day => {
-    const txs = groups[day].filter(i => i.k === 'tx' && !(i.t.t === 'in' && i.t.st === 'rec'));
-    const tot = sum(txs, i => i.t.t === 'in' ? i.t.v : -i.t.v);
-    return `<div class="dayh"><span class="${day === TODAY ? 'today' : ''}">${dayLabel(day)}</span>${txs.length ? `<b class="${signCls(tot)}">${brlS(tot)}</b>` : ''}</div><div class="list">${groups[day].map(i => i.k === 'tx' ? txRow(i.t) : apRow(i.a)).join('')}</div>`;
+  return head + Object.keys(groups).map(day => {
+    const txs = groups[day].filter(i => i.k === 'tx' && !(i.t.t === 'in' && i.t.st === 'rec') && (i.t.t !== 'tr' || fAcc));
+    const aps = fAcc ? groups[day].filter(i => i.k === 'ap') : [];
+    const tot = sum(txs, i => i.t.t === 'tr' ? (accIdOf(i.t.to) === fAcc ? i.t.v : 0) - (accIdOf(i.t.from) === fAcc ? i.t.v : 0) : i.t.t === 'in' ? i.t.v : -i.t.v) - sum(aps, i => i.a.v);
+    return `<div class="dayh"><span class="${day === TODAY ? 'today' : ''}">${dayLabel(day)}</span>${txs.length || aps.length ? `<b class="${signCls(tot)}">${brlS(tot)}</b>` : ''}</div><div class="list">${groups[day].map(i => i.k === 'tx' ? txRow(i.t) : apRow(i.a)).join('')}</div>`;
   }).join('');
 }
 document.addEventListener('input', e => { if (e.target && e.target.id === 'extq') { UI.q = e.target.value; const l = $('dlist'); if (l) l.innerHTML = lancListHtml(); } });
 function viewLanc() {
   const ym = UI.ym;
+  if (UI.filter.startsWith('acc:') && !accById(UI.filter.slice(4))) UI.filter = 'all'; // conta excluída
   const ent = M.entradas(ym), sai = M.saidasConf(ym), sob = M.dashboard(ym).meta;
   const strip = `<div class="sumstrip"><div><span>Entradas</span><b class="pos" data-count="${ent}" data-key="xent" data-fmt="k">${brlK(ent)}</b></div><div><span>Saídas</span><b data-count="${sai}" data-key="xsai" data-fmt="k">${brlK(sai)}</b></div><div><span>Sobra</span><b class="${signCls(sob)}" data-count="${sob}" data-key="xsob" data-fmt="k">${brlK(sob)}</b></div></div>`;
   const cs = M.cardsList();
   const fl = [['all', 'Tudo'], ['out', 'Saídas'], ['in', 'Entradas'], ['cartao', 'Cartão'], ['conta', 'Pix/débito'], ...(hasVA() ? [['vavr', 'VA/VR']] : []), ['ap', 'Guardado'], ...(cs.length > 1 ? cs.map(c => ['card:' + c.id, c.name]) : [])];
-  const chips = fl.map(([k, l]) => `<button class="chip ${UI.filter === k ? 'on' : ''}" data-act="filter" data-v="${esc(k)}">${k.startsWith('card:') ? mcard(cs.find(c => 'card:' + c.id === k), true) : ''}${esc(l)}</button>`).join('');
+  const mf = moreFilterChip(), mfOn = /^(acc|tag):/.test(UI.filter); // filtro de conta/tag ativo aparece primeiro, à vista
+  const chips = (mfOn ? mf : '') + fl.map(([k, l]) => `<button class="chip ${UI.filter === k ? 'on' : ''}" data-act="filter" data-v="${esc(k)}">${k.startsWith('card:') ? mcard(cs.find(c => 'card:' + c.id === k), true) : ''}${esc(l)}</button>`).join('') + (mfOn ? '' : mf);
   const search = `<div class="search">${icon('search', 18)}<input id="extq" type="search" placeholder="Buscar descrição, categoria ou valor" value="${esc(UI.q)}" autocomplete="off" enterkeyhint="search" aria-label="Buscar no extrato"></div>`;
   const fx = M.fixedOf(ym, 'in').concat(M.fixedOf(ym, 'out')).filter(x => Math.abs(x.v) > 0.004 && !x.f.inFatura);
   const fixSec = sh('Contas fixas do mês', `<button class="link" data-act="openfix">Gerenciar</button>`) + (fx.length ? `<div class="list">${fx.map(x => `<button class="tx" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}">${cbadge(x.f.name)}<span class="tm"><b>${esc(x.f.name)}</b><small>${x.f.kind === 'in' ? 'entrada fixa' : 'saída fixa'}${typeof Core.schedAt(x.f.sched, ym) === 'string' ? ` · ${esc(Core.schedAt(x.f.sched, ym))}` : ''}</small></span><span class="tv"><b class="${x.f.kind === 'in' ? 'cr' : ''}">${x.f.kind === 'in' ? '+' : '−'}${brl(x.v).replace('−', '')}</b></span></button>`).join('')}</div>` : `<section class="card"><p class="mut sm">Nenhuma conta fixa neste mês.</p></section>`);
@@ -3041,6 +3098,473 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 // ==== CONTAS-TAGS-VOZ: JS ====
+// ---------- contas bancárias ----------
+// S.accounts = [{ id, name, color, init, since, sinceUid? }] (opcional; vazio ou ausente = recurso desligado).
+// init = saldo informado na data since (YYYY-MM-DD). A primeira conta é a padrão: lançamentos sem conta (ou com uma conta
+// que não existe mais) caem nela. sinceUid (opcional) = S.uid no momento em que o saldo foi informado com a data de hoje:
+// lançamentos desse mesmo dia criados depois disso também contam no saldo.
+// Ligações: tx.acc (entradas e Pix/débito), ap.acc (aportes), f.acc (itens fixos fora do cartão), c.payAcc (conta que paga a fatura).
+// Transferência: { id, d, t:'tr', v, from, to, desc, cat:'Transferência', pay:'conta', par:1 } — não é entrada nem saída.
+const accList = () => (S && Array.isArray(S.accounts) ? S.accounts : []);
+const accMulti = () => accList().length > 1;
+const accById = id => (id ? accList().find(a => a.id === id) || null : null);
+const accIdOf = id => { const L = accList(); return L.some(a => a.id === id) ? id : (L[0] ? L[0].id : ''); };
+const accName = id => { const a = accById(accIdOf(id)); return a ? a.name : 'Conta'; };
+const ACC_TONES = ['teal', 'navy', 'tan', 'forest', 'purple', 'wine', 'orange', 'graphite'];
+function accPal(a) {
+  const i = Math.max(0, accList().indexOf(a));
+  return CARD_COLORS.find(x => x[0] === (a && a.color)) || CARD_COLORS.find(x => x[0] === ACC_TONES[i % ACC_TONES.length]) || CARD_COLORS[0];
+}
+const accVars = a => { const q = accPal(a); return `--g1:${q[2]};--g2:${q[3]};--g3:${q[4]}`; };
+const accBadge = (a, sm) => `<span class="cbadge cardb${sm ? ' sm' : ''}" style="${accVars(a)}">${icon('bank', sm ? 16 : 19)}</span>`;
+const accDot = a => `<i class="accdot" style="${accVars(a)}"></i>`;
+const cxIsJuros = name => S.cx.some(c => c.mode === 'juros' && Core.key(c.name) === Core.key(name || ''));
+// aporte que mexe na conta: realocação, dinheiro de terceiros e a caixinha do item fixo de juros (já sai pelo item fixo) ficam de fora
+const apMovesAcc = a => !a.re && !a.ext && !cxIsJuros(a.cx);
+const txInAcc = (t, id) => t.t === 'tr' ? accIdOf(t.from) === id || accIdOf(t.to) === id : (t.t === 'in' || (t.t === 'out' && t.pay === 'conta')) && accIdOf(t.acc) === id;
+const apInAcc = (a, id) => apMovesAcc(a) && accIdOf(a.acc) === id;
+// campo de escolha de conta nos formulários (seg até 3 contas, chips acima disso)
+function accField(k, label, v) {
+  const L = accList();
+  if (!L.some(a => a.id === v[k])) v[k] = L[0] ? L[0].id : '';
+  const opts = L.map(a => [a.id, a.name]);
+  return L.length > 3 ? { t: 'chips', k, label, opts } : { t: 'seg', k, label, opts };
+}
+
+// Saldo de cada conta em asOf (YYYY-MM-DD) → [{ a, bal }]. Usado pela Início, pelo extrato e por quem mais precisar.
+// Parte do init e soma o que acontece depois de since até asOf: entradas recebidas (+), Pix/débito (−), transferências
+// (− na origem, + no destino), itens fixos fora do cartão (dia f.day || 1 do mês, ou a data em S.paid[ym]['f:'+id]),
+// faturas dos cartões (aPagarForCard na conta c.payAcc, na data S.paid[ym]['c:'+id] ou no vencimento) e aportes nas
+// caixinhas (− ; resgate volta). VA/VR nunca mexe em conta.
+function accBalances(asOf) {
+  const L = accList(); if (!L.length) return [];
+  const iso = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+  if (!iso(asOf)) asOf = TODAY;
+  const MM = M || Core.make(S, TODAY);
+  const bal = new Map(L.map(a => [a.id, +a.init || 0]));
+  const since = new Map(L.map(a => [a.id, iso(a.since) ? a.since : TODAY]));
+  const idn = x => parseInt(String((x && x.id) || '').replace(/^\D+/, ''), 10);
+  const add = (acc, d, v, item) => {
+    if (!iso(d) || d > asOf || !v) return;
+    const id = accIdOf(acc), s = since.get(id), a = accById(id);
+    if (d > s || (d === s && item && a.sinceUid != null && idn(item) >= a.sinceUid)) bal.set(id, bal.get(id) + v);
+  };
+  for (const t of S.tx) {
+    if (t.t === 'tr') { add(t.from, t.d, -t.v, t); add(t.to, t.d, t.v, t); }
+    else if (t.t === 'in') { if (t.st !== 'rec') add(t.acc, t.d, t.v, t); }
+    else if (t.t === 'out' && t.pay === 'conta') add(t.acc, t.d, -t.v, t);
+  }
+  for (const a of S.ap) if (apMovesAcc(a)) add(a.acc, a.d, -a.v, a);
+  const paidOn = (ym, key) => { const p = ((S.paid || {})[ym] || {})[key]; return typeof p === 'string' && iso(p) ? p : null; };
+  const isVa = f => f.id === 'f_vavr' || /^va\/vr$/i.test(f.name || '');
+  // meses entre o saldo mais antigo e asOf, com folga para contas pagas adiantadas ou atrasadas
+  const first = [...since.values()].sort()[0];
+  for (let ym = Core.addM(first.slice(0, 7), -2), end = Core.addM(asOf.slice(0, 7), 2); ym <= end; ym = Core.addM(ym, 1)) {
+    for (const f of S.fixed) {
+      if (f.inFatura || isVa(f)) continue;
+      const v = MM.fv(f, ym); if (Math.abs(v) < 0.005) continue;
+      add(f.acc, paidOn(ym, 'f:' + f.id) || `${ym}-${pad(Math.min(+Core.lastDay(ym).slice(8), Math.max(1, +f.day || 1)))}`, f.kind === 'in' ? v : -v);
+    }
+    for (const c of MM.cardsList()) {
+      const v = MM.aPagarForCard(ym, c.id); if (Math.abs(v) < 0.005) continue;
+      add(c.payAcc, paidOn(ym, 'c:' + c.id) || cardDueEff(c, ym), -v);
+    }
+  }
+  return L.map(a => ({ a, bal: Core.round2(bal.get(a.id)) }));
+}
+const accBal = (a, asOf) => { const r = accBalances(asOf).find(x => x.a === a); return r ? r.bal : 0; };
+
+// Início: saldo de hoje de cada conta e o previsto para o fim do mês (toque abre o extrato da conta)
+function accountsHomeHtml() {
+  const L = accList(); if (!L.length) return '';
+  const now = accBalances(TODAY), end = accBalances(Core.lastDay(CUR_YM));
+  const rows = now.map((x, i) => `<button class="accrow" data-act="accopen" data-id="${esc(x.a.id)}">${accBadge(x.a, true)}<b class="an">${esc(x.a.name)}</b><b class="ab ${x.bal < -0.004 ? 'neg' : ''}">${brl(x.bal)}</b><small>previsto no fim do mês: <span class="${end[i].bal < -0.004 ? 'neg' : ''}">${brl(end[i].bal)}</span></small></button>`).join('');
+  return sh('Suas contas', `<span class="mut sm">${brl(sum(now, x => x.bal))}</span>`) + `<section class="card accs">${rows}</section>`;
+}
+ACT.accopen = el => { UI.tab = 'ext'; UI.prevTab = 'ext'; UI.ext = 'lanc'; UI.sub = null; UI.filter = 'acc:' + el.dataset.id; UI.q = ''; render(); window.scrollTo && window.scrollTo(0, 0); };
+
+// Ajustes → Contas bancárias
+function accountsSetItem(set) {
+  const L = accList(), n = L.length;
+  return set('bank', 'Contas bancárias', n ? esc(`${n} ${n > 1 ? 'contas' : 'conta'} · ${L.slice(0, 3).map(a => a.name).join(', ')}${n > 3 ? '…' : ''}`) : 'Saldo de cada conta e transferências entre elas', 'accmanage');
+}
+ACT.accmanage = () => {
+  const L = accList(), bs = accBalances(TODAY);
+  const intro = !L.length ? 'Cadastre suas contas (Nubank, Itaú, carteira…) e veja quanto tem em cada uma. Entradas e Pix/débito passam a cair na conta escolhida, a fatura do cartão sai da conta que paga e as contas fixas saem da conta de cada uma.'
+    : L.length === 1 ? 'Com duas contas ou mais, você escolhe de qual sai cada Pix/débito e registra transferências entre elas.'
+    : 'A primeira é a conta padrão: o que não tiver conta escolhida cai nela. Em Cartões, cada cartão pode ter a conta que paga a fatura.';
+  const list = L.length ? `<div class="list" style="box-shadow:none">${bs.map((x, i) => `<button class="tx" data-act="accedit" data-id="${esc(x.a.id)}">${accBadge(x.a)}<span class="tm"><b>${esc(x.a.name)}</b><small>${i === 0 && L.length > 1 ? 'padrão · ' : ''}saldo hoje ${brl(x.bal)}</small></span><span class="tv mut">${icon('right', 18)}</span></button>`).join('')}</div>` : '';
+  openInfo('Contas bancárias', `<p class="mut" style="margin-bottom:12px">${intro}</p>${list}<div class="row-btns"><button class="btn primary" data-act="accnew">${icon('plus', 18)} Nova conta</button>${L.length > 1 ? `<button class="btn" data-act="acctr">${icon('swap', 18)} Transferir</button>` : ''}</div>`);
+};
+const accSwatches = v => `<div class="fld"><label class="fl">Cor</label><div class="swatches">${CARD_COLORS.map(q => `<button type="button" class="sw ${v.color === q[0] ? 'on' : ''}" style="--g1:${q[2]};--g2:${q[3]};--g3:${q[4]}" data-act="fset" data-k="color" data-v="${q[0]}" aria-label="${q[1]}" title="${q[1]}"></button>`).join('')}</div></div>`;
+// how: undefined = nova ou editar; 'adjust' = acertar o saldo pelo valor que o banco mostra hoje
+function accForm(a, how) {
+  const isNew = !a, adjust = !isNew && how === 'adjust', L = accList(), cur = a ? accBal(a, TODAY) : 0;
+  const init = a && !adjust ? +a.init || 0 : 0;
+  const v = { name: a ? a.name : '', color: a ? accPal(a)[0] : ACC_TONES[L.length % ACC_TONES.length], init: a && !adjust ? moneyFmt(Math.abs(init)) : '', neg: (adjust ? cur : init) < -0.004 ? '1' : '0', since: adjust || !a || !a.since ? TODAY : a.since };
+  const note = isNew ? 'Use o saldo que o app do banco mostra nessa data. Daqui pra frente, o app soma as entradas e desconta Pix/débito, transferências, faturas e contas fixas desta conta.'
+    : adjust ? `Pelo que está lançado, o app calcula ${brl(cur)} hoje. Digite o saldo que o banco mostra agora: a conta passa a partir dele.`
+    : `Pelo que está lançado, o app calcula ${brl(cur)} hoje.${L.length > 1 ? ' Ao excluir, os lançamentos desta conta passam para a conta padrão.' : ''}`;
+  openForm({
+    title: isNew ? 'Nova conta' : adjust ? `Acertar saldo · ${a.name}` : 'Editar conta', back: adjust ? null : () => ACT.accmanage(), v,
+    fields: v => [
+      adjust ? null : { t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Nubank, Itaú, Carteira' },
+      isNew ? { t: 'html', html: `<div class="chips" style="margin:-6px 0 14px">${['Nubank', 'Itaú', 'Inter', 'Bradesco', 'Caixa', 'Santander', 'Banco do Brasil', 'Carteira'].filter(nm => !L.some(x => norm(x.name) === norm(nm))).map(nm => `<button type="button" class="chip sm" data-act="accname" data-n="${esc(nm)}">${esc(nm)}</button>`).join('')}</div>` } : null,
+      adjust ? null : { t: 'html', html: `<div class="fld"><label class="fl" for="accSince">Saldo em</label><input class="in" type="date" id="accSince" data-k="since" value="${esc(v.since)}"></div>` },
+      { t: 'money', k: 'init', label: adjust ? 'Saldo agora' : '', nofocus: !adjust },
+      { t: 'seg', k: 'neg', opts: [['0', 'Positivo'], ['1', 'Negativo']] },
+      adjust ? null : { t: 'html', html: accSwatches(v) },
+      { t: 'note', html: note },
+      !isNew && !adjust ? { t: 'html', html: `<button type="button" class="chip sm" style="margin:-4px 0 14px" data-act="accadjust" data-id="${esc(a.id)}">${icon('check', 14)} Acertar pelo saldo de hoje</button>` } : null
+    ],
+    del: isNew || adjust ? null : () => accDelete(a.id),
+    save: v => accSave(a, v, adjust)
+  });
+}
+function accSave(a, v, adjust) {
+  const isNew = !a, L = accList(), name = adjust ? a.name : String(v.name || '').trim().slice(0, 40);
+  if (!name) return 'Dê um nome à conta.';
+  if (L.some(x => x !== a && norm(x.name).trim() === norm(name).trim())) return 'Já existe uma conta com esse nome.';
+  const raw = String(v.init || '').trim();
+  if (adjust && !raw) return 'Digite o saldo que o banco mostra agora.';
+  const n = raw ? Core.calc(raw) : 0; if (isNaN(n)) return 'Saldo inválido.';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v.since || '')) return 'Escolha a data do saldo.';
+  const init = Core.round2(v.neg === '1' ? -Math.abs(n) : n) || 0;
+  const moved = isNew || adjust || init !== Core.round2(+a.init || 0) || v.since !== a.since;
+  commit(S => {
+    if (!Array.isArray(S.accounts)) S.accounts = [];
+    let g = isNew ? null : S.accounts.find(x => x.id === a.id);
+    if (!g) { g = { id: nid('acc') }; S.accounts.push(g); }
+    Object.assign(g, { name, color: v.color, init, since: v.since });
+    if (moved) { if (v.since === TODAY) g.sinceUid = S.uid; else delete g.sinceUid; }
+  }, isNew ? `Conta ${name} criada` : adjust ? `Saldo de ${name} acertado` : 'Conta atualizada');
+  if (!adjust) ACT.accmanage();
+}
+// excluir: os lançamentos da conta voltam para a padrão (transferências que ficariam de uma conta para ela mesma saem)
+function accDelete(id) {
+  commit(S => {
+    const rest = accList().filter(x => x.id !== id), def = rest[0] ? rest[0].id : null;
+    for (const t of S.tx) {
+      if (t.acc === id) delete t.acc;
+      if (t.t === 'tr' && def) { if (t.from === id) t.from = def; if (t.to === id) t.to = def; }
+    }
+    if (def) S.tx = S.tx.filter(t => !(t.t === 'tr' && t.from === t.to));
+    for (const x of S.ap) if (x.acc === id) delete x.acc;
+    for (const f of S.fixed) if (f.acc === id) delete f.acc;
+    for (const c of (S.cards || [])) if (c.payAcc === id) delete c.payAcc;
+    S.accounts = rest;
+  }, 'Conta excluída');
+  if (UI.filter === 'acc:' + id) UI.filter = 'all';
+  ACT.accmanage();
+}
+ACT.accnew = () => accForm(null);
+ACT.accedit = el => { const a = accById(el.dataset.id); if (a) accForm(a); };
+ACT.accadjust = el => { const a = accById(el.dataset.id); if (a) accForm(a, 'adjust'); };
+ACT.accname = el => { if (FM && FM.v) { FM.v.name = el.dataset.n; drawSheet(); } };
+ACT.acctr = () => openEntry({ mode: 'tr' });
+
+// extrato filtrado por conta: resumo no topo da lista
+function accFilterHead(id) {
+  const a = accById(id); if (!a) return '';
+  const now = accBal(a, TODAY), end = accBal(a, Core.lastDay(CUR_YM));
+  return `<div class="accsum">${accBadge(a, true)}<b class="an">${esc(a.name)}</b><button type="button" class="link" data-act="accadjust" data-id="${esc(a.id)}">Acertar saldo</button><small>hoje <b class="${now < -0.004 ? 'neg' : ''}">${brl(now)}</b> · fim do mês ${brl(end)}</small></div>`;
+}
+// "Mais filtros" (conta e tag) num só chip, para não lotar a barra; filtro ativo vira chip ligado com ✕
+function moreFilterChip() {
+  const f = UI.filter;
+  if (f.startsWith('acc:') || f.startsWith('tag:')) {
+    const a = f.startsWith('acc:') ? accById(f.slice(4)) : null;
+    return `<button class="chip on" data-act="fmore" data-mf="1">${f.startsWith('tag:') ? '#' + esc(f.slice(4)) : a ? accDot(a) + esc(a.name) : 'Conta'}<span class="chipx" data-act="fclear" role="button" aria-label="Limpar filtro">${icon('x', 12)}</span></button>`;
+  }
+  return accMulti() || allTags().length ? `<button class="chip" data-act="fmore" data-mf="1">Mais filtros</button>` : '';
+}
+ACT.fmore = () => {
+  const L = accList(), tags = allTags(), f = UI.filter;
+  const sec = (t, body) => `<div class="fld"><label class="fl">${t}</label><div class="chips">${body}</div></div>`;
+  const html = (L.length > 1 ? sec('Conta', L.map(a => `<button type="button" class="chip ${f === 'acc:' + a.id ? 'on' : ''}" data-act="fpick" data-v="acc:${esc(a.id)}">${accDot(a)}${esc(a.name)}</button>`).join('')) : '') +
+    (tags.length ? sec('Tag', tags.map(x => `<button type="button" class="chip ${f === 'tag:' + x.name ? 'on' : ''}" data-act="fpick" data-v="tag:${esc(x.name)}">#${esc(x.name)}<small>${x.n}</small></button>`).join('')) : '');
+  openInfo('Mais filtros', (html || '<p class="mut">Cadastre contas ou marque lançamentos com tags para filtrar por elas.</p>') + (f.startsWith('acc:') || f.startsWith('tag:') ? `<div class="row-btns"><button type="button" class="btn" data-act="fpick" data-v="all">Limpar filtro</button></div>` : ''));
+};
+ACT.fpick = el => { UI.filter = el.dataset.v || 'all'; closeSheet(); if (UI.tab !== 'ext') { UI.tab = 'ext'; UI.ext = 'lanc'; } render(); };
+ACT.fclear = () => { UI.filter = 'all'; render(); };
+
+// linhas do extrato: transferência neutra; conta e tags discretas no subtítulo
+function trRowHtml(t) {
+  const own = t.desc && t.desc !== 'Transferência';
+  return `<button class="tx" data-act="edtx" data-id="${t.id}"><span class="cbadge" style="--c:var(--k2)">${icon('swap', 19)}</span><span class="tm"><b>${esc(own ? t.desc : 'Transferência')}</b><small>${own ? 'Transferência · ' : ''}${esc(accName(t.from))} → ${esc(accName(t.to))}</small></span><span class="tv"><b class="trv">${brl(t.v)}</b></span></button>`;
+}
+function txSubExtra(t) {
+  let s = '';
+  if (accMulti() && (t.t === 'in' || (t.t === 'out' && t.pay === 'conta'))) s += ' · ' + esc(accName(t.acc));
+  const g = txTags(t); if (g.length) s += ' · ' + g.map(x => '#' + esc(x)).join(' ');
+  return s;
+}
+const txSearchExtra = t => ' ' + txTags(t).map(x => `${x} #${x}`).join(' ') + (t.t === 'tr' ? ` ${accName(t.from)} ${accName(t.to)}` : accMulti() && (t.t === 'in' || t.pay === 'conta') ? ' ' + accName(t.acc) : '');
+
+// formulário: modo Transferir
+function transferFields(v) {
+  const L = accList();
+  if (L.length < 2) return [{ t: 'note', html: 'Para transferir, cadastre ao menos duas contas em Ajustes → Contas bancárias.' }];
+  if (!accById(v.from)) v.from = L[0].id;
+  if (!accById(v.to) || v.to === v.from) v.to = (L.find(a => a.id !== v.from) || L[0]).id;
+  return [{ t: 'money', k: 'v', label: 'Valor' }, accField('from', 'De', v), accField('to', 'Para', v), { t: 'text', k: 'desc', label: 'Descrição (opcional)', ph: 'Ex.: Reserva, pagar a fatura' }];
+}
+function trPreview(v) {
+  if (v.mode !== 'tr' || !(Core.calc(v.v) > 0) || !accById(v.from) || !accById(v.to) || v.from === v.to) return '';
+  return `<div>Sai de <b>${esc(accName(v.from))}</b> e entra em <b>${esc(accName(v.to))}</b>. Não conta como entrada nem como saída do mês.</div>`;
+}
+
+// ---------- tags (etiquetas) ----------
+// tx.tags = ['Viagem Nordeste', ...] (opcional), em entradas e saídas. A mesma tag com maiúsculas/acentos diferentes vira uma só.
+const txTags = t => (Array.isArray(t && t.tags) ? t.tags.filter(x => typeof x === 'string' && x.trim()) : []);
+function allTags() {
+  const m = new Map();
+  for (const t of S.tx) for (const g of txTags(t)) { const k = norm(g).trim(), o = m.get(k) || { name: g.trim(), n: 0 }; o.n++; m.set(k, o); }
+  return [...m.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, 'pt-BR'));
+}
+function tagClean(s) {
+  const c = String(s || '').replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 30); if (!c) return '';
+  const ex = allTags().find(x => norm(x.name) === norm(c));
+  return ex ? ex.name : c;
+}
+function tagsUniq(list) { const seen = new Set(), out = []; for (const x of list) { const c = tagClean(x), k = norm(c); if (c && !seen.has(k)) { seen.add(k); out.push(c); } } return out; }
+// tags do formulário, incluindo o que ficou digitado no campo de nova tag
+const entryTags = v => v.mode === 'out' || v.mode === 'in' ? tagsUniq((v.tags || []).concat(FM && FM.tagAdding && v._tagIn ? [v._tagIn] : [])) : [];
+// descrição com "+ Tag" discreto na linha do rótulo: não ocupa espaço enquanto não houver tag
+function descTagsHtml(v, ph) {
+  const tags = v.tags || [], adding = !!(FM && FM.tagAdding);
+  const chips = tags.map((t, i) => `<button type="button" class="chip sm tagchip" data-act="tagdel" data-i="${i}" aria-label="Tirar a tag ${esc(t)}">#${esc(t)}${icon('x', 12)}</button>`).join('');
+  const inp = adding ? `<span class="tagin"><input class="in" id="tagIn" data-k="_tagIn" type="text" placeholder="Nova tag" autocomplete="off" enterkeyhint="done" maxlength="30" value="${esc(v._tagIn || '')}" aria-label="Nome da tag"><button type="button" class="chip sm on" data-act="tagok">OK</button></span>` : '';
+  return `<div class="fld"><div class="flrow"><label class="fl" for="fdesc">Descrição</label>${adding ? '' : `<button type="button" class="taglink" data-act="tagadd">+ Tag</button>`}</div>` +
+    `<input class="in" id="fdesc" type="text" autocomplete="off" data-k="desc" value="${esc(v.desc || '')}" placeholder="${esc(ph)}">` +
+    (chips || inp ? `<div class="chips tagrow">${chips}${inp}</div>` : '') +
+    (adding ? `<div class="chips tagsug" id="tagsug">${tagSugHtml(v)}</div>` : '') + `</div>`;
+}
+function tagSugHtml(v) {
+  const have = new Set((v.tags || []).map(x => norm(x))), q = norm(v._tagIn || '').replace(/^#+/, '').trim();
+  return allTags().filter(x => !have.has(norm(x.name)) && (!q || norm(x.name).includes(q))).slice(0, 8)
+    .map(x => `<button type="button" class="chip sm" data-act="tagpick" data-t="${esc(x.name)}">#${esc(x.name)}</button>`).join('');
+}
+ACT.tagadd = () => { if (!FM) return; FM.tagAdding = true; FM.v._tagIn = ''; drawSheet(); const i = $('tagIn'); if (i) { try { i.focus(); } catch (e) { } } };
+ACT.tagok = () => { if (!FM) return; const c = tagClean(FM.v._tagIn); if (c) FM.v.tags = tagsUniq((FM.v.tags || []).concat(c)); FM.v._tagIn = ''; FM.tagAdding = false; drawSheet(); };
+ACT.tagpick = el => { if (!FM) return; FM.v.tags = tagsUniq((FM.v.tags || []).concat(el.dataset.t)); FM.v._tagIn = ''; FM.tagAdding = false; drawSheet(); };
+ACT.tagdel = el => { if (!FM) return; FM.v.tags = (FM.v.tags || []).filter((_, i) => i !== +el.dataset.i); drawSheet(); };
+
+// ---------- lançar por texto ou voz ----------
+// Leitor local (sem internet e sem IA): tira do texto o valor, as parcelas, a data, o tipo, a forma de pagamento, a conta
+// ou o cartão e a categoria; o que sobra, sem as palavras de ligação, vira a descrição. Só preenche: quem salva é você.
+let QREC = null; // reconhecimento de voz em andamento
+const QP_PH = 'Digite ou fale: mercado 45,90 no cartão';
+const QP_STOP = new Set('gastei gastou gastamos paguei pagou pagamos comprei comprou compramos custou foi deu recebi recebido recebida recebemos receber ganhei entrada vou vai parcelado parcelada parcelei parcelou no na nos nas num numa com de do da dos das em por pelo pela pro pra para o a os as um uma e reais real centavos valor que'.split(' '));
+const QP_NUMW = { um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12, quinze: 15, dezoito: 18, vinte: 20, trinta: 30 };
+const QP_WD = { domingo: 0, segunda: 1, terca: 2, quarta: 3, quinta: 4, sexta: 5, sabado: 6 };
+// número escrito do jeito brasileiro (ou não): 45,90 · 45.90 · 1.234,56 · 2.400 · 1,234.56 · 45
+function qpNum(s) {
+  s = String(s || '');
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(s)) return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+  if (/^\d+,\d{1,2}$/.test(s)) return parseFloat(s.replace(',', '.'));
+  if (/^\d+\.\d{1,2}$/.test(s)) return parseFloat(s);
+  if (/^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(s)) return parseFloat(s.replace(/,/g, ''));
+  if (/^\d+$/.test(s)) return parseInt(s, 10);
+  return null;
+}
+// curMode: modo atual do formulário ('out' ou 'in'), usado quando o texto não diz se é entrada ou saída
+function parseQuick(text, curMode) {
+  const T = String(text || '').replace(/[“”"]/g, ' ').split(/\s+/).map(raw => raw.replace(/^[^\p{L}\p{N}$#]+|[^\p{L}\p{N}%$]+$/gu, '')).filter(Boolean).map(raw => ({ raw, n: norm(raw), used: false }));
+  const R = { v: null, par: null, d: null, mode: null, st: null, pay: null, cardId: null, acc: null, cat: '', catSrc: '', desc: '', tags: [] };
+  const n = i => (T[i] ? T[i].n : ''), free = i => !!T[i] && !T[i].used;
+  const use = (a, b = a) => { for (let i = a; i <= b; i++) if (T[i]) T[i].used = true; };
+  const intw = s => (/^\d{1,2}$/.test(s) ? +s : QP_NUMW[s] || null);
+  const has = re => T.some(t => re.test(t.n));
+  const todayDn = Core.pd(TODAY), td = +TODAY.slice(8, 10);
+  // valor a partir do token i: "45,90", "R$ 1.234,56", "R$45", "45 reais e 90 centavos", "2 mil", "90 centavos"
+  const money = i => {
+    if (!free(i)) return null;
+    let j = i, strong = false;
+    if (n(j) === 'r$') { if (!free(j + 1)) return null; strong = true; j++; }
+    let raw = n(j); const m = /^r\$(.+)$/.exec(raw); if (m) { strong = true; raw = m[1]; }
+    let v = qpNum(raw); if (v == null) return null;
+    let end = j;
+    if (n(end + 1) === 'mil') { v *= 1000; end++; }
+    if (/^(reais|real)$/.test(n(end + 1))) {
+      strong = true; end++;
+      if (n(end + 1) === 'e' && /^\d{1,2}$/.test(n(end + 2))) { v += +n(end + 2) / 100; end += 2; if (/^centavos?$/.test(n(end + 1))) end++; }
+    } else if (/^centavos?$/.test(n(end + 1))) { v /= 100; strong = true; end++; }
+    else if (n(end + 1) === 'e' && /^\d{1,2}$/.test(n(end + 2)) && /^centavos?$/.test(n(end + 3))) { v += +n(end + 2) / 100; strong = true; end += 3; }
+    for (let k = i; k <= end; k++) if (!free(k)) return null;
+    return v > 0 ? { v: Core.round2(v), i, end, strong, fmt: /[.,]/.test(raw) } : null;
+  };
+  // tags digitadas com # ("#viagem")
+  T.forEach(t => { if (/^#\S/.test(t.raw)) { const c = tagClean(t.raw); if (c) R.tags.push(c); t.used = true; } });
+  // parcelas: "3x", "3 x", "em 3 vezes", "3 parcelas", "parcelado em 3", "à vista"; "3x de 50" = 3 parcelas de 50
+  for (let i = 0; i < T.length; i++) {
+    if (!free(i)) continue;
+    if (n(i) === 'avista' || (n(i) === 'a' && n(i + 1) === 'vista')) { R.par = 1; use(i, n(i) === 'avista' ? i : i + 1); continue; }
+    let k = null, b = i, m;
+    if ((m = /^(\d{1,2})x$/.exec(n(i)))) k = +m[1];
+    else if (intw(n(i)) && /^(x|vez|vezes|parcela|parcelas)$/.test(n(i + 1))) { k = intw(n(i)); b = i + 1; }
+    else if (/^parcelad[oa]s?$/.test(n(i)) && n(i + 1) === 'em' && intw(n(i + 2))) { k = intw(n(i + 2)); b = i + 2; if (/^(x|vezes)$/.test(n(i + 3))) b = i + 3; }
+    if (!k || k > 48) continue;
+    R.par = Math.min(36, k); use(i, b);
+    if (n(i - 1) === 'em') use(i - 1);
+    if (n(b + 1) === 'de') { const pm = money(b + 2); if (pm) { R.v = Core.round2(pm.v * k); use(b + 1, pm.end); } }
+    break;
+  }
+  // palavras de forma de pagamento (só anota onde estão; quem usa é a etapa da forma de pagamento)
+  const kwAt = { cartao: [], conta: [], vavr: [] }; let kw = null;
+  for (let i = 0; i < T.length; i++) {
+    if (!free(i)) continue;
+    const w = n(i); let t = null, b = i;
+    if (w === 'cartao' && n(i + 1) === 'de' && n(i + 2) === 'debito') { t = 'conta'; b = i + 2; }
+    else if (w === 'cartao' || w === 'credito') { t = 'cartao'; if (w === 'cartao' && n(i + 1) === 'de' && n(i + 2) === 'credito') b = i + 2; }
+    else if (/^(pix|debito|dinheiro|boleto|especie)$/.test(w)) t = 'conta';
+    else if (hasVA() && /^(va|vr|va\/vr|vale|vale-refeicao|vale-alimentacao|alelo|sodexo|pluxee)$/.test(w)) { t = 'vavr'; if (w === 'vale' && /^(refeicao|alimentacao)$/.test(n(i + 1))) b = i + 1; }
+    if (!t) continue;
+    kwAt[t].push([i, b]); if (!kw) kw = t; i = b;
+  }
+  const aliases = name => { const w = norm(name).split(/\s+/).filter(Boolean), out = [w]; if (w.length > 1 && /^(cartao|conta)$/.test(w[0])) { let k = 1; while (k < w.length - 1 && /^(de|do|da)$/.test(w[k])) k++; out.push(w.slice(k)); } return out; };
+  const seqAt = w => { for (let i = 0; i + w.length <= T.length; i++) { let ok = true; for (let k = 0; k < w.length; k++) if (!free(i + k) || n(i + k) !== w[k]) { ok = false; break; } if (ok) return i; } return -1; };
+  const catIn = c => { const w = norm(c).split(/\s+/).filter(Boolean); return w.length > 0 && seqAt(w) >= 0; };
+  // tipo: entrada ou saída. Sem verbo, cartão/VA/VR/parcelas ou uma categoria que só existe nas saídas indicam saída
+  const outStrong = has(/^(gastei|gastou|gastamos|paguei|pagou|pagamos|comprei|comprou|compramos|custou)$/);
+  const inStrong = has(/^(recebi|recebido|recebida|recebemos|receber|ganhei|entrada)$/), inWeak = has(/^(salario|reembolso|reembolsado)$/);
+  const outSig = kw === 'cartao' || kw === 'vavr' || R.par > 1 || S.cats.some(c => !S.incCats.some(x => norm(x) === norm(c)) && catIn(c));
+  R.mode = outStrong ? 'out' : inStrong || inWeak ? 'in' : outSig ? 'out' : null;
+  if (R.mode === 'in') R.st = has(/^receber$/) ? 'rec' : has(/^(recebi|recebido|recebida|recebemos|ganhei)$/) ? 'ok' : null; // "a receber", "vou receber"
+  // data: hoje, ontem, anteontem, "dia 12", 12/09, dia da semana
+  let dayN = null, wd = null, wdPast = false;
+  for (let i = 0; i < T.length; i++) {
+    if (!free(i)) continue;
+    const w = n(i); let m;
+    if (w === 'hoje') { R.d = TODAY; use(i); }
+    else if (w === 'anteontem') { R.d = Core.fromDn(todayDn - 2); use(i); }
+    else if (w === 'ontem') { const antes = n(i - 1) === 'de' && n(i - 2) === 'antes'; R.d = Core.fromDn(todayDn - (antes ? 2 : 1)); use(antes ? i - 2 : i, i); }
+    else if (w === 'dia' && /^\d{1,2}$/.test(n(i + 1)) && free(i + 1) && +n(i + 1) >= 1 && +n(i + 1) <= 31) { dayN = +n(i + 1); use(i, i + 1); }
+    else if ((m = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/.exec(w)) && +m[1] >= 1 && +m[1] <= 31 && +m[2] >= 1 && +m[2] <= 12) {
+      const ym = `${m[3] ? (m[3].length === 2 ? '20' + m[3] : m[3]) : TODAY.slice(0, 4)}-${pad(+m[2])}`;
+      R.d = `${ym}-${pad(Math.min(+m[1], +Core.lastDay(ym).slice(8)))}`; use(i);
+    }
+    else if ((m = /^(domingo|segunda|terca|quarta|quinta|sexta|sabado)(-feira)?$/.exec(w))) {
+      wd = QP_WD[m[1]]; use(i);
+      if (n(i + 1) === 'feira') use(i + 1);
+      const p = [i + 1, i + 2].find(k => /^passad[oa]$/.test(n(k))); if (p != null) { wdPast = true; use(p); }
+    }
+  }
+  if (dayN && !R.d) {
+    let ym = CUR_YM;
+    if (R.st === 'rec') { if (dayN < td) ym = Core.addM(CUR_YM, 1); } else if (dayN > td) ym = Core.addM(CUR_YM, -1); // dia que ainda não chegou = mês passado
+    R.d = `${ym}-${pad(Math.min(dayN, +Core.lastDay(ym).slice(8)))}`;
+  }
+  if (wd != null && !R.d) {
+    const cur = (todayDn + 4) % 7; let diff = R.st === 'rec' ? (wd - cur + 7) % 7 : (cur - wd + 7) % 7;
+    if (wdPast && !diff) diff = 7;
+    R.d = Core.fromDn(R.st === 'rec' ? todayDn + diff : todayDn - diff);
+  }
+  // forma de pagamento: palavras-chave e nomes de cartões e contas cadastrados
+  const named = list => { let best = null; for (const it of list) for (const w of aliases(it.name || '')) { if (!w.length) continue; const i = seqAt(w); if (i >= 0 && (!best || w.length > best.len)) best = { it, i, len: w.length }; } return best; };
+  const useM = x => { if (x) use(x.i, x.i + x.len - 1); };
+  const cardM = named(S.cards || []), accM = named(accList());
+  const useKw = t => kwAt[t].forEach(([a, b]) => use(a, b));
+  const mode = R.mode || (curMode === 'in' ? 'in' : 'out');
+  if (mode === 'in') { if (accM) { R.acc = accM.it.id; useM(accM); } useKw('conta'); }
+  else {
+    let pay = null;
+    if (kw === 'cartao' || (R.par > 1 && kw !== 'conta' && kw !== 'vavr')) pay = 'cartao';
+    else if (kw) pay = kw;
+    else if (cardM && (!accM || cardM.len >= accM.len)) pay = 'cartao'; // mesmo nome no cartão e na conta: num gasto, vale o cartão
+    else if (accM) pay = 'conta';
+    if (pay) {
+      R.pay = pay; useKw(pay);
+      if (pay === 'cartao' && cardM) R.cardId = cardM.it.id;
+      if (pay === 'conta' && accM) R.acc = accM.it.id;
+      if (pay !== 'vavr') { useM(cardM); useM(accM); } // banco citado fala do pagamento, não entra na descrição
+    }
+    if (R.par > 1 && R.pay && R.pay !== 'cartao') R.par = null;
+  }
+  // valor: o que tem R$/reais/centavos; senão o que tem vírgula ou ponto; senão o último número
+  if (R.v == null) {
+    const c = []; for (let i = 0; i < T.length; i++) { const m = money(i); if (m) c.push(m); }
+    const pick = c.find(x => x.strong) || c.find(x => x.fmt) || c[c.length - 1];
+    if (pick) { R.v = pick.v; use(pick.i, pick.end); }
+  }
+  // descrição: o que sobrou, sem pedaços que são só palavras de ligação e sem elas nas pontas
+  const segs = []; let run = [];
+  for (const t of T) { if (t.used) { if (run.length) segs.push(run); run = []; } else run.push(t); }
+  if (run.length) segs.push(run);
+  const words = segs.filter(s => s.some(t => !QP_STOP.has(t.n))).flat();
+  while (words.length && QP_STOP.has(words[0].n)) words.shift();
+  while (words.length && QP_STOP.has(words[words.length - 1].n)) words.pop();
+  let desc = words.map(t => t.raw).join(' ').trim();
+  // categoria: regra da categorização automática, depois nome de categoria no texto, depois um lançamento igual já feito
+  const list = mode === 'in' ? S.incCats : S.cats;
+  if (mode === 'out' && desc) { const r = autocatFind(desc); if (r && S.cats.includes(r.cat)) { R.cat = r.cat; R.catSrc = 'rule'; } }
+  if (!R.cat) for (const c of list.slice().sort((a, b) => b.length - a.length)) { const w = norm(c).split(/\s+/).filter(Boolean); if (w.length && seqAt(w) >= 0) { R.cat = c; R.catSrc = 'name'; break; } }
+  if (!R.cat && desc) { const k = norm(desc).trim(); for (let i = S.tx.length - 1; i >= 0; i--) { const t = S.tx[i]; if (t.t === mode && norm(t.desc).trim() === k && list.includes(t.cat)) { R.cat = t.cat; R.catSrc = 'hist'; break; } } }
+  if (!desc) desc = R.cat;
+  R.desc = desc ? desc.charAt(0).toUpperCase() + desc.slice(1) : '';
+  return R;
+}
+function quickApply(text) {
+  if (!FM || !FM.v) return;
+  const v = FM.v, txt = String(text || '').replace(/\s+/g, ' ').trim();
+  v.qtx = txt;
+  if (!txt) { v._qmsg = ''; drawSheet(); const i = $('qtxIn'); if (i) { try { i.focus(); } catch (e) { } } return; }
+  const r = parseQuick(txt, v.mode);
+  if (r.mode && r.mode !== v.mode && (v.mode === 'out' || v.mode === 'in')) {
+    v.mode = r.mode; v._autocatManual = false; v._autocatHit = false;
+    if (!(v.mode === 'in' ? S.incCats : S.cats).includes(v.cat)) v.cat = '';
+  }
+  if (r.v != null) v.v = moneyFmt(r.v);
+  if (r.d) { v.d = r.d; v.showDate = false; }
+  if (v.mode === 'in' && r.st) v.st = r.st;
+  if (v.mode === 'out') {
+    if (r.pay) v.pay = r.pay;
+    if (r.cardId) v.cardId = r.cardId;
+    v.par = v.pay === 'cartao' ? r.par || 1 : 1;
+  }
+  if (r.acc) v.acc = r.acc;
+  if (r.cat) { v.cat = r.cat; v._qcat = r.cat; v._autocatHit = r.catSrc === 'rule'; v._autocatManual = r.catSrc !== 'rule'; }
+  else if (v._qcat && v.cat === v._qcat) { v.cat = ''; v._qcat = ''; v._autocatHit = false; v._autocatManual = false; } // categoria que veio de um texto anterior
+  if (r.desc) v.desc = r.desc;
+  if (r.tags.length) v.tags = tagsUniq((v.tags || []).concat(r.tags));
+  v._qmsg = r.v == null ? 'Não achei o valor no texto: digite no campo Valor.' : '';
+  FM.err = '';
+  drawSheet();
+}
+function quickLineHtml(v) {
+  const mic = !!(window.SpeechRecognition || window.webkitSpeechRecognition), has = !!String(v.qtx || '').trim();
+  return `<div class="qline${has ? ' has' : ''}"><div class="qbox">${icon('sparkle', 16)}<input id="qtxIn" data-k="qtx" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="${QREC ? 'Pode falar…' : QP_PH}" value="${esc(v.qtx || '')}" aria-label="Lançar por texto ou voz">${mic ? `<button type="button" class="qmic${QREC ? ' on' : ''}" data-act="qmic" aria-label="${QREC ? 'Parar de ouvir' : 'Falar o lançamento'}" title="Falar">${icon('mic', 18)}</button>` : ''}</div><button type="button" class="btn qgo" data-act="qfill">Preencher</button></div>${v._qmsg ? `<p class="qmsg">${esc(v._qmsg)}</p>` : ''}`;
+}
+ACT.qfill = () => { const i = $('qtxIn'); quickApply(i ? i.value : FM && FM.v ? FM.v.qtx : ''); };
+function qMicState() {
+  const b = document.querySelector('#sheet .qmic'), i = $('qtxIn');
+  if (b) { b.classList.toggle('on', !!QREC); b.setAttribute('aria-label', QREC ? 'Parar de ouvir' : 'Falar o lançamento'); }
+  if (i) i.placeholder = QREC ? 'Pode falar…' : QP_PH;
+}
+ACT.qmic = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR || !FM) return;
+  if (QREC) { try { QREC.stop(); } catch (e) { } return; }
+  let rec; try { rec = new SR(); } catch (e) { toast('Não consegui usar o microfone neste navegador.'); return; }
+  const form = FM; let txt = '';
+  QREC = rec; rec.lang = 'pt-BR'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  rec.onresult = e => {
+    if (FM !== form) { try { rec.abort(); } catch (x) { } return; }
+    txt = Array.from(e.results).map(r => r[0].transcript).join(' ').replace(/\s+/g, ' ').trim();
+    const i = $('qtxIn'); if (i) { i.value = txt; const q = i.closest('.qline'); if (q) q.classList.toggle('has', !!txt); }
+    form.v.qtx = txt;
+  };
+  rec.onerror = e => {
+    const m = { 'not-allowed': 'Libere o microfone para este site nas configurações do navegador.', 'service-not-allowed': 'Libere o microfone para este site nas configurações do navegador.', 'no-speech': 'Não ouvi nada. Toque no microfone e fale de novo.', 'audio-capture': 'Não encontrei um microfone neste aparelho.', network: 'A voz precisa de internet neste navegador. Dá para digitar.' }[e.error];
+    if (m) toast(m);
+  };
+  rec.onend = () => { QREC = null; if (FM !== form) return; if (txt) quickApply(txt); else qMicState(); };
+  try { rec.start(); qMicState(); } catch (e) { QREC = null; qMicState(); toast('Não consegui ligar o microfone.'); }
+};
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing || !FM || !e.target) return;
+  if (e.target.id === 'qtxIn') { e.preventDefault(); quickApply(e.target.value); }
+  else if (e.target.id === 'tagIn') { e.preventDefault(); ACT.tagok(); }
+});
 
 // ---------- AJUSTES ----------
 // relatório simples em tela cheia, pensado para impressão / "Salvar como PDF" do navegador
@@ -3190,6 +3714,7 @@ ACT.ext = el => { UI.ext = el.dataset.v; render(); };
 ACT.filter = el => {
   UI.filter = el.dataset.v;
   document.querySelectorAll('.filterbar .chip').forEach(b => b.classList.toggle('on', b.dataset.v === UI.filter));
+  const mf = document.querySelector('.filterbar [data-mf]'); if (mf) { const fb = mf.parentNode; mf.remove(); fb.insertAdjacentHTML('beforeend', moreFilterChip()); } // "Mais filtros" (conta/tag) volta ao fim da barra
   const l = $('dlist'); if (l) { l.innerHTML = lancListHtml(); l.classList.remove('enter'); void l.offsetWidth; l.classList.add('enter'); } else render();
 };
 ACT.togd = el => { UI.open[el.dataset.t] = UI.open[el.dataset.t] === false; render(); };
@@ -3248,13 +3773,16 @@ function dsug(v) {
   if (FM) FM.ds = out;
   return out.map((t, i) => `<button type="button" class="chip sm" data-act="dpick" data-i="${i}">${esc(t.desc)} <b>${fmtNum(t.v)}</b></button>`).join('');
 }
-ACT.dpick = el => { if (!FM || !FM.ds) return; const t = FM.ds[+el.dataset.i]; if (!t) return; Object.assign(FM.v, { desc: t.desc, cat: t.cat, pay: t.pay, par: 1, _autocatManual: true }); if (!String(FM.v.v || '').trim()) FM.v.v = String(t.v).replace('.', ','); drawSheet(); };
+ACT.dpick = el => { if (!FM || !FM.ds) return; const t = FM.ds[+el.dataset.i]; if (!t) return; Object.assign(FM.v, { desc: t.desc, cat: t.cat, pay: t.pay, par: 1, _autocatManual: true }); if (t.pay === 'conta' && t.acc && accById(t.acc)) FM.v.acc = t.acc; if (!String(FM.v.v || '').trim()) FM.v.v = String(t.v).replace('.', ','); drawSheet(); };
 function entryFields(v) {
-  const f = [];
-  f.push({ t: 'seg', k: 'mode', opts: [['out', 'Saída'], ['in', 'Entrada'], ['ap', 'Guardar']] });
+  const f = [], multi = accMulti();
+  f.push({ t: 'seg', k: 'mode', opts: [['out', 'Saída'], ['in', 'Entrada'], ['ap', 'Guardar'], ...(multi || v.mode === 'tr' ? [['tr', 'Transferir']] : [])] });
+  if (!v.id && (v.mode === 'out' || v.mode === 'in')) f.push({ t: 'html', html: quickLineHtml(v) }); // lançar por texto ou voz
+  if (v.mode === 'tr') { f.push(...transferFields(v)); f.push({ t: 'html', html: dateChipsHtml(v) }); return f; }
   f.push({ t: 'money', k: 'v', label: v.mode === 'ap' ? 'Valor guardado' : 'Valor' });
   if (v.mode === 'out') {
     f.push({ t: 'seg', k: 'pay', label: 'Como pagou', opts: [['cartao', 'Cartão'], ['vavr', 'VA/VR'], ['conta', 'Pix/débito']].filter(o => o[0] !== 'vavr' || hasVA() || v.pay === 'vavr') });
+    if (v.pay === 'conta' && multi) f.push(accField('acc', 'Conta', v));
     if (v.pay === 'cartao' && S.cards && S.cards.length > 1) {
       if (!S.cards.some(c => c.id === v.cardId)) v.cardId = S.cards[0].id;
       f.push({ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) });
@@ -3265,7 +3793,7 @@ function entryFields(v) {
       const ev = S.env.find(e => e.id === v.env);
       if (!ev || ev.cats.includes('*')) { f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true }); f.push(autocatHintField(v)); }
     } else { f.push({ t: 'chips', k: 'cat', label: 'Categoria', opts: withCur(S.cats, v.cat), add: true }); f.push(autocatHintField(v)); }
-    f.push({ t: 'text', k: 'desc', label: 'Descrição', ph: 'Ex.: Mercado, Farmácia, Uber' });
+    f.push({ t: 'html', html: descTagsHtml(v, 'Ex.: Mercado, Farmácia, Uber') }); // descrição + tags
     f.push({ t: 'html', html: `<div id="dsug" class="chips" style="margin:-6px 0 12px">${dsug(v)}</div>` });
     if (v.pay === 'cartao') f.push({ t: 'step', k: 'par', label: 'Parcelas', fmt: n => +n === 1 ? 'À vista' : n + '×', max: 36 });
     if (v.pay === 'cartao') f.push({ t: 'text', k: 'adv', label: 'Já adiantei (opcional)', ph: '0,00' });
@@ -3273,12 +3801,14 @@ function entryFields(v) {
     if (v.gen === '1') f.push({ t: 'note', html: `Cria um “A receber” de ${v.v ? brl(Core.calc(v.v) || 0) : 'igual ao valor'} com a mesma descrição. Assim que a pessoa te pagar, toque em “Recebi”.` });
   } else if (v.mode === 'in') {
     f.push({ t: 'seg', k: 'st', label: 'Situação', opts: [['ok', 'Já recebi'], ['rec', 'A receber']] });
+    if (multi) f.push(accField('acc', 'Conta', v));
     f.push({ t: 'chips', k: 'cat', label: 'Tipo', opts: withCur(S.incCats, v.cat), add: true });
-    f.push({ t: 'text', k: 'desc', label: 'Descrição', ph: 'Ex.: 13º, reembolso' });
+    f.push({ t: 'html', html: descTagsHtml(v, 'Ex.: 13º, reembolso') }); // descrição + tags
     f.push({ t: 'note', html: v.st === 'rec' ? 'Só soma nas entradas e na sobra depois de marcado como recebido: toque em “Recebi” quando cair.' : 'Salário e VA/VR já entram sozinhos todo mês. Use Entrada para extras.' });
   } else {
     f.push({ t: 'chips', k: 'cx', label: 'Caixinha', opts: S.cx.map(c => c.name) });
     f.push({ t: 'seg', k: 're', label: 'Tipo', opts: [['0', 'Guardado do mês'], ['1', 'Realocação'], ['2', 'De terceiros']] });
+    if (multi && v.re === '0' && !cxIsJuros(v.cx)) f.push(accField('acc', 'Sai da conta', v));
     f.push({ t: 'note', html: v.re === '1' ? 'Realocação mexe no saldo das caixinhas, mas não conta como guardado do mês.' : v.re === '2' ? 'Dinheiro que outra pessoa mandou para guardar: conta no guardado do mês, mas não abate o saldo da sobra.' : 'Para tirar dinheiro da caixinha, digite o valor com sinal de menos.' });
   }
   f.push({ t: 'html', html: v.mode === 'in' && v.st === 'rec' ? `<div class="fld"><label class="fl">Data prevista</label><input class="in" type="date" data-k="d" value="${esc(v.d)}"></div>` : dateChipsHtml(v) });
@@ -3299,15 +3829,17 @@ function entryPreview(v) {
   return h;
 }
 function entryDefaults(over) {
-  const v = Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', cardId: '', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0', _autocatManual: false, _autocatHit: false }, over || {});
+  const v = Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', cardId: '', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0', acc: '', from: '', to: '', tags: [], qtx: '', _tagIn: '', _qmsg: '', _autocatManual: false, _autocatHit: false }, over || {});
   if (over && over.id) v._autocatManual = true; // editando um lançamento existente: não mexe na categoria já escolhida
+  if (!Array.isArray(v.tags)) v.tags = [];
   return v;
 }
 function openEntry(init) {
   const v = entryDefaults(init);
   if (v.mode === 'ap' && !v.cx && S.cx.length) v.cx = ((typeof DEFAULT_CX !== 'undefined' && S.cx.find(c => c.name === DEFAULT_CX)) || S.cx[0]).name;
+  if (v.mode === 'tr' && !v.id && !accMulti()) v.mode = 'out'; // transferência só com 2 contas ou mais
   openForm({
-    title: v.id ? 'Editar lançamento' : 'Novo lançamento', v, fields: entryFields, preview: entryPreview,
+    title: v.id ? (v.mode === 'tr' ? 'Editar transferência' : 'Editar lançamento') : 'Novo lançamento', v, fields: entryFields, preview: f => entryPreview(f) + trPreview(f),
     saveLabel: 'Salvar', save: f => saveEntry(f, false), save2: v.id ? null : f => saveEntry(f, true), del: v.id ? () => delEntry(v.id) : null, hook: entryHook
   });
 }
@@ -3316,9 +3848,14 @@ function entryHook(k, why) {
   if (k === 'mode' && why === 'set') {
     if (v.mode === 'out') { if (!S.cats.includes(v.cat)) v.cat = ''; }
     else if (v.mode === 'in') { if (!S.incCats.includes(v.cat)) v.cat = ''; }
-    else if (!v.cx && S.cx.length) v.cx = S.cx[0].name;
-    v._autocatManual = false; v._autocatHit = false;
+    else if (v.mode === 'ap') { if (!v.cx && S.cx.length) v.cx = S.cx[0].name; }
+    v._autocatManual = false; v._autocatHit = false; FM.tagAdding = false;
   }
+  if ((k === 'from' || k === 'to') && why === 'set' && v.from === v.to) { // transferência: as duas pontas nunca ficam iguais
+    const o = accList().find(a => a.id !== v[k]); if (o) v[k === 'from' ? 'to' : 'from'] = o.id;
+  }
+  if (k === 'qtx') { const q = document.querySelector('#sheet .qline'); if (q) q.classList.toggle('has', !!String(v.qtx || '').trim()); return; }
+  if (k === '_tagIn') { const s = $('tagsug'); if (s) s.innerHTML = tagSugHtml(v); return; }
   if (k === 'cat' && why === 'set') v._autocatManual = true; // usuário escolheu a categoria com a mão: não sobrescreve mais
   if (k === 'env' && why === 'set') {
     const ev = S.env.find(e => e.id === v.env); if (ev) {
@@ -3359,11 +3896,25 @@ function saveEntry(v, again) {
   if (v.mode === 'ap') { if (!(Math.abs(amt) > 0)) return 'Digite o valor a guardar. Use sinal de menos para resgatar.'; if (!v.cx) return 'Escolha a caixinha.'; }
   else if (!(amt > 0)) return 'Digite um valor maior que zero. Dá para usar contas, como 12,5+30.';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v.d)) return 'Escolha uma data válida.';
+  if (v.mode === 'tr') {
+    if (!accMulti()) return 'Cadastre ao menos duas contas para transferir entre elas.';
+    if (!accById(v.from) || !accById(v.to)) return 'Escolha de qual conta sai e para qual vai.';
+    if (v.from === v.to) return 'Escolha duas contas diferentes.';
+  }
   const val = Core.round2(v.mode === 'ap' ? amt : Math.abs(amt));
+  const multi = accMulti(), tags = entryTags(v);
   let msg;
   commit(S => {
     if (v.id) { S.tx = S.tx.filter(t => t.id !== v.id); S.ap = S.ap.filter(a => a.id !== v.id); }
-    if (v.mode === 'ap') { S.ap.push({ id: v.id && v.id[0] === 'a' ? v.id : nid('a'), d: v.d, cx: v.cx, v: val, ...(v.re === '1' ? { re: true } : v.re === '2' ? { ext: true } : {}) }); msg = `${val < 0 ? 'Resgate' : 'Guardado'} ${brl(Math.abs(val))} em ${v.cx}`; }
+    if (v.mode === 'ap') { S.ap.push({ id: v.id && v.id[0] === 'a' ? v.id : nid('a'), d: v.d, cx: v.cx, v: val, ...(v.re === '1' ? { re: true } : v.re === '2' ? { ext: true } : {}), ...(multi && v.re === '0' && !cxIsJuros(v.cx) ? { acc: accIdOf(v.acc) } : {}) }); msg = `${val < 0 ? 'Resgate' : 'Guardado'} ${brl(Math.abs(val))} em ${v.cx}`; }
+    else if (v.mode === 'tr') {
+      // transferência entre contas: não é entrada nem saída (o motor e os relatórios ignoram t:'tr')
+      const tid = v.id && v.id[0] === 't' ? v.id : nid('t'), desc = String(v.desc || '').trim() || 'Transferência';
+      S.tx.push({ id: tid, d: v.d, t: 'tr', v: val, from: v.from, to: v.to, desc, cat: 'Transferência', pay: 'conta', par: 1 });
+      for (const m of Object.keys(S.adv || {})) delete S.adv[m][tid];
+      const gen = S.tx.find(x => x.recFor === tid); if (gen) { if (gen.st === 'rec') S.tx = S.tx.filter(x => x !== gen); else delete gen.recFor; }
+      msg = `Transferência de ${brl(val)}: ${accName(v.from)} → ${accName(v.to)}`;
+    }
     else {
       let cat0 = v.cat; if (v.mode === 'out' && v.pay === 'vavr') { const ev = S.env.find(e => e.id === v.env); if (ev && !ev.cats.includes('*')) cat0 = ev.cats[0]; }
       const cat = (cat0 || (v.mode === 'in' ? 'Outros' : 'Outros')).trim();
@@ -3371,7 +3922,8 @@ function saveEntry(v, again) {
       const desc = (v.desc || '').trim() || cat;
       const tid = v.id && v.id[0] === 't' ? v.id : nid('t');
       const cardId = v.mode === 'out' && v.pay === 'cartao' && v.cardId ? v.cardId : null;
-      S.tx.push({ id: tid, d: v.d, t: v.mode, v: val, cat, desc, pay: v.mode === 'in' ? 'conta' : v.pay, par: v.mode === 'out' && v.pay === 'cartao' ? (+v.par || 1) : 1, ...(cardId ? { cardId } : {}), ...(v.mode === 'in' && v.st === 'rec' ? { st: 'rec' } : {}) });
+      const acc = multi && (v.mode === 'in' || v.pay === 'conta') ? accIdOf(v.acc) : null; // conta da entrada / do Pix-débito (padrão se nenhuma)
+      S.tx.push({ id: tid, d: v.d, t: v.mode, v: val, cat, desc, pay: v.mode === 'in' ? 'conta' : v.pay, par: v.mode === 'out' && v.pay === 'cartao' ? (+v.par || 1) : 1, ...(cardId ? { cardId } : {}), ...(v.mode === 'in' && v.st === 'rec' ? { st: 'rec' } : {}), ...(acc ? { acc } : {}), ...(tags.length ? { tags } : {}) });
       // aprendizado automático: se ninguém tinha uma regra pra essa descrição, guarda a categoria escolhida agora como regra nova
       if (v.mode === 'out' && !v.id && !v._autocatHit && desc && desc.toLowerCase() !== cat.toLowerCase() && !autocatFind(desc)) {
         S.autocat = S.autocat || []; S.autocat.push({ id: nid('ac'), match: desc.toLowerCase(), cat });
@@ -3391,7 +3943,7 @@ function saveEntry(v, again) {
       msg = `${v.mode === 'in' ? (v.st === 'rec' ? 'A receber' : 'Entrada') : 'Saída'} de ${brl(val)}: ${desc}${v.mode === 'out' && v.gen === '1' ? ' (gera A receber)' : ''}`;
     }
   }, v.id ? 'Lançamento atualizado' : msg);
-  if (again) { FM.v = entryDefaults({ mode: v.mode, pay: v.pay, d: v.d, showDate: v.showDate, cx: v.cx, st: v.st }); FM.err = ''; drawSheet(); }
+  if (again) { FM.v = entryDefaults({ mode: v.mode, pay: v.pay, d: v.d, showDate: v.showDate, cx: v.cx, st: v.st, acc: v.acc, from: v.from, to: v.to, tags: v.mode === 'out' || v.mode === 'in' ? tags : [] }); FM.err = ''; FM.tagAdding = false; drawSheet(); }
   return true;
 }
 function delEntry(id) { commit(S => { S.tx = S.tx.filter(t => t.id !== id && !(t.recFor === id && t.st === 'rec')); for (const t of S.tx) if (t.recFor === id) delete t.recFor; S.ap = S.ap.filter(a => a.id !== id); for (const m of Object.keys(S.adv || {})) delete S.adv[m][id]; }, 'Lançamento excluído'); }
@@ -3475,7 +4027,11 @@ ACT.envreset = () => { const nx = Core.addM(M.curYm, 1); askConfirm(`Zerar o VA/
 ACT.addenv = el => { const c = el.dataset.c || ''; openEntry({ mode: 'out', pay: 'vavr', cat: c, desc: c === 'Troca com o Pai' ? 'Troca com o pai' : c }); };
 ACT.recv = el => { const t = S.tx.find(x => x.id === el.dataset.id); if (!t) return; commit(S => { const g = S.tx.find(x => x.id === el.dataset.id); delete g.st; }, `Recebido: ${t.desc}`); };
 ACT.add = el => openEntry({ mode: el.dataset.m || 'out' });
-ACT.edtx = el => { const t = S.tx.find(x => x.id === el.dataset.id); if (t) openEntry({ id: t.id, mode: t.t, v: String(t.v).replace('.', ','), cat: t.cat, desc: t.desc, pay: t.pay === 'conta' && t.t === 'in' ? 'cartao' : t.pay, cardId: t.cardId || '', par: t.par || 1, d: t.d, st: t.st || 'ok', adv: (() => { const a = M.advOf(M.faturaYm(t), t.id); return a ? String(a).replace('.', ',') : ''; })(), gen: S.tx.some(x => x.recFor === t.id) ? '1' : '0' }); };
+ACT.edtx = el => {
+  const t = S.tx.find(x => x.id === el.dataset.id); if (!t) return;
+  if (t.t === 'tr') { openEntry({ id: t.id, mode: 'tr', v: String(t.v).replace('.', ','), from: t.from || '', to: t.to || '', desc: t.desc && t.desc !== 'Transferência' ? t.desc : '', d: t.d }); return; }
+  openEntry({ id: t.id, mode: t.t, v: String(t.v).replace('.', ','), cat: t.cat, desc: t.desc, pay: t.pay === 'conta' && t.t === 'in' ? 'cartao' : t.pay, cardId: t.cardId || '', par: t.par || 1, d: t.d, st: t.st || 'ok', adv: (() => { const a = M.advOf(M.faturaYm(t), t.id); return a ? String(a).replace('.', ',') : ''; })(), gen: S.tx.some(x => x.recFor === t.id) ? '1' : '0', acc: t.acc || '', tags: txTags(t).slice() });
+};
 ACT.edap = el => { const a = S.ap.find(x => x.id === el.dataset.id); if (a) openEntry({ id: a.id, mode: 'ap', v: String(a.v).replace('.', ','), cx: a.cx, d: a.d, re: a.re ? '1' : a.ext ? '2' : '0' }); };
 
 // ---------- valores fixos por mês ----------
@@ -3522,24 +4078,26 @@ function ptForm(fid, i) {
   });
 }
 ACT.fixopts = el => {
-  const f = S.fixed.find(x => x.id === el.dataset.f); const fid = f.id;
+  const f = S.fixed.find(x => x.id === el.dataset.f); const fid = f.id, vaItem = f.id === 'f_vavr' || /^va\/vr$/i.test(f.name || ''); // VA/VR nunca mexe em conta
   openForm({
-    title: 'Opções do item', back: () => fixedDetail(fid), v: { name: f.name, kind: f.kind, cardDay: f.cardDay || '', inFatura: f.inFatura ? '1' : '0', cardId: f.cardId || (S.cards && S.cards[0] ? S.cards[0].id : '') },
+    title: 'Opções do item', back: () => fixedDetail(fid), v: { name: f.name, kind: f.kind, cardDay: f.cardDay || '', inFatura: f.inFatura ? '1' : '0', cardId: f.cardId || (S.cards && S.cards[0] ? S.cards[0].id : ''), acc: f.acc || '' },
     fields: v => [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'seg', k: 'kind', label: 'Tipo', opts: [['in', 'Entrada'], ['out', 'Saída']] },
       { t: 'num', k: 'cardDay', label: 'Dia da cobrança (opcional)', ph: 'Ex.: 8' },
       { t: 'seg', k: 'inFatura', label: 'Sai no cartão?', opts: [['0', 'Não'], ['1', 'Sim']] },
-      ...(v.inFatura === '1' && S.cards && S.cards.length > 1 ? [{ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) }] : [])],
+      ...(v.inFatura === '1' && S.cards && S.cards.length > 1 ? [{ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) }] : []),
+      ...(v.inFatura !== '1' && !vaItem && accMulti() ? [accField('acc', 'Conta', v)] : [])],
     del: () => { commit(S => { S.fixed = S.fixed.filter(x => x.id !== fid); }, 'Item removido'); },
-    save: v => { if (!v.name.trim()) return 'Dê um nome ao item.'; commit(S => { const g = S.fixed.find(x => x.id === fid); g.name = v.name.trim(); g.kind = v.kind; const d = parseInt(v.cardDay); if (d >= 1 && d <= 31) g.cardDay = d; else delete g.cardDay; if (v.inFatura === '1') { g.inFatura = true; if (v.cardId) g.cardId = v.cardId; else delete g.cardId; } else { delete g.inFatura; delete g.cardId; } }, 'Item atualizado'); }
+    save: v => { if (!v.name.trim()) return 'Dê um nome ao item.'; commit(S => { const g = S.fixed.find(x => x.id === fid); g.name = v.name.trim(); g.kind = v.kind; const d = parseInt(v.cardDay); if (d >= 1 && d <= 31) g.cardDay = d; else delete g.cardDay; if (v.inFatura === '1') { g.inFatura = true; if (v.cardId) g.cardId = v.cardId; else delete g.cardId; } else { delete g.inFatura; delete g.cardId; } if (accMulti()) { if (v.inFatura !== '1' && !vaItem && accById(v.acc)) g.acc = v.acc; else delete g.acc; } }, 'Item atualizado'); }
   });
 };
 ACT.fixnew = () => openForm({
-  title: 'Novo item fixo', v: { name: '', kind: 'out', val: '', m: CUR_YM, card: '0', cardDay: '', cardId: S.cards && S.cards[0] ? S.cards[0].id : '' },
+  title: 'Novo item fixo', v: { name: '', kind: 'out', val: '', m: CUR_YM, card: '0', cardDay: '', cardId: S.cards && S.cards[0] ? S.cards[0].id : '', acc: '' },
   fields: v => [
     { t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Internet, YouTube Premium' },
     { t: 'seg', k: 'kind', opts: [['out', 'Saída'], ['in', 'Entrada']] },
     { t: 'money', k: 'val', label: 'Valor por mês' },
     ...(v.kind === 'out' ? [{ t: 'seg', k: 'card', label: 'Onde sai', opts: [['0', 'Conta'], ['1', 'Recorrente no cartão']] }] : []),
+    ...(accMulti() && (v.kind === 'in' || v.card !== '1') ? [accField('acc', 'Conta', v)] : []),
     ...(v.kind === 'out' && v.card === '1' ? [
       { t: 'num', k: 'cardDay', label: 'Dia da cobrança no cartão', ph: 'Ex.: 3' },
       { t: 'note', html: 'É o dia em que a cobrança aparece na sua fatura. Com o dia de fechamento configurado, o app calcula sozinho em qual fatura de cada mês ela entra.' },
@@ -3550,7 +4108,8 @@ ACT.fixnew = () => openForm({
     const n = Core.calc(v.val); if (!v.name.trim()) return 'Dê um nome ao item.'; if (isNaN(n) || n < 0) return 'Digite o valor mensal.';
     const card = v.kind === 'out' && v.card === '1'; const day = parseInt(v.cardDay);
     if (card && !(day >= 1 && day <= 31)) return 'Digite o dia da cobrança (de 1 a 31).';
-    commit(S => { S.fixed.push({ id: nid('f'), name: v.name.trim(), kind: v.kind, sched: [[v.m, Core.round2(n)]], ...(card ? { inFatura: true, cardDay: day, ...(v.cardId ? { cardId: v.cardId } : {}) } : {}) }); }, 'Item criado');
+    const acc = !card && accMulti() && !/^va\/vr$/i.test(v.name.trim()) && accById(v.acc) ? v.acc : null;
+    commit(S => { S.fixed.push({ id: nid('f'), name: v.name.trim(), kind: v.kind, sched: [[v.m, Core.round2(n)]], ...(card ? { inFatura: true, cardDay: day, ...(v.cardId ? { cardId: v.cardId } : {}) } : {}), ...(acc ? { acc } : {}) }); }, 'Item criado');
   }
 });
 
