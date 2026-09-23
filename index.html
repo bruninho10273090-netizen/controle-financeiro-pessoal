@@ -671,6 +671,78 @@ body.auth #app{padding:0;max-width:none}
 .chinfo-v b{font:400 24px/1.1 var(--serif);white-space:nowrap}.chinfo-v small{font-size:11.5px;color:var(--pos)}
 @media (min-width:980px){.sheet:has(.bigchart){max-width:820px}}
 
+/* ---------- relatórios ---------- */
+.tab.desk{display:none}
+.rperiod{margin:0 0 14px}
+.rperiod .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.rperiod .chips::-webkit-scrollbar{display:none}
+.rperiod .chip{flex:none}
+.rdates{display:flex;gap:10px;margin-top:10px;max-width:420px}
+.rdates label{flex:1;display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--mut)}
+.rp-lab{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--ink-2);font-weight:600}
+.rkpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.rkpis>div{background:var(--card);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:3px;min-width:0;border:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.rkpis span{font-size:12px;color:var(--mut);font-weight:600}
+.rkpis b{font:400 24px/1.12 var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkpis small{font-size:11.5px}
+.ractions{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.ractions .btn{flex:1 1 auto;min-height:40px;padding:8px 14px;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.rsec{margin-bottom:14px}
+.rchart{width:100%;height:auto;display:block;margin-top:4px}
+.rchart .gl{stroke:var(--line);stroke-dasharray:2 4}
+.rchart .ax{font-size:11px}
+.rchart rect,.rdonut circle{transition:opacity .2s}
+.rchart rect:hover,.rdonut circle:hover{opacity:.78}
+.rdonut{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center}
+.rdonut svg{width:170px;height:170px;flex:none}
+.rdonut .dn-v{font:400 21px var(--serif);fill:var(--ink)}
+.rdleg{display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px}
+.rdleg span{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0}
+.rdleg i{width:10px;height:10px;border-radius:3px;flex:none}
+.rdleg b{margin-left:auto;font-weight:600;padding-left:8px}
+.rlist{display:flex;flex-direction:column}
+.rrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%;color:inherit;font:inherit}
+.rrow:last-child{border-bottom:0}
+button.rrow{cursor:pointer}
+button.rrow:hover .rl b{color:var(--acc)}
+.rrow .rl{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;min-width:0}
+.rrow .rl i{width:9px;height:9px;border-radius:3px;flex:none}
+.rrow .rl b{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:calc(100% - 20px)}
+.rrow .rl small{flex-basis:100%;font-size:12px;color:var(--mut)}
+.rrow .rl em{font-style:normal;font:400 18px/1 var(--serif);color:var(--mut);min-width:20px}
+.rrow .rv{text-align:right;display:flex;flex-direction:column;gap:2px}
+.rrow .rv b{font-weight:600;font-size:14px;white-space:nowrap}
+.rrow .rv small{font-size:11.5px;white-space:nowrap}
+.rrow .rb{grid-column:1/-1;height:6px;border-radius:9px;background:var(--card-2);overflow:hidden}
+.rrow .rb i{display:block;height:100%;border-radius:9px}
+.rhi{display:flex;flex-direction:column;gap:12px}
+.rhi>div{display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.rhi>div:last-child{border:0;padding:0}
+.rhi span{font-size:12px;color:var(--mut);font-weight:600}.rhi b{font-weight:600;font-size:15px}.rhi small{font-size:12px;color:var(--mut)}
+.rtbl{margin-bottom:14px}
+.rsec .rtbl{box-shadow:none;border:1px solid var(--line);margin:0}
+.dotc{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.rep-2{display:grid;grid-template-columns:minmax(0,1fr);gap:0 14px}
+.print-only{display:none}
+.rep-tiles .ctile{min-height:120px}
+@media (min-width:980px){
+  .tabs .tab.desk{display:flex}
+  .rkpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .rep-2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .rep-home{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:28px;align-items:start}
+  .rep-home>.col>.sh:first-child{margin-top:4px}
+  .rep-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .rperiod .chips{flex-wrap:wrap}
+  .ractions .btn{flex:0 0 auto}
+}
+@media print{
+  #nav{display:none!important}
+  #app .report-print{position:absolute;left:0;top:0;width:100%}
+  .print-only{display:block!important}
+  .report-print .card,.report-print .rkpis>div,.report-print .tscroll{box-shadow:none!important;border:1px solid #ddd!important;break-inside:avoid}
+  .report-print .rep-2{display:block}
+}
+
 /* ---------- relatório: impressão / salvar em PDF ---------- */
 @media print{
   body *{visibility:hidden}
@@ -1018,7 +1090,8 @@ function migrate(o) {
   // com fallback pro primeiro cartão (item.cardId || S.cards[0].id) — dados antigos continuam funcionando.
   if (!Array.isArray(o.cards) || !o.cards.length) o.cards = [{ id: 'card1', name: 'Cartão principal', closeDay: o.closeDay || 1 }];
   if (o.vaMode == null) o.vaMode = 'lancado'; // VA/VR soma nas entradas e só sai quando o gasto é lançado
-  if (!Array.isArray(o.autocat)) o.autocat = []; // regras de categorização automática (palavra-chave -> categoria)
+  if (!Array.isArray(o.autocat)) o.autocat = [];
+  if (!Array.isArray(o.reps)) o.reps = []; // relatórios personalizados // regras de categorização automática (palavra-chave -> categoria)
   if (typeof personalMigrate === 'function' && !o.noMig) o = personalMigrate(o);
   if (!o.noMig && o.vaSep == null) o.vaSep = true; // VA/VR separado do salário: não entra na sobra nem no saldo
   // o gasto do VA/VR de setembro já está lançado (e somado nas saídas): o card do VA/VR conta o mês inteiro contra os 750, sem lançar de novo
@@ -1629,7 +1702,7 @@ function viewHome() {
   </section>`;
   const alerts = ym === CUR_YM ? homeAlerts() : [];
   const alertBox = alerts.length ? `<div class="warn alertx">${icon('bell', 18)}<div>${alerts.map(m => `<div>${esc(m)}</div>`).join('')}</div></div>` : '';
-  const qa = `<div class="qa">${qaItem('out', 'Saída', 'add', 'data-m="out"', true)}${qaItem('in', 'Entrada', 'add', 'data-m="in"')}${qaItem('box', 'Guardar', 'add', 'data-m="ap"')}${qaItem('pie', 'Distribuir', 'distrib')}${qaItem('upload', 'Importar', 'impstart')}${qaItem('file', 'Relatório', 'openreport')}</div>`;
+  const qa = `<div class="qa">${qaItem('out', 'Saída', 'add', 'data-m="out"', true)}${qaItem('in', 'Entrada', 'add', 'data-m="in"')}${qaItem('box', 'Guardar', 'add', 'data-m="ap"')}${qaItem('pie', 'Distribuir', 'distrib')}${qaItem('upload', 'Importar', 'impstart')}${qaItem('chart', 'Relatórios', 'openrel')}</div>`;
 
   // cartões (juntos: total do mês; separados: um por linha)
   const cs = M.cardsList();
@@ -1776,7 +1849,7 @@ function cardDetailHtml() {
     ${inf.isOpen && inf.days <= 31 ? `<div class="tl"><div class="tl-b"><i style="width:${(inf.prog * 100).toFixed(1)}%"></i></div><div class="tl-t"><span>abriu ${dmy(inf.open)}</span><span>${inf.days <= 0 ? 'fecha hoje' : `fecha em ${inf.days} dia${inf.days > 1 ? 's' : ''} · ${dmy(inf.close)}`}</span></div></div>` : inf.isOpen ? `<p class="mut sm" style="margin-top:10px">Abre em ${dmy(inf.open)}/${inf.open.slice(0, 4)} e fecha em ${dmy(inf.close)}/${inf.close.slice(0, 4)}.</p>` : `<p class="mut sm" style="margin-top:10px">Fechou em ${dmy(inf.close)}/${inf.close.slice(0, 4)}. Compras a partir desse dia entram na fatura de ${ymLabel(Core.addM(y, 1))}.</p>`}
     <div class="mswitch" style="margin:16px 0 0;box-shadow:none;background:var(--card-2)"><button class="ib" data-act="fym" data-d="-1" aria-label="Fatura anterior">${icon('left', 18)}</button><button class="mlabel" data-act="fymnow">${ymLabel(y)}<small>${y === openFatYm(c) ? 'aberta' : y < openFatYm(c) ? 'anterior' : 'futura'}</small></button><button class="ib" data-act="fym" data-d="1" aria-label="Próxima fatura">${icon('right', 18)}</button></div>
   </section>`;
-  return head + sh('Lançamentos da fatura') + `<section class="card" style="padding-top:4px">${cardLines(y, false, cs.length > 1 ? c.id : undefined)}</section>`;
+  return head + sh('Lançamentos da fatura', `<button class="link" data-act="cardext">${icon('save', 15)} Baixar extrato</button>`) + `<section class="card" style="padding-top:4px">${cardLines(y, false, cs.length > 1 ? c.id : undefined)}</section>`;
 }
 function viewCardsTab() {
   const cs = M.cardsList();
@@ -2283,6 +2356,583 @@ document.addEventListener('input', e => {
 });
 
 
+// ---------- RELATÓRIOS ----------
+// Padrões (os mais usados em apps de finanças: resumo, categorias, entradas x saídas, tendência, forma de pagamento,
+// maiores gastos, fixos x variáveis, faturas, hábitos, receitas, patrimônio) + personalizados salvos em S.reps.
+// Base: lançamentos do período. Compras parceladas entram mês a mês (uma parcela por mês a partir do mês da compra,
+// igual à visão por categoria); itens fixos entram no mês (dia 1, ou no dia da cobrança se forem no cartão).
+const REP_PERIODS = [['mes', 'Este mês'], ['mesant', 'Mês passado'], ['3m', 'Últimos 3 meses'], ['6m', 'Últimos 6 meses'], ['12m', 'Últimos 12 meses'], ['ano', 'Este ano'], ['anoant', 'Ano passado'], ['custom', 'Escolher datas']];
+const REP_GROUPS = [['cat', 'Categoria'], ['mes', 'Mês'], ['pay', 'Forma de pagamento'], ['card', 'Cartão'], ['desc', 'Descrição / estabelecimento'], ['dow', 'Dia da semana'], ['dia', 'Dia']];
+const PAY_L = { conta: 'Pix/débito', cartao: 'Cartão', vavr: 'VA/VR', fixo: 'Contas fixas' };
+const RP = () => UI.rp || (UI.rp = { p: '6m', from: '', to: '' });
+const dBR = iso => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '';
+const dowOf = iso => (Core.pd(iso) + 4) % 7;
+const catColor = c => `var(--k${catMeta(c).k})`;
+const rW = () => (window.matchMedia && matchMedia('(min-width:980px)').matches ? 640 : 360);
+function repRange(p, from, to) {
+  const ld = Core.lastDay, y = +CUR_YM.slice(0, 4);
+  switch (p) {
+    case 'mes': return [CUR_YM + '-01', ld(CUR_YM)];
+    case 'mesant': { const m = Core.addM(CUR_YM, -1); return [m + '-01', ld(m)]; }
+    case '3m': case '6m': case '12m': return [Core.addM(CUR_YM, -(parseInt(p) - 1)) + '-01', ld(CUR_YM)];
+    case 'ano': return [y + '-01-01', ld(CUR_YM)];
+    case 'anoant': return [(y - 1) + '-01-01', (y - 1) + '-12-31'];
+  }
+  let a = /^\d{4}-\d{2}-\d{2}$/.test(from || '') ? from : CUR_YM + '-01', b = /^\d{4}-\d{2}-\d{2}$/.test(to || '') ? to : ld(CUR_YM);
+  return a > b ? [b, a] : [a, b];
+}
+const fullMonths = (a, b) => a.slice(8) === '01' && b === Core.lastDay(b.slice(0, 7));
+function repMonths(a, b) { const out = []; for (let m = a.slice(0, 7); m <= b.slice(0, 7); m = Core.addM(m, 1)) out.push(m); return out; }
+function prevRange(a, b) {
+  if (fullMonths(a, b)) { const n = repMonths(a, b).length; return [Core.addM(a.slice(0, 7), -n) + '-01', Core.lastDay(Core.addM(b.slice(0, 7), -n))]; }
+  const len = Core.pd(b) - Core.pd(a) + 1; return [Core.fromDn(Core.pd(a) - len), Core.fromDn(Core.pd(a) - 1)];
+}
+function periodLabel(a, b) {
+  if (fullMonths(a, b)) { const ms = repMonths(a, b); return ms.length === 1 ? ymLong(ms[0]) : `${ymLabel(ms[0])} a ${ymLabel(ms[ms.length - 1])}`; }
+  return `${dBR(a)} a ${dBR(b)}`;
+}
+let RC = { m: null, k: '', rows: [] };
+function repRows(a, b) {
+  if (RC.m === M && RC.k === a + b) return RC.rows;
+  const rows = [], push = r => { if (r.d >= a && r.d <= b && r.v > 0.004) rows.push(r); };
+  const dayIn = (ym, day) => ym + '-' + pad(Math.min(+Core.lastDay(ym).slice(8), Math.max(1, day || 1)));
+  for (const t of S.tx) {
+    const base = { desc: t.desc || t.cat || '—', cat: t.cat || 'Outros', id: t.id };
+    if (t.t === 'in') { if (t.st !== 'rec') push({ ...base, d: t.d, kind: 'in', pay: 'conta', v: t.v }); continue; }
+    if (t.pay === 'cartao') {
+      const n = t.par || 1, bv = n > 1 ? Math.floor(Math.round(t.v / n * 1e4) / 100) / 100 : t.v, cid = M.cardIdOf(t);
+      for (let k = 1; k <= n; k++) push({ ...base, d: dayIn(Core.addM(t.d.slice(0, 7), k - 1), +t.d.slice(8, 10)), kind: 'out', pay: 'cartao', cardId: cid, v: k === 1 ? Core.round2(t.v - bv * (n - 1)) : bv, parc: n > 1 ? `${k}/${n}` : '', buy: t.d });
+      continue;
+    }
+    push({ ...base, d: t.d, kind: 'out', pay: t.pay === 'vavr' ? 'vavr' : 'conta', v: t.v });
+  }
+  for (const ym of repMonths(a, b)) {
+    for (const x of M.fixedIn(ym)) push({ d: ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'in', pay: 'fixo', v: x.v, fixed: true, id: x.f.id });
+    for (const x of M.fixedOf(ym, 'out')) push({ d: x.f.inFatura && x.f.cardDay ? dayIn(ym, x.f.cardDay) : ym + '-01', desc: x.f.name, cat: x.f.cat || x.f.name, kind: 'out', pay: x.f.inFatura ? 'cartao' : 'fixo', cardId: x.f.inFatura ? M.cardIdOf(x.f) : undefined, v: x.v, fixed: true, id: x.f.id });
+  }
+  rows.sort((x, y) => x.d < y.d ? 1 : x.d > y.d ? -1 : 0);
+  RC = { m: M, k: a + b, rows };
+  return rows;
+}
+const outRows = (a, b) => repRows(a, b).filter(r => r.kind === 'out');
+function repTotals(a, b) {
+  const yms = repMonths(a, b);
+  let ent, sai;
+  if (fullMonths(a, b)) { ent = sum(yms, m => M.entradas(m)); sai = sum(yms, m => M.saidasConf(m)); }
+  else { const rs = repRows(a, b); ent = sum(rs.filter(r => r.kind === 'in'), r => r.v); sai = sum(rs.filter(r => r.kind === 'out' && !(M.vaSep && r.pay === 'vavr')), r => r.v); }
+  const guard = sum(S.ap.filter(x => x.d >= a && x.d <= b && !x.re), x => x.v);
+  return { ent, sai, sob: ent - sai, guard, n: yms.length };
+}
+function repSumBy(rows, kf, lf) {
+  const m = new Map();
+  rows.forEach(r => { const k = kf(r); const o = m.get(k) || { k, l: lf ? lf(r) : k, v: 0, n: 0, rows: [] }; o.v += r.v; o.n++; o.rows.push(r); m.set(k, o); });
+  return [...m.values()].sort((x, y) => y.v - x.v);
+}
+function payKey(r) { return r.kind === 'in' ? 'entrada' : r.pay === 'cartao' ? 'card:' + (r.cardId || M.cardsList()[0].id) : r.pay; }
+function payInfo(k) {
+  if (k.startsWith('card:')) { const c = M.cardsList().find(x => x.id === k.slice(5)) || M.cardsList()[0]; return { l: M.cardsList().length > 1 ? c.name : 'Cartão', c: cardPal(c)[3] }; }
+  return { l: k === 'entrada' ? 'Entradas' : PAY_L[k] || k, c: { conta: 'var(--teal)', vavr: 'var(--tan)', fixo: 'var(--k8)', entrada: 'var(--acc)' }[k] || 'var(--k6)' };
+}
+function repDelta(cur, prev, goodUp = true) {
+  if (Math.abs(prev) < 0.01) return `<small class="mut">sem base anterior</small>`;
+  const d = (cur - prev) / Math.abs(prev), up = d > 0;
+  if (Math.abs(d) < 0.005) return `<small class="mut">igual ao período anterior</small>`;
+  return `<small class="${(goodUp ? up : !up) ? 'pos' : 'neg'}">${up ? '▲' : '▼'} ${pct(Math.abs(d), 0)} vs anterior</small>`;
+}
+const rkpis = items => `<div class="rkpis">${items.map(([l, v, sub, c]) => `<div><span>${l}</span><b class="${c || ''}">${v}</b>${sub || ''}</div>`).join('')}</div>`;
+const rsec = (t, body, right = '') => `<section class="card rsec"><div class="card-h"><h3>${t}</h3>${right}</div>${body}</section>`;
+const rnone = msg => `<p class="mut sm" style="padding:6px 0">${msg}</p>`;
+
+// ---- gráficos (SVG) ----
+function rBars(labels, series, opt = {}) {
+  const W = rW(), sm = W < 500, H = sm ? 190 : 230, pl = sm ? 40 : 54, pr = 8, pt = 12, pb = 24, N = labels.length;
+  if (!N) return '';
+  const tots = labels.map((_, i) => sum(series, s => Math.max(0, s.vals[i] || 0)));
+  const lv = opt.line ? opt.line.vals : [];
+  const max = Math.max(1, ...(opt.stack ? tots : series.flatMap(s => s.vals)), ...lv), min = Math.min(0, ...lv);
+  const y = v => pt + (1 - (v - min) / (max - min)) * (H - pt - pb), gw = (W - pl - pr) / N;
+  const ticks = [0, 1, 2, 3].map(k => min + (max - min) * k / 3);
+  let bars = '';
+  labels.forEach((l, i) => {
+    const x0 = pl + i * gw;
+    if (opt.stack) {
+      let acc = 0; const bw = Math.min(46, gw * .62), x = x0 + (gw - bw) / 2;
+      series.forEach(s => { const v = Math.max(0, s.vals[i] || 0); if (v <= 0) return; bars += `<rect x="${x.toFixed(1)}" y="${y(acc + v).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, y(acc) - y(acc + v)).toFixed(1)}" rx="3" style="fill:${s.c}"><title>${esc(l)} · ${esc(s.n)}: ${brl(v)}</title></rect>`; acc += v; });
+    } else {
+      const bw = Math.min(28, gw * .74 / series.length);
+      series.forEach((s, j) => { const v = s.vals[i] || 0, x = x0 + (gw - bw * series.length) / 2 + j * bw; bars += `<rect x="${(x + 1).toFixed(1)}" y="${Math.min(y(v), y(0)).toFixed(1)}" width="${Math.max(1, bw - 2).toFixed(1)}" height="${Math.max(1, Math.abs(y(v) - y(0))).toFixed(1)}" rx="3" style="fill:${s.c}"><title>${esc(l)} · ${esc(s.n)}: ${brl(v)}</title></rect>`; });
+    }
+  });
+  const line = opt.line && N > 0 ? `<path d="${lv.map((v, i) => (i ? 'L' : 'M') + (pl + i * gw + gw / 2).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ')}" fill="none" style="stroke:${opt.line.c};stroke-width:2"/>${lv.map((v, i) => `<circle cx="${(pl + i * gw + gw / 2).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5" style="fill:${opt.line.c};stroke:var(--card);stroke-width:1.5"><title>${esc(labels[i])} · ${esc(opt.line.n)}: ${brl(v)}</title></circle>`).join('')}` : '';
+  const every = Math.ceil(N / (sm ? 6 : 12));
+  const leg = `<div class="chartleg">${series.map(s => `<span><i style="background:${s.c}"></i>${esc(s.n)}</span>`).join('')}${opt.line ? `<span><i style="background:${opt.line.c};border-radius:50%"></i>${esc(opt.line.n)}</span>` : ''}</div>`;
+  return (series.length > 1 || opt.line ? leg : '') + `<svg class="rchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de barras">
+    ${ticks.map(t => `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${pl - 6}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="ax">${brlShort(t)}</text>`).join('')}
+    ${min < 0 ? `<line class="axis" x1="${pl}" x2="${W - pr}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>` : ''}
+    ${bars}${line}
+    ${labels.map((l, i) => i % every ? '' : `<text x="${(pl + i * gw + gw / 2).toFixed(1)}" y="${H - 7}" text-anchor="middle" class="ax">${esc(l)}</text>`).join('')}
+  </svg>`;
+}
+function rLine(labels, vals, c = 'var(--acc)', name = 'Valor') {
+  const W = rW(), sm = W < 500, H = sm ? 170 : 210, pl = sm ? 40 : 54, pr = 12, pt = 12, pb = 24, N = labels.length;
+  if (N < 2) return rBars(labels, [{ n: name, c, vals }]);
+  const max = Math.max(...vals), min = Math.min(0, ...vals), span = (max - min) || 1;
+  const x = i => pl + i * (W - pl - pr) / (N - 1), y = v => pt + (1 - (v - min) / span) * (H - pt - pb);
+  const d = vals.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ');
+  const every = Math.ceil(N / (sm ? 6 : 12));
+  return `<svg class="rchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de linha">
+    ${[0, 1, 2, 3].map(k => { const t = min + span * k / 3; return `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${pl - 6}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end" class="ax">${brlShort(t)}</text>`; }).join('')}
+    <path d="${d} L${x(N - 1).toFixed(1)} ${y(min).toFixed(1)} L${x(0).toFixed(1)} ${y(min).toFixed(1)} Z" style="fill:${c};opacity:.12"/>
+    <path d="${d}" fill="none" style="stroke:${c};stroke-width:2.2"/>
+    ${vals.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.2" style="fill:${c};stroke:var(--card);stroke-width:1.5"><title>${esc(labels[i])}: ${brl(v)}</title></circle>`).join('')}
+    ${labels.map((l, i) => i % every && i !== N - 1 ? '' : `<text x="${x(i).toFixed(1)}" y="${H - 7}" text-anchor="${i === 0 ? 'start' : i === N - 1 ? 'end' : 'middle'}" class="ax">${esc(l)}</text>`).join('')}
+  </svg>`;
+}
+function rDonut(items, center) {
+  const tot = sum(items, i => i.v); if (tot <= 0) return '';
+  const R = 66, C = 2 * Math.PI * R; let off = 0;
+  const segs = items.map(it => { const len = it.v / tot * C; const s = `<circle r="${R}" cx="90" cy="90" fill="none" style="stroke:${it.c}" stroke-width="24" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 90 90)"><title>${esc(it.l)}: ${brl(it.v)} (${pct(it.v / tot, 1)})</title></circle>`; off += len; return s; }).join('');
+  return `<div class="rdonut"><svg viewBox="0 0 180 180" role="img" aria-label="Gráfico de pizza">${segs}<text x="90" y="86" text-anchor="middle" class="dn-v">${brlShort(tot)}</text><text x="90" y="106" text-anchor="middle" class="ax">${esc(center || 'total')}</text></svg>
+    <div class="rdleg">${items.map(it => `<span><i style="background:${it.c}"></i>${esc(it.l)}<b>${pct(it.v / tot, 0)}</b></span>`).join('')}</div></div>`;
+}
+// lista com barra proporcional; it: {l, v, c, sub, r (texto à direita), act}
+function rList(items, max) {
+  const mx = max || Math.max(1e-9, ...items.map(i => i.v));
+  return `<div class="rlist">${items.map(it => { const tag = it.act ? 'button' : 'div'; return `<${tag} class="rrow" ${it.act || ''}><span class="rl"><i style="background:${it.c}"></i><b>${esc(it.l)}</b>${it.sub ? `<small>${it.sub}</small>` : ''}</span><span class="rv"><b>${brl(it.v)}</b>${it.r ? `<small>${it.r}</small>` : ''}</span><span class="rb"><i style="width:${Math.max(1, it.v / mx * 100).toFixed(1)}%;background:${it.c}"></i></span></${tag}>`; }).join('')}</div>`;
+}
+const rTable = (head, rows, foot) => `<div class="tscroll rtbl"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th>${c}</th>`).join('')}</tr>`).join('')}</tbody>${foot ? `<tfoot><tr>${foot.map((c, i) => i ? `<td>${c}</td>` : `<th>${c}</th>`).join('')}</tr></tfoot>` : ''}</table></div>`;
+const mLab = ym => `${MES[+ym.slice(5, 7) - 1]}${ym.slice(5, 7) === '01' ? '/' + ym.slice(2, 4) : ''}`;
+
+// ---- relatórios padrão ----
+const REPS = {
+  resumo: {
+    t: 'Resumo do período', s: 'Entradas, saídas, sobra, taxa de poupança e destaques, comparados ao período anterior.', ic: 'file', k: 1,
+    run(a, b) {
+      const [pa, pb] = prevRange(a, b), t = repTotals(a, b), p = repTotals(pa, pb);
+      const tx = rate => rate.ent > 0.004 ? rate.sob / rate.ent : 0;
+      const cats = repSumBy(outRows(a, b), r => r.cat), pcats = new Map(repSumBy(outRows(pa, pb), r => r.cat).map(c => [c.k, c.v]));
+      const buys = S.tx.filter(x => x.t === 'out' && x.d >= a && x.d <= b).sort((x, y) => y.v - x.v);
+      const grow = cats.map(c => ({ c, d: c.v - (pcats.get(c.k) || 0) })).sort((x, y) => y.d - x.d)[0];
+      const dows = repSumBy(buys.map(x => ({ v: x.v, d: x.d })), r => dowOf(r.d));
+      const hi = [
+        cats[0] && ['Onde mais gastou', `${esc(cats[0].k)} · ${brl(cats[0].v)}`, `${pct(cats[0].v / Math.max(1e-9, sum(cats, c => c.v)), 0)} das saídas`],
+        buys[0] && ['Maior gasto', `${esc(buys[0].desc || buys[0].cat)} · ${brl(buys[0].v)}`, `${dBR(buys[0].d)}${buys[0].par > 1 ? ` · ${buys[0].par}x` : ''}`],
+        grow && grow.d > 0.004 && ['Mais cresceu', `${esc(grow.c.k)} · +${brl(grow.d)}`, 'em relação ao período anterior'],
+        dows[0] && ['Dia que mais gasta', ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][dows[0].k], `${brl(dows[0].v)} em ${dows[0].n} compra${dows[0].n > 1 ? 's' : ''}`],
+        ['Lançamentos', String(S.tx.filter(x => x.d >= a && x.d <= b).length), 'no período']
+      ].filter(Boolean);
+      const yms = repMonths(a, b);
+      const chart = yms.length > 1 ? rsec('Mês a mês', rBars(yms.map(mLab), [{ n: 'Entradas', c: 'var(--acc)', vals: yms.map(m => M.entradas(m)) }, { n: 'Saídas', c: 'var(--tan)', vals: yms.map(m => M.saidasConf(m)) }], { line: { n: 'Sobra', c: 'var(--ink)', vals: yms.map(m => M.entradas(m) - M.saidasConf(m)) } })) : '';
+      const html = rkpis([
+        ['Entradas', brl(t.ent), repDelta(t.ent, p.ent, true), 'pos'], ['Saídas', brl(t.sai), repDelta(t.sai, p.sai, false)], ['Sobra', brl(t.sob), repDelta(t.sob, p.sob, true), signCls(t.sob)],
+        ['Taxa de poupança', t.ent > 0.004 ? pct(tx(t), 1) : '—', `<small class="mut">anterior ${p.ent > 0.004 ? pct(tx(p), 1) : '—'}</small>`], ['Guardado nas caixinhas', brl(t.guard), repDelta(t.guard, p.guard, true)], ['Gasto médio por mês', brl(t.sai / Math.max(1, t.n)), `<small class="mut">${t.n} ${t.n > 1 ? 'meses' : 'mês'}</small>`]
+      ]) + `<div class="rep-2">${rsec('Destaques', `<div class="rhi">${hi.map(([l, v, s]) => `<div><span>${l}</span><b>${v}</b><small>${s}</small></div>`).join('')}</div>`)}${chart || rsec('Para onde foi o dinheiro', rDonut(cats.slice(0, 6).map(c => ({ l: c.k, v: c.v, c: catColor(c.k) })), 'saídas') || rnone('Sem saídas no período.'))}</div>`
+        + `<p class="mut sm" style="margin-top:10px">Entradas e saídas seguem o extrato (cartão pela fatura do mês). Taxa de poupança = sobra ÷ entradas. Comparação com ${periodLabel(pa, pb)}.</p>`;
+      return { html, csv: [['Indicador', 'Período', 'Período anterior'], ['Entradas', t.ent, p.ent], ['Saídas', t.sai, p.sai], ['Sobra', t.sob, p.sob], ['Taxa de poupança (%)', tx(t) * 100, tx(p) * 100], ['Guardado nas caixinhas', t.guard, p.guard], ['Gasto médio por mês', t.sai / Math.max(1, t.n), p.sai / Math.max(1, p.n)]] };
+    }
+  },
+  categorias: {
+    t: 'Gastos por categoria', s: 'Quanto foi para cada categoria, o peso no total e a variação.', ic: 'pie', k: 2,
+    run(a, b) {
+      const [pa, pb] = prevRange(a, b), cats = repSumBy(outRows(a, b), r => r.cat), prev = new Map(repSumBy(outRows(pa, pb), r => r.cat).map(c => [c.k, c.v]));
+      const tot = sum(cats, c => c.v), n = repMonths(a, b).length;
+      if (!cats.length) return { html: rsec('Gastos por categoria', rnone('Nenhuma saída no período.')), csv: [['Categoria', 'Total']] };
+      const top = cats.slice(0, 7).map(c => ({ l: c.k, v: c.v, c: catColor(c.k) }));
+      if (cats.length > 7) top.push({ l: 'Outras', v: sum(cats.slice(7), c => c.v), c: 'var(--line-2)' });
+      const list = rList(cats.map(c => ({ l: c.k, v: c.v, c: catColor(c.k), sub: `${pct(c.v / tot, 1)} · ${c.n} lançamento${c.n > 1 ? 's' : ''}${n > 1 ? ` · média ${brl(c.v / n)}/mês` : ''}`, r: repDelta(c.v, prev.get(c.k) || 0, false), act: `data-act="repcat" data-c="${esc(c.k)}"` })));
+      return {
+        html: rkpis([['Total de saídas', brl(tot)], ['Categorias', String(cats.length)], ['Maior categoria', esc(cats[0].k), `<small class="mut">${pct(cats[0].v / tot, 0)} do total</small>`]]) +
+          `<div class="rep-2">${rsec('Distribuição', rDonut(top, 'saídas'))}${rsec('Ranking', list + `<p class="mut sm" style="margin-top:8px">Toque numa categoria para ver os lançamentos.</p>`)}</div>`,
+        csv: [['Categoria', 'Total', '% do total', 'Lançamentos', 'Média por mês', 'Período anterior', 'Variação (%)'], ...cats.map(c => { const p = prev.get(c.k) || 0; return [c.k, c.v, c.v / tot * 100, String(c.n), c.v / n, p, p ? (c.v - p) / p * 100 : '']; })]
+      };
+    }
+  },
+  fluxo: {
+    t: 'Entradas x saídas', s: 'Fluxo de caixa mês a mês, com a sobra e quanto foi guardado.', ic: 'chart', k: 4,
+    run(a, b) {
+      const yms = repMonths(a, b), r = yms.map(m => { const e = M.entradas(m), s = M.saidasConf(m); return { m, e, s, o: e - s, g: sum(S.ap.filter(x => x.d.slice(0, 7) === m && !x.re), x => x.v) }; });
+      const T = { e: sum(r, x => x.e), s: sum(r, x => x.s), o: sum(r, x => x.o), g: sum(r, x => x.g) };
+      return {
+        html: rkpis([['Entradas', brl(T.e), '', 'pos'], ['Saídas', brl(T.s)], ['Sobra', brl(T.o), `<small class="mut">${T.e > 0.004 ? pct(T.o / T.e, 1) + ' das entradas' : ''}</small>`, signCls(T.o)], ['Meses no azul', `${r.filter(x => x.o >= 0).length} de ${r.length}`]]) +
+          rsec('Mês a mês', rBars(yms.map(mLab), [{ n: 'Entradas', c: 'var(--acc)', vals: r.map(x => x.e) }, { n: 'Saídas', c: 'var(--tan)', vals: r.map(x => x.s) }], { line: { n: 'Sobra', c: 'var(--ink)', vals: r.map(x => x.o) } })) +
+          rTable(['Mês', 'Entradas', 'Saídas', 'Sobra', '% poupado', 'Guardado'], r.map(x => [ymLabel(x.m), fmtNum(x.e), fmtNum(x.s), `<span class="${signCls(x.o)}">${x.o < -0.004 ? '−' : ''}${fmtNum(x.o)}</span>`, x.e > 0.004 ? pct(x.o / x.e, 0) : '—', fmtNum(x.g)]), ['Total', fmtNum(T.e), fmtNum(T.s), `${T.o < -0.004 ? '−' : ''}${fmtNum(T.o)}`, T.e > 0.004 ? pct(T.o / T.e, 0) : '—', fmtNum(T.g)]),
+        csv: [['Mês', 'Entradas', 'Saídas', 'Sobra', '% poupado', 'Guardado'], ...r.map(x => [ymLabel(x.m), x.e, x.s, x.o, x.e ? x.o / x.e * 100 : '', x.g]), ['Total', T.e, T.s, T.o, T.e ? T.o / T.e * 100 : '', T.g]]
+      };
+    }
+  },
+  tendencia: {
+    t: 'Evolução das categorias', s: 'Mapa de calor mês a mês: veja quais gastos sobem ou caem.', ic: 'trend', k: 3,
+    run(a, b) {
+      const yms = repMonths(a, b), rows = outRows(a, b), cats = repSumBy(rows, r => r.cat).slice(0, 12);
+      if (!cats.length) return { html: rsec('Evolução', rnone('Nenhuma saída no período.')), csv: [['Categoria']] };
+      const grid = cats.map(c => ({ c: c.k, vals: yms.map(m => sum(c.rows.filter(r => r.d.slice(0, 7) === m), r => r.v)) }));
+      const head = ['Categoria', ...yms.map(mLab), 'Média'];
+      const body = grid.map(g => { const mx = Math.max(1e-9, ...g.vals); return `<tr><th><span class="dotc" style="background:${catColor(g.c)}"></span>${esc(g.c)}</th>${g.vals.map(v => `<td style="background:color-mix(in srgb,${catColor(g.c)} ${Math.round(v / mx * 42)}%,transparent)">${v > 0.004 ? fmtNum(v) : '—'}</td>`).join('')}<td><b>${fmtNum(sum(g.vals, v => v) / yms.length)}</b></td></tr>`; }).join('');
+      const tot = yms.map(m => sum(rows.filter(r => r.d.slice(0, 7) === m), r => r.v));
+      const line = yms.length > 1 ? rsec('Total de saídas por mês', rLine(yms.map(mLab), tot, 'var(--tan)', 'Saídas')) : '';
+      return {
+        html: line + rsec('Mapa de calor', `<div class="tscroll rtbl heat"><table class="tbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody><tfoot><tr><th>Total</th>${tot.map(v => `<td>${fmtNum(v)}</td>`).join('')}<td>${fmtNum(sum(tot, v => v) / yms.length)}</td></tr></tfoot></table></div><p class="mut sm" style="margin-top:8px">Quanto mais forte a cor, mais perto do mês de maior gasto daquela categoria. As 12 maiores categorias do período.</p>`),
+        csv: [head, ...grid.map(g => [g.c, ...g.vals, sum(g.vals, v => v) / yms.length]), ['Total', ...tot, sum(tot, v => v) / yms.length]]
+      };
+    }
+  },
+  pagamento: {
+    t: 'Forma de pagamento e cartões', s: 'Quanto saiu no cartão (por cartão), no Pix/débito, VA/VR e contas fixas.', ic: 'card', k: 6,
+    run(a, b) {
+      const rows = outRows(a, b), g = repSumBy(rows, payKey), tot = sum(g, x => x.v), yms = repMonths(a, b);
+      if (!g.length) return { html: rsec('Forma de pagamento', rnone('Nenhuma saída no período.')), csv: [['Forma']] };
+      const items = g.map(x => ({ ...payInfo(x.k), v: x.v, n: x.n, k: x.k }));
+      const chart = yms.length > 1 ? rsec('Mês a mês', rBars(yms.map(mLab), items.map(it => ({ n: it.l, c: it.c, vals: yms.map(m => sum(g.find(x => x.k === it.k).rows.filter(r => r.d.slice(0, 7) === m), r => r.v)) })), { stack: true })) : '';
+      return {
+        html: `<div class="rep-2">${rsec('Distribuição', rDonut(items.map(i => ({ l: i.l, v: i.v, c: i.c })), 'saídas'))}${rsec('Por forma', rList(items.map(i => ({ l: i.l, v: i.v, c: i.c, sub: `${pct(i.v / tot, 1)} · ${i.n} lançamento${i.n > 1 ? 's' : ''}` }))))}</div>` + chart +
+          `<p class="mut sm" style="margin-top:8px">Cartão pelas parcelas de cada mês (a partir do mês da compra), incluindo os recorrentes no cartão. Contas fixas = itens fixos pagos fora do cartão.</p>`,
+        csv: [['Forma de pagamento', 'Total', '% do total', 'Lançamentos'], ...items.map(i => [i.l, i.v, i.v / tot * 100, String(i.n)])]
+      };
+    }
+  },
+  maiores: {
+    t: 'Maiores gastos', s: 'As compras mais caras e os lugares onde você mais gasta.', ic: 'target', k: 5,
+    run(a, b) {
+      const buys = S.tx.filter(x => x.t === 'out' && x.d >= a && x.d <= b);
+      if (!buys.length) return { html: rsec('Maiores gastos', rnone('Nenhuma compra no período.')), csv: [['Data']] };
+      const top = buys.slice().sort((x, y) => y.v - x.v).slice(0, 15);
+      const where = repSumBy(buys.map(t => ({ v: t.v, desc: t.desc || t.cat, cat: t.cat })), r => norm(r.desc).trim(), r => r.desc).slice(0, 12);
+      const payT = t => t.pay === 'cartao' ? (M.cardsList().length > 1 ? cardOf(t).name : 'Cartão') : PAY_L[t.pay] || 'Pix/débito';
+      return {
+        html: `<div class="rep-2">${rsec('As 15 maiores compras', `<div class="rlist">${top.map((t, i) => `<div class="rrow top"><span class="rl"><em>${i + 1}</em><b>${esc(t.desc || t.cat)}</b><small>${dBR(t.d)} · ${esc(t.cat)} · ${esc(payT(t))}${t.par > 1 ? ` · ${t.par}x` : ''}</small></span><span class="rv"><b>${brl(t.v)}</b></span></div>`).join('')}</div>`)}` +
+          rsec('Onde você mais gasta', rList(where.map(w => ({ l: w.l, v: w.v, c: catColor(w.rows[0].cat), sub: `${w.n} compra${w.n > 1 ? 's' : ''} · ticket médio ${brl(w.v / w.n)}` })))) + `</div>`,
+        csv: [['Data', 'Descrição', 'Categoria', 'Forma de pagamento', 'Parcelas', 'Valor'], ...top.map(t => [dBR(t.d), t.desc || t.cat, t.cat, payT(t), String(t.par || 1), t.v])]
+      };
+    }
+  },
+  fixvar: {
+    t: 'Fixos x variáveis', s: 'Quanto da renda já está comprometido com contas fixas.', ic: 'repeat', k: 7,
+    run(a, b) {
+      const rows = outRows(a, b), yms = repMonths(a, b), fx = rows.filter(r => r.fixed), vr = rows.filter(r => !r.fixed);
+      const F = sum(fx, r => r.v), V = sum(vr, r => r.v), E = repTotals(a, b).ent;
+      const items = repSumBy(fx, r => r.desc);
+      return {
+        html: rkpis([['Fixos', brl(F), `<small class="mut">${F + V > 0 ? pct(F / (F + V), 0) : '—'} das saídas</small>`], ['Variáveis', brl(V), `<small class="mut">${F + V > 0 ? pct(V / (F + V), 0) : '—'} das saídas</small>`], ['Renda comprometida com fixos', E > 0.004 ? pct(F / E, 0) : '—', `<small class="mut">fixos ÷ entradas</small>`, E > 0.004 && F / E > .5 ? 'neg' : '']]) +
+          rsec('Mês a mês', rBars(yms.map(mLab), [{ n: 'Fixos', c: 'var(--k8)', vals: yms.map(m => sum(fx.filter(r => r.d.slice(0, 7) === m), r => r.v)) }, { n: 'Variáveis', c: 'var(--tan)', vals: yms.map(m => sum(vr.filter(r => r.d.slice(0, 7) === m), r => r.v)) }], { stack: true })) +
+          rsec('Contas fixas', items.length ? rList(items.map(i => ({ l: i.k, v: i.v, c: 'var(--k8)', sub: `${i.n > 1 ? `${brl(i.v / i.n)} por mês · ` : ''}${i.rows[0].pay === 'cartao' ? 'no cartão' : 'fora do cartão'}` }))) : rnone('Nenhum item fixo de saída no período.')),
+        csv: [['Mês', 'Fixos', 'Variáveis', 'Total'], ...yms.map(m => { const f = sum(fx.filter(r => r.d.slice(0, 7) === m), r => r.v), v = sum(vr.filter(r => r.d.slice(0, 7) === m), r => r.v); return [ymLabel(m), f, v, f + v]; }), ['Total', F, V, F + V]]
+      };
+    }
+  },
+  faturas: {
+    t: 'Faturas dos cartões', s: 'Valor de cada fatura, por cartão, com média e maior fatura.', ic: 'card', k: 1,
+    run(a, b) {
+      const yms = repMonths(a, b), cs = M.cardsList();
+      const grid = cs.map(c => ({ c, vals: yms.map(m => M.faturaForCard(m, c.id)) })), tot = yms.map((_, i) => sum(grid, g => g.vals[i]));
+      const T = sum(tot, v => v), mx = Math.max(...tot), mi = tot.indexOf(mx);
+      return {
+        html: rkpis([['Total em faturas', brl(T)], ['Fatura média', brl(T / Math.max(1, yms.length))], ['Maior fatura', mx > 0 ? brl(mx) : '—', mx > 0 ? `<small class="mut">${ymLabel(yms[mi])}</small>` : '']]) +
+          rsec('Por mês da fatura', rBars(yms.map(mLab), grid.map(g => ({ n: g.c.name, c: cardPal(g.c)[3], vals: g.vals })), { stack: true })) +
+          rTable(['Fatura', ...cs.map(c => esc(c.name)), ...(cs.length > 1 ? ['Total'] : [])], yms.map((m, i) => [ymLabel(m), ...grid.map(g => fmtNum(g.vals[i])), ...(cs.length > 1 ? [fmtNum(tot[i])] : [])]), ['Total', ...grid.map(g => fmtNum(sum(g.vals, v => v))), ...(cs.length > 1 ? [fmtNum(T)] : [])]) +
+          `<p class="mut sm" style="margin-top:8px">Valor total de cada fatura (mês em que ela é paga), com parcelas e recorrentes já cobrados. Para baixar os lançamentos de um cartão, use Cartões → Baixar extrato.</p>`,
+        csv: [['Fatura', ...cs.map(c => c.name), 'Total'], ...yms.map((m, i) => [ymLabel(m), ...grid.map(g => g.vals[i]), tot[i]]), ['Total', ...grid.map(g => sum(g.vals, v => v)), T]]
+      };
+    }
+  },
+  habitos: {
+    t: 'Hábitos de consumo', s: 'Em que dias da semana e em que parte do mês você mais gasta.', ic: 'calendar', k: 8,
+    run(a, b) {
+      const buys = S.tx.filter(x => x.t === 'out' && x.d >= a && x.d <= b);
+      if (!buys.length) return { html: rsec('Hábitos', rnone('Nenhuma compra no período.')), csv: [['Dia']] };
+      const dn = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], by = [0, 1, 2, 3, 4, 5, 6].map(i => { const l = buys.filter(t => dowOf(t.d) === i); return { i, v: sum(l, t => t.v), n: l.length }; });
+      const fx = [['Dias 1 a 10', 1, 10], ['Dias 11 a 20', 11, 20], ['Dias 21 a 31', 21, 31]].map(([l, x, y]) => { const s = buys.filter(t => +t.d.slice(8) >= x && +t.d.slice(8) <= y); return { l, v: sum(s, t => t.v), n: s.length }; });
+      const days = Math.max(1, Math.min(Core.pd(b), Core.pd(TODAY)) - Core.pd(a) + 1), T = sum(buys, t => t.v);
+      const best = by.slice().sort((x, y) => y.v - x.v)[0], wk = sum(by.filter(x => x.i === 0 || x.i === 6), x => x.v);
+      return {
+        html: rkpis([['Gasto médio por dia', brl(T / days), `<small class="mut">${buys.length} compras em ${days} dias</small>`], ['Ticket médio', brl(T / buys.length)], ['Fim de semana', pct(wk / Math.max(1e-9, T), 0), `<small class="mut">${brl(wk)} de ${brl(T)}</small>`]]) +
+          `<div class="rep-2">${rsec('Por dia da semana', rBars(dn, [{ n: 'Gastos', c: 'var(--acc)', vals: by.map(x => x.v) }]) + `<p class="mut sm">Dia com mais gastos: <b>${['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][best.i]}</b> (${brl(best.v)} em ${best.n} compras).</p>`)}${rsec('Por parte do mês', rList(fx.map(x => ({ l: x.l, v: x.v, c: 'var(--tan)', sub: `${x.n} compra${x.n !== 1 ? 's' : ''}` }))))}</div>` +
+          `<p class="mut sm" style="margin-top:8px">Considera as compras lançadas pela data da compra (valor cheio, mesmo se parcelada). Itens fixos ficam de fora.</p>`,
+        csv: [['Dia da semana', 'Total', 'Compras'], ...by.map(x => [dn[x.i], x.v, String(x.n)])]
+      };
+    }
+  },
+  receitas: {
+    t: 'Receitas por origem', s: 'De onde vem o seu dinheiro: salário, extras e outras entradas.', ic: 'in', k: 4,
+    run(a, b) {
+      const rows = repRows(a, b).filter(r => r.kind === 'in'), g = repSumBy(rows, r => r.cat), T = sum(g, x => x.v), yms = repMonths(a, b);
+      if (!g.length) return { html: rsec('Receitas', rnone('Nenhuma entrada no período.')), csv: [['Origem']] };
+      const fx = sum(rows.filter(r => r.fixed), r => r.v);
+      return {
+        html: rkpis([['Total recebido', brl(T), '', 'pos'], ['Renda média por mês', brl(T / Math.max(1, yms.length))], ['Renda fixa', pct(fx / Math.max(1e-9, T), 0), `<small class="mut">${brl(fx)} vêm de itens fixos</small>`]]) +
+          `<div class="rep-2">${rsec('Distribuição', rDonut(g.slice(0, 7).map(x => ({ l: x.k, v: x.v, c: catColor(x.k) })), 'entradas'))}${rsec('Por origem', rList(g.map(x => ({ l: x.k, v: x.v, c: catColor(x.k), sub: `${pct(x.v / T, 1)} · ${x.n} entrada${x.n > 1 ? 's' : ''}` }))))}</div>` +
+          (yms.length > 1 ? rsec('Mês a mês', rBars(yms.map(mLab), [{ n: 'Entradas', c: 'var(--acc)', vals: yms.map(m => sum(rows.filter(r => r.d.slice(0, 7) === m), r => r.v)) }])) : ''),
+        csv: [['Origem', 'Total', '% do total', 'Entradas'], ...g.map(x => [x.k, x.v, x.v / T * 100, String(x.n)])]
+      };
+    }
+  },
+  patrimonio: {
+    t: 'Patrimônio e aportes', s: 'Evolução do patrimônio e quanto foi guardado em cada caixinha.', ic: 'box', k: 2,
+    run(a, b) {
+      const aps = S.ap.filter(x => x.d >= a && x.d <= b && !x.re), yms = repMonths(a, b).filter(m => m <= CUR_YM);
+      const hist = patrimHistory(24).filter(h => h.ym >= a.slice(0, 7) && h.ym <= b.slice(0, 7));
+      const d = M.dashboard(CUR_YM), hoje = d.cx.tot + d.invT;
+      const byCx = repSumBy(aps.map(x => ({ v: x.v, cx: x.cx })), r => r.cx);
+      const ins = sum(aps.filter(x => x.v > 0), x => x.v), outs = -sum(aps.filter(x => x.v < 0), x => x.v);
+      return {
+        html: rkpis([['Patrimônio hoje', brl(hoje)], ['Guardado no período', brl(ins), '', 'pos'], ['Retirado', brl(outs), '', outs > 0.004 ? 'neg' : ''], ['Variação no período', hist.length > 1 ? brlS(hist[hist.length - 1].v - hist[0].v) : '—']]) +
+          (hist.length > 1 ? rsec('Evolução do patrimônio', rLine(hist.map(h => mLab(h.ym)), hist.map(h => h.v), 'var(--acc)', 'Patrimônio')) : '') +
+          `<div class="rep-2">${rsec('Aportes por mês', yms.length ? rBars(yms.map(mLab), [{ n: 'Líquido guardado', c: 'var(--teal)', vals: yms.map(m => sum(aps.filter(x => x.d.slice(0, 7) === m), x => x.v)) }]) : rnone('Período futuro.'))}${rsec('Por caixinha', byCx.length ? rList(byCx.map((x, i) => ({ l: x.k, v: x.v, c: `var(--k${[2, 3, 1, 4, 5, 6, 7, 8][i % 8]})`, sub: `${x.n} movimentação${x.n > 1 ? 'ões' : ''}` }))) : rnone('Nenhum aporte no período.'))}</div>`,
+        csv: [['Mês', 'Guardado (líquido)', 'Patrimônio no fim do mês'], ...yms.map(m => { const h = hist.find(x => x.ym === m); return [ymLabel(m), sum(aps.filter(x => x.d.slice(0, 7) === m), x => x.v), h ? h.v : '']; })]
+      };
+    }
+  }
+};
+
+// ---- personalizados ----
+function customFilter(r, a, b) {
+  let rows = repRows(a, b);
+  if (r.kind !== 'all') rows = rows.filter(x => x.kind === r.kind);
+  if (r.fix === 'var') rows = rows.filter(x => !x.fixed); else if (r.fix === 'fix') rows = rows.filter(x => x.fixed);
+  if (r.cats && r.cats.length) rows = rows.filter(x => r.cats.includes(x.cat));
+  if (r.kind !== 'in' && r.pays && r.pays.length) rows = rows.filter(x => x.kind === 'in' || r.pays.includes(x.pay));
+  if (r.kind !== 'in' && r.cards && r.cards.length) rows = rows.filter(x => x.kind === 'in' || (x.pay === 'cartao' && r.cards.includes(x.cardId)));
+  if (r.q && String(r.q).trim()) { const q = norm(r.q).trim(); rows = rows.filter(x => norm(`${x.desc} ${x.cat}`).includes(q)); }
+  return rows;
+}
+function customGroups(r, rows, a, b) {
+  const g = r.group, dn = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const kf = { cat: x => x.cat, mes: x => x.d.slice(0, 7), pay: payKey, card: x => x.pay === 'cartao' ? x.cardId || M.cardsList()[0].id : '_', desc: x => norm(x.desc).trim(), dow: x => String(dowOf(x.d)), dia: x => x.d }[g] || (x => x.cat);
+  const map = new Map();
+  if (g === 'mes') repMonths(a, b).forEach(m => map.set(m, { k: m, ent: 0, sai: 0, n: 0, rows: [] }));
+  if (g === 'dow') [1, 2, 3, 4, 5, 6, 0].forEach(i => map.set(String(i), { k: String(i), ent: 0, sai: 0, n: 0, rows: [] }));
+  rows.forEach(x => { const k = kf(x); const o = map.get(k) || { k, ent: 0, sai: 0, n: 0, rows: [] }; if (x.kind === 'in') o.ent += x.v; else o.sai += x.v; o.n++; o.rows.push(x); map.set(k, o); });
+  let out = [...map.values()];
+  out.forEach(o => {
+    o.v = r.kind === 'in' ? o.ent : r.kind === 'out' ? o.sai : o.ent - o.sai;
+    if (g === 'cat') { o.l = o.k; o.c = catColor(o.k); }
+    else if (g === 'mes') { o.l = ymLabel(o.k); o.c = 'var(--acc)'; }
+    else if (g === 'pay') { const p = payInfo(o.k); o.l = p.l; o.c = p.c; }
+    else if (g === 'card') { const c = M.cardsList().find(x => x.id === o.k); o.l = c ? c.name : 'Fora do cartão'; o.c = c ? cardPal(c)[3] : 'var(--line-2)'; }
+    else if (g === 'desc') { o.l = o.rows[0] ? o.rows[0].desc : o.k; o.c = catColor(o.rows[0] ? o.rows[0].cat : ''); }
+    else if (g === 'dow') { o.l = dn[+o.k]; o.c = 'var(--acc)'; }
+    else { o.l = dBR(o.k); o.c = 'var(--acc)'; }
+  });
+  if (g === 'dia') out.sort((x, y) => x.k < y.k ? -1 : 1);
+  else if (g !== 'mes' && g !== 'dow') out.sort((x, y) => Math.abs(y.ent + y.sai) - Math.abs(x.ent + x.sai));
+  return out;
+}
+function customRun(r, a, b) {
+  const rows = customFilter(r, a, b), groups = customGroups(r, rows, a, b), all = r.kind === 'all';
+  const gname = (REP_GROUPS.find(x => x[0] === r.group) || ['', 'Grupo'])[1];
+  const TE = sum(rows.filter(x => x.kind === 'in'), x => x.v), TS = sum(rows.filter(x => x.kind === 'out'), x => x.v), T = all ? TE - TS : r.kind === 'in' ? TE : TS;
+  const vis = groups.filter(o => o.n || r.group === 'mes' || r.group === 'dow');
+  let chart = '';
+  const labs = vis.map(o => r.group === 'mes' ? mLab(o.k) : o.l);
+  if (!rows.length) chart = rnone('Nenhum lançamento com esses filtros no período.');
+  else if (r.chart === 'pie') { const pos = vis.filter(o => (all ? o.sai : o.v) > 0.004).map(o => ({ l: o.l, v: all ? o.sai : o.v, c: o.c })); const top = pos.slice(0, 8); if (pos.length > 8) top.push({ l: 'Outros', v: sum(pos.slice(8), x => x.v), c: 'var(--line-2)' }); chart = rDonut(top, all ? 'saídas' : r.kind === 'in' ? 'entradas' : 'saídas'); }
+  else if (r.chart === 'line') chart = all ? rBars(labs, [{ n: 'Entradas', c: 'var(--acc)', vals: vis.map(o => o.ent) }, { n: 'Saídas', c: 'var(--tan)', vals: vis.map(o => o.sai) }], { line: { n: 'Saldo', c: 'var(--ink)', vals: vis.map(o => o.v) } }) : rLine(labs, vis.map(o => o.v), r.kind === 'in' ? 'var(--acc)' : 'var(--tan)', r.kind === 'in' ? 'Entradas' : 'Saídas');
+  else if (r.chart === 'bar') chart = all ? rBars(labs, [{ n: 'Entradas', c: 'var(--acc)', vals: vis.map(o => o.ent) }, { n: 'Saídas', c: 'var(--tan)', vals: vis.map(o => o.sai) }]) : (['cat', 'pay', 'card', 'desc'].includes(r.group) ? rList(vis.slice(0, 20).map(o => ({ l: o.l, v: o.v, c: o.c, sub: `${pct(o.v / Math.max(1e-9, T), 1)} · ${o.n} lançamento${o.n > 1 ? 's' : ''}` }))) : rBars(labs, [{ n: r.kind === 'in' ? 'Entradas' : 'Saídas', c: r.kind === 'in' ? 'var(--acc)' : 'var(--tan)', vals: vis.map(o => o.v) }]));
+  const head = all ? [gname, 'Entradas', 'Saídas', 'Saldo', 'Qtde'] : [gname, 'Total', '% do total', 'Qtde'];
+  const trs = vis.map(o => all ? [esc(o.l), fmtNum(o.ent), fmtNum(o.sai), `<span class="${signCls(o.v)}">${o.v < -0.004 ? '−' : ''}${fmtNum(o.v)}</span>`, String(o.n)] : [esc(o.l), fmtNum(o.v), T ? pct(o.v / T, 1) : '—', String(o.n)]);
+  const foot = all ? ['Total', fmtNum(TE), fmtNum(TS), `${T < -0.004 ? '−' : ''}${fmtNum(T)}`, String(rows.length)] : ['Total', fmtNum(T), '100%', String(rows.length)];
+  const txs = UI.repTx ? `<div class="rlist">${rows.slice(0, 400).map(x => `<div class="rrow top"><span class="rl"><b>${esc(x.desc)}</b><small>${dBR(x.d)} · ${esc(x.cat)} · ${esc(x.kind === 'in' ? 'entrada' : payInfo(payKey(x)).l)}${x.parc ? ` · parcela ${x.parc}` : ''}${x.fixed ? ' · fixo' : ''}</small></span><span class="rv"><b class="${x.kind === 'in' ? 'pos' : ''}">${x.kind === 'in' ? '+' : ''}${brl(x.v)}</b></span></div>`).join('')}</div>${rows.length > 400 ? `<p class="mut sm">Mostrando 400 de ${rows.length}. O CSV traz todos.</p>` : ''}` : '';
+  return {
+    html: rkpis(all ? [['Entradas', brl(TE), '', 'pos'], ['Saídas', brl(TS)], ['Saldo', brl(T), '', signCls(T)], ['Lançamentos', String(rows.length)]] : [[r.kind === 'in' ? 'Total de entradas' : 'Total de saídas', brl(T), '', r.kind === 'in' ? 'pos' : ''], ['Lançamentos', String(rows.length)], [`Média por ${r.group === 'mes' ? 'mês' : 'grupo'}`, brl(T / Math.max(1, vis.length))]]) +
+      (r.chart !== 'table' ? rsec(`Por ${gname.toLowerCase()}`, chart) : '') + rTable(head, trs, foot) +
+      rsec('Lançamentos', txs, `<button class="link no-print" data-act="reptx">${UI.repTx ? 'Esconder' : `Mostrar ${rows.length}`}</button>`),
+    csv: [head, ...vis.map(o => all ? [o.l, o.ent, o.sai, o.v, String(o.n)] : [o.l, o.v, T ? o.v / T * 100 : '', String(o.n)]), all ? ['Total', TE, TS, T, String(rows.length)] : ['Total', T, 100, String(rows.length)]],
+    rows
+  };
+}
+function customDesc(r) {
+  const p = (REP_PERIODS.find(x => x[0] === r.p) || ['', ''])[1], k = { out: 'Saídas', in: 'Entradas', all: 'Entradas e saídas' }[r.kind], g = (REP_GROUPS.find(x => x[0] === r.group) || ['', ''])[1].toLowerCase();
+  const f = [(r.cats || []).length ? `${r.cats.length} categoria${r.cats.length > 1 ? 's' : ''}` : '', r.q ? `“${r.q}”` : ''].filter(Boolean).join(' · ');
+  return `${k} por ${g} · ${r.p === 'custom' ? periodLabel(...repRange(r.p, r.from, r.to)) : p}${f ? ' · ' + f : ''}`;
+}
+function repCatOpts(kind) {
+  const outC = S.tx.filter(t => t.t === 'out').map(t => t.cat).concat(S.cats || [], S.fixed.filter(f => f.kind === 'out').map(f => f.cat || f.name));
+  const inC = S.tx.filter(t => t.t === 'in').map(t => t.cat).concat(S.catsIn || [], S.fixed.filter(f => f.kind === 'in').map(f => f.cat || f.name));
+  return uniq((kind === 'in' ? inC : kind === 'out' ? outC : outC.concat(inC)).filter(Boolean)).sort((x, y) => x.localeCompare(y, 'pt-BR'));
+}
+const multiField = (k, label, opts, sel, allWord) => `<div class="fld"><label class="fl">${label} <small class="mut">(${(sel || []).length ? `${sel.length} escolhida${sel.length > 1 ? 's' : ''}` : `nenhuma marcada = ${allWord}`})</small></label><div class="chips">${opts.map(o => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<button type="button" class="chip sm ${(sel || []).includes(v) ? 'on' : ''}" data-act="fmulti" data-k="${k}" data-v="${esc(v)}">${esc(l)}</button>`; }).join('')}</div></div>`;
+ACT.fmulti = el => { if (!FM) return; const k = el.dataset.k, v = el.dataset.v, arr = FM.v[k] || []; FM.v[k] = arr.includes(v) ? arr.filter(x => x !== v) : arr.concat(v); drawSheet(); };
+function repForm(r) {
+  const isNew = !r;
+  const v = r ? JSON.parse(JSON.stringify(r)) : { name: '', p: '6m', from: '', to: '', kind: 'out', group: 'cat', chart: 'bar', fix: 'all', cats: [], pays: [], cards: [], q: '' };
+  if (v.p === 'custom' && !v.from) [v.from, v.to] = repRange('6m');
+  openForm({
+    title: isNew ? 'Novo relatório' : 'Editar relatório', v, saveLabel: isNew ? 'Criar relatório' : 'Salvar',
+    fields: v => [
+      { t: 'text', k: 'name', label: 'Nome do relatório', ph: 'Ex.: Mercado e comida por mês' },
+      { t: 'select', k: 'p', label: 'Período', opts: REP_PERIODS },
+      v.p === 'custom' ? { t: 'date', k: 'from', label: 'De' } : null,
+      v.p === 'custom' ? { t: 'date', k: 'to', label: 'Até' } : null,
+      { t: 'seg', k: 'kind', label: 'O que entra', opts: [['out', 'Saídas'], ['in', 'Entradas'], ['all', 'As duas']] },
+      { t: 'select', k: 'group', label: 'Agrupar por', opts: REP_GROUPS },
+      { t: 'seg', k: 'chart', label: 'Gráfico', opts: [['bar', 'Barras'], ['pie', 'Pizza'], ['line', 'Linha'], ['table', 'Só tabela']] },
+      { t: 'seg', k: 'fix', label: 'Contas fixas', opts: [['all', 'Incluir'], ['var', 'Só variáveis'], ['fix', 'Só fixas']] },
+      { t: 'html', html: multiField('cats', 'Categorias', repCatOpts(v.kind), v.cats, 'todas') },
+      v.kind !== 'in' ? { t: 'html', html: multiField('pays', 'Forma de pagamento', Object.entries(PAY_L), v.pays, 'todas') } : null,
+      v.kind !== 'in' && M.cardsList().length > 1 ? { t: 'html', html: multiField('cards', 'Cartões', M.cardsList().map(c => [c.id, c.name]), v.cards, 'todos') } : null,
+      { t: 'text', k: 'q', label: 'Descrição contém (opcional)', ph: 'Ex.: ifood, posto, farmácia' }
+    ],
+    hook: k => { if (k === 'kind') { const ok = repCatOpts(FM.v.kind); FM.v.cats = (FM.v.cats || []).filter(c => ok.includes(c)); } },
+    preview: v => { const [a, b] = repRange(v.p, v.from, v.to), rs = customFilter(v, a, b); return `<div class="kv"><span>${periodLabel(a, b)} · ${rs.length} lançamento${rs.length !== 1 ? 's' : ''}</span><b>${brl(sum(rs, x => x.kind === 'in' && v.kind === 'all' ? -x.v : x.v) * (v.kind === 'all' ? -1 : 1))}</b></div>`; },
+    save: v => {
+      if (!String(v.name || '').trim()) return 'Dê um nome ao relatório.';
+      if (v.p === 'custom' && !(v.from && v.to)) return 'Escolha as datas do período.';
+      const id = isNew ? nid('r') : r.id;
+      const clean = { id, name: String(v.name).trim().slice(0, 60), p: v.p, from: v.p === 'custom' ? v.from : '', to: v.p === 'custom' ? v.to : '', kind: v.kind, group: v.group, chart: v.chart, fix: v.fix, cats: v.cats || [], pays: v.kind !== 'in' ? v.pays || [] : [], cards: v.kind !== 'in' ? v.cards || [] : [], q: String(v.q || '').trim() };
+      UI.tab = 'rel'; UI.rep = 'c:' + id; UI.repTx = false;
+      commit(S => { S.reps = S.reps || []; if (isNew) S.reps.push(clean); else { const i = S.reps.findIndex(x => x.id === id); if (i >= 0) S.reps[i] = clean; else S.reps.push(clean); } }, isNew ? 'Relatório criado' : 'Relatório salvo');
+      window.scrollTo && window.scrollTo(0, 0);
+    },
+    del: isNew ? null : () => { UI.rep = null; commit(S => { S.reps = (S.reps || []).filter(x => x.id !== r.id); }, 'Relatório excluído'); }
+  });
+}
+
+// ---- telas ----
+function repPeriodBar(r) {
+  const P = r || RP(), [a, b] = repRange(P.p, P.from, P.to);
+  return `<div class="rperiod no-print"><div class="chips">${REP_PERIODS.map(([k, l]) => `<button class="chip sm ${P.p === k ? 'on' : ''}" data-act="rpset" data-p="${k}">${l}</button>`).join('')}</div>${P.p === 'custom' ? `<div class="rdates"><label>De<input class="in sm" type="date" data-rpd="from" value="${a}"></label><label>Até<input class="in sm" type="date" data-rpd="to" value="${b}"></label></div>` : ''}<div class="rp-lab">${icon('calendar', 15)} ${periodLabel(a, b)}</div></div>`;
+}
+function curRep() {
+  if (!UI.rep) return null;
+  if (UI.rep.startsWith('c:')) { const r = (S.reps || []).find(x => 'c:' + x.id === UI.rep); return r ? { custom: true, r, t: r.name, range: repRange(r.p, r.from, r.to) } : null; }
+  const d = REPS[UI.rep]; return d ? { custom: false, r: d, t: d.t, range: repRange(RP().p, RP().from, RP().to) } : null;
+}
+function runRep(c) { const [a, b] = c.range; return c.custom ? customRun(c.r, a, b) : c.r.run(a, b); }
+function viewRel() {
+  const c = curRep();
+  if (UI.rep && !c) UI.rep = null;
+  if (c) {
+    const [a, b] = c.range, out = runRep(c);
+    const acts = `<div class="ractions no-print"><button class="btn sm" data-act="repcsv">${icon('save', 16)} Baixar CSV</button><button class="btn sm" data-act="repcsvtx">${icon('list', 16)} Lançamentos (CSV)</button><button class="btn sm" data-act="printgo">${icon('file', 16)} PDF / imprimir</button>${c.custom ? `<button class="btn sm" data-act="repedit">${icon('edit', 16)} Editar</button>` : ''}</div>`;
+    return `<header class="topbar"><button class="backbtn" data-act="repback" aria-label="Voltar aos relatórios">${icon('left', 20)}</button><div class="tt" style="flex:1"><div class="greet">${c.custom ? 'Relatório personalizado' : 'Relatório padrão'}</div><h1>${esc(c.t)}</h1></div></header>` +
+      repPeriodBar(c.custom ? c.r : null) + acts +
+      `<div class="report-print rep-page"><div class="print-only"><h2 style="font:400 26px var(--serif)">${esc(c.t)}</h2><p class="mut sm" style="margin-bottom:12px">${periodLabel(a, b)} · gerado em ${dBR(TODAY)}${c.custom ? ' · ' + esc(customDesc(c.r)) : ''}</p></div>${out.html}</div>`;
+  }
+  const [a, b] = repRange(RP().p, RP().from, RP().to), t = repTotals(a, b);
+  const tiles = Object.entries(REPS).map(([id, d]) => `<button class="ctile" data-act="repopen" data-id="${id}"><span class="cbadge sm" style="--c:var(--k${d.k})">${icon(d.ic, 16)}</span><b>${d.t}</b><small>${d.s}</small></button>`).join('');
+  const mine = S.reps || [];
+  const mineHtml = (mine.length ? `<div class="list">${mine.map((r, i) => `<button class="tx" data-act="repopen" data-id="c:${r.id}"><span class="cbadge" style="--c:var(--k${[2, 5, 4, 7, 3, 8, 6, 1][i % 8]})">${icon(r.chart === 'pie' ? 'pie' : r.chart === 'line' ? 'trend' : 'chart', 19)}</span><span class="tm"><b>${esc(r.name)}</b><small>${esc(customDesc(r))}</small></span><span class="tv mut">${icon('right', 18)}</span></button>`).join('')}</div>` : `<section class="card">${empty('Nenhum relatório personalizado', 'Monte o seu: escolha o período, o que entra, filtros, como agrupar e o tipo de gráfico. Ele fica salvo na sua conta.', 'chart')}</section>`) +
+    `<button class="btn primary" style="width:100%;margin-top:10px" data-act="repnew">${icon('plus', 18)} Criar relatório personalizado</button>`;
+  return topbar('Relatórios', 'Padrões e personalizados', 'relback') + `<div class="rep-home"><div class="col">${repPeriodBar()}` +
+    rkpis([['Entradas', brl(t.ent), '', 'pos'], ['Saídas', brl(t.sai)], ['Sobra', brl(t.sob), '', signCls(t.sob)]]) +
+    sh('Relatórios padrão') + `<div class="calcgrid rep-tiles">${tiles}</div></div><div class="col">${sh('Seus relatórios')}${mineHtml}<p class="mut sm" style="margin:12px 2px 0">Todo relatório pode ser baixado em CSV (abre no Excel e no Google Planilhas) ou salvo em PDF.</p></div></div>`;
+}
+ACT.openrel = () => { if (!['rel', 'more'].includes(UI.tab)) UI.prevTab = UI.tab; UI.tab = 'rel'; UI.rep = null; UI.sub = null; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.openreport = ACT.openrel;
+ACT.relback = () => { UI.tab = UI.prevTab && !['rel', 'more'].includes(UI.prevTab) ? UI.prevTab : 'home'; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.repopen = el => { UI.rep = el.dataset.id; UI.repTx = false; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.repback = () => { UI.rep = null; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.repnew = () => repForm(null);
+ACT.repedit = () => { const c = curRep(); if (c && c.custom) repForm(c.r); };
+ACT.reptx = () => { UI.repTx = !UI.repTx; render(); };
+function repPTarget() { const c = curRep(); return c && c.custom ? c.r : RP(); }
+ACT.rpset = el => {
+  const T = repPTarget(), p = el.dataset.p;
+  if (p === 'custom' && T.p !== 'custom') [T.from, T.to] = repRange(T.p, T.from, T.to);
+  T.p = p; if (T !== RP()) save(); render();
+};
+document.addEventListener('change', e => {
+  const k = e.target && e.target.dataset && e.target.dataset.rpd; if (!k || !/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) return;
+  const T = repPTarget(); T[k] = e.target.value; if (T !== RP()) save(); render();
+});
+ACT.repcat = el => {
+  const c = curRep(); if (!c) return; const [a, b] = c.range, cat = el.dataset.c;
+  const rows = outRows(a, b).filter(r => r.cat === cat);
+  openInfo(cat, `<p class="mut sm" style="margin:-4px 0 10px">${periodLabel(a, b)} · ${rows.length} lançamento${rows.length > 1 ? 's' : ''} · ${brl(sum(rows, r => r.v))}</p><div class="rlist">${rows.map(x => `<div class="rrow top"><span class="rl"><b>${esc(x.desc)}</b><small>${dBR(x.d)} · ${esc(payInfo(payKey(x)).l)}${x.parc ? ` · parcela ${x.parc}` : ''}${x.fixed ? ' · fixo' : ''}</small></span><span class="rv"><b>${brl(x.v)}</b></span></div>`).join('')}</div>`);
+};
+const slug = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'relatorio';
+const csvCell = x => { if (typeof x === 'number') return Number.isInteger(x) ? String(x) : x.toFixed(2).replace('.', ','); const s = String(x ?? ''); return /[;"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function downloadText(name, text, type) {
+  try {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000); toast('Arquivo baixado: ' + name); return;
+  } catch (e) { }
+  openInfo('Arquivo', `<p class="mut">Copie o conteúdo abaixo e salve como ${esc(name)}.</p><textarea class="in mono" rows="10" readonly onclick="this.select()">${esc(text)}</textarea>`);
+}
+const downloadCsv = (name, rows) => downloadText(name, '﻿' + rows.map(r => r.map(csvCell).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
+const txCsv = rows => [['Data', 'Descrição', 'Categoria', 'Tipo', 'Forma de pagamento', 'Parcela', 'Fixo', 'Valor'], ...rows.slice().sort((x, y) => x.d < y.d ? -1 : x.d > y.d ? 1 : 0).map(x => [dBR(x.d), x.desc, x.cat, x.kind === 'in' ? 'Entrada' : 'Saída', x.kind === 'in' ? '' : payInfo(payKey(x)).l, x.parc || '', x.fixed ? 'sim' : '', x.kind === 'in' ? x.v : -x.v])];
+ACT.repcsv = () => { const c = curRep(); if (!c) return; const [a, b] = c.range; downloadCsv(`${slug(c.t)}-${a}_${b}.csv`, runRep(c).csv); };
+ACT.repcsvtx = () => { const c = curRep(); if (!c) return; const [a, b] = c.range; downloadCsv(`lancamentos-${slug(c.t)}-${a}_${b}.csv`, txCsv(c.custom ? customRun(c.r, a, b).rows : repRows(a, b))); };
+
+// ---------- extrato do cartão por período (CSV ou PDF) ----------
+const CX_PRE = {
+  compra: [['mes', 'Este mês'], ['mesant', 'Mês passado'], ['30', 'Últimos 30 dias'], ['90', 'Últimos 90 dias'], ['ano', 'Este ano'], ['custom', 'Outro período']],
+  fatura: [['aberta', 'Fatura aberta'], ['fechada', 'Última fechada'], ['3', 'Últimas 3 fechadas'], ['6', 'Últimas 6 fechadas'], ['12', 'Últimas 12 fechadas'], ['custom', 'Escolher meses']]
+};
+function cxPreset(v) {
+  const c = M.cardsList().find(x => x.id === v.card) || M.cardsList()[0], open = openFatYm(c), t = Core.pd(TODAY), pm = Core.addM(CUR_YM, -1);
+  if (v.modo === 'compra') {
+    const m = { mes: [CUR_YM + '-01', Core.lastDay(CUR_YM)], mesant: [pm + '-01', Core.lastDay(pm)], '30': [Core.fromDn(t - 29), TODAY], '90': [Core.fromDn(t - 89), TODAY], ano: [CUR_YM.slice(0, 4) + '-01-01', TODAY] }[v.pre];
+    if (m) [v.from, v.to] = m;
+  } else {
+    const m = { aberta: [open, open], fechada: [Core.addM(open, -1), Core.addM(open, -1)], '3': [Core.addM(open, -3), Core.addM(open, -1)], '6': [Core.addM(open, -6), Core.addM(open, -1)], '12': [Core.addM(open, -12), Core.addM(open, -1)] }[v.pre];
+    if (m) [v.fym, v.tym] = m;
+  }
+}
+function cardStatement(v) {
+  const c = M.cardsList().find(x => x.id === v.card) || M.cardsList()[0], cid = c.id;
+  if (v.modo === 'compra') {
+    let [a, b] = [v.from, v.to]; if (a > b) [a, b] = [b, a];
+    const rows = S.tx.filter(t => t.t === 'out' && t.pay === 'cartao' && M.cardIdOf(t) === cid && t.d >= a && t.d <= b)
+      .map(t => ({ d: t.d, desc: t.desc || t.cat, cat: t.cat, n: t.par || 1, v: t.v, pv: (t.par || 1) > 1 ? Core.round2(t.v / t.par) : t.v, fat: M.faturaYm(t), tipo: 'Compra' }));
+    for (let ym = a.slice(0, 7); ym <= Core.addM(b.slice(0, 7), 1); ym = Core.addM(ym, 1))
+      for (const x of M.cardItemsForCard(ym, cid)) if (x.due && x.due >= a && x.due <= b) rows.push({ d: x.due, desc: x.f.name, cat: 'Recorrente', n: 1, v: x.v, pv: x.v, fat: ym, tipo: 'Recorrente' });
+    rows.sort((x, y) => x.d < y.d ? 1 : x.d > y.d ? -1 : 0);
+    return { c, a, b, label: `compras de ${dBR(a)} a ${dBR(b)}`, rows, total: sum(rows, r => r.v) };
+  }
+  let [fa, fb] = [v.fym, v.tym]; if (fa > fb) [fa, fb] = [fb, fa];
+  const groups = [];
+  for (let ym = fb; ym >= fa; ym = Core.addM(ym, -1)) {
+    const items = M.installmentsForCard(ym, cid).map(x => ({ d: x.t.d, desc: x.t.desc || x.t.cat, cat: x.t.cat, parc: x.n > 1 ? `${x.k}/${x.n}` : '', v: x.v, tipo: 'Compra' }))
+      .concat(M.cardItemsForCard(ym, cid).map(x => ({ d: x.due || ym + '-01', desc: x.f.name, cat: 'Recorrente', parc: '', v: x.v, tipo: x.done ? 'Recorrente' : 'Agendado' })))
+      .sort((x, y) => x.d < y.d ? 1 : x.d > y.d ? -1 : 0);
+    groups.push({ ym, items, total: M.faturaForCard(ym, cid), adv: M.advSumForCard(ym, cid), pagar: M.aPagarForCard(ym, cid) });
+    if (groups.length > 36) break;
+  }
+  return { c, a: fa, b: fb, label: fa === fb ? `fatura de ${ymLabel(fa)}` : `faturas de ${ymLabel(fa)} a ${ymLabel(fb)}`, groups, rows: groups.flatMap(g => g.items), total: sum(groups, g => g.total) };
+}
+function cardStatementCsv(st, modo) {
+  if (modo === 'compra') return [['Data', 'Descrição', 'Categoria', 'Tipo', 'Parcelas', 'Valor da parcela', 'Valor total', 'Primeira fatura'], ...st.rows.map(r => [dBR(r.d), r.desc, r.cat, r.tipo, String(r.n), r.pv, r.v, ymLabel(r.fat)]), ['Total', '', '', '', '', '', st.total, '']];
+  const out = [['Fatura', 'Data da compra', 'Descrição', 'Categoria', 'Tipo', 'Parcela', 'Valor']];
+  st.groups.forEach(g => { g.items.forEach(r => out.push([ymLabel(g.ym), dBR(r.d), r.desc, r.cat, r.tipo, r.parc, r.v])); out.push([ymLabel(g.ym), '', 'Total da fatura', '', '', '', g.total]); if (g.adv > 0.004) { out.push([ymLabel(g.ym), '', 'Já adiantado', '', '', '', -g.adv]); out.push([ymLabel(g.ym), '', 'A pagar', '', '', '', g.pagar]); } });
+  return out;
+}
+function cardStatementHtml(st, modo) {
+  const head = `<h2 style="font:400 26px var(--serif);margin-bottom:2px">Extrato · ${esc(st.c.name)}</h2><p class="mut sm" style="margin-bottom:14px">${esc(st.label)} · gerado em ${dBR(TODAY)}</p>`;
+  if (modo === 'compra') return head + (st.rows.length ? rTable(['Data', 'Descrição', 'Categoria', 'Parcelas', 'Valor'], st.rows.map(r => [dBR(r.d), esc(r.desc), esc(r.cat), r.n > 1 ? `${r.n}x de ${fmtNum(r.pv)}` : r.tipo === 'Recorrente' ? 'recorrente' : 'à vista', fmtNum(r.v)]), ['Total', '', '', `${st.rows.length} lançamentos`, fmtNum(st.total)]) : rnone('Nenhuma compra neste período.'));
+  return head + st.groups.map(g => `<h4 style="margin:16px 0 6px">Fatura de ${ymLong(g.ym).toLowerCase()} · ${brl(g.pagar)}</h4>` + (g.items.length ? rTable(['Data', 'Descrição', 'Categoria', 'Parcela', 'Valor'], g.items.map(r => [dBR(r.d), esc(r.desc), esc(r.cat), r.parc || (r.tipo === 'Compra' ? '' : r.tipo.toLowerCase()), fmtNum(r.v)]), ['Total', '', '', g.adv > 0.004 ? `adiantado ${fmtNum(g.adv)}` : '', fmtNum(g.total)]) : rnone('Fatura sem lançamentos.'))).join('');
+}
+ACT.cardext = () => {
+  const c = selCard(), v = { card: c.id, modo: 'fatura', pre: 'aberta', from: '', to: '', fym: '', tym: '', fmt: 'csv' };
+  cxPreset(v);
+  openForm({
+    title: 'Baixar extrato do cartão', v, saveLabel: 'Baixar',
+    fields: v => [
+      M.cardsList().length > 1 ? { t: 'seg', k: 'card', label: 'Cartão', opts: M.cardsList().map(x => [x.id, x.name]) } : null,
+      { t: 'seg', k: 'modo', label: 'Período por', opts: [['fatura', 'Fatura'], ['compra', 'Data da compra']] },
+      { t: 'chips', k: 'pre', opts: CX_PRE[v.modo] },
+      v.modo === 'compra' ? { t: 'date', k: 'from', label: 'De' } : { t: 'month', k: 'fym', label: 'Da fatura de' },
+      v.modo === 'compra' ? { t: 'date', k: 'to', label: 'Até' } : { t: 'month', k: 'tym', label: 'Até a fatura de' },
+      { t: 'seg', k: 'fmt', label: 'Formato', opts: [['csv', 'Planilha (CSV)'], ['pdf', 'PDF / imprimir']] },
+      { t: 'note', html: v.modo === 'compra' ? 'Traz as compras feitas no período (valor cheio e parcelas) e os recorrentes cobrados nesses dias.' : 'Traz cada fatura do período com as parcelas e recorrentes que caem nela, o total e o valor a pagar.' }
+    ],
+    hook: (k, ev) => {
+      const v = FM.v;
+      if (k === 'modo') v.pre = v.modo === 'compra' ? 'mes' : 'aberta';
+      if (k === 'modo' || k === 'pre' || k === 'card') cxPreset(v);
+      if (['from', 'to', 'fym', 'tym'].includes(k)) { v.pre = 'custom'; if (ev === 'change') drawSheet(); }
+    },
+    preview: v => { if (v.modo === 'compra' ? !(v.from && v.to) : !(v.fym && v.tym)) return ''; const st = cardStatement(v); return `<div class="kv"><span>${esc(st.label)} · ${st.rows.length} lançamento${st.rows.length !== 1 ? 's' : ''}</span><b>${brl(st.total)}</b></div>`; },
+    save: v => {
+      if (v.modo === 'compra' ? !(v.from && v.to) : !(v.fym && v.tym)) return 'Escolha o período.';
+      const st = cardStatement(v);
+      if (v.fmt === 'csv') { downloadCsv(`extrato-${slug(st.c.name)}-${st.a}_${st.b}.csv`, cardStatementCsv(st, v.modo)); return; }
+      openInfo('Extrato do cartão', `<div class="report-print">${cardStatementHtml(st, v.modo)}<button type="button" class="btn primary no-print" style="width:100%;margin-top:18px" data-act="printgo">Imprimir / salvar em PDF</button></div>`);
+      return '__keep';
+    }
+  });
+};
+
 // ---------- AJUSTES ----------
 // relatório simples em tela cheia, pensado para impressão / "Salvar como PDF" do navegador
 function reportHtml() {
@@ -2306,7 +2956,6 @@ function reportHtml() {
     <button type="button" class="btn primary no-print" style="width:100%;margin-top:18px" data-act="printgo">Imprimir / salvar em PDF</button>
   </div>`;
 }
-ACT.openreport = () => openInfo('Relatório', reportHtml());
 ACT.printgo = () => window.print();
 function viewMore() {
   if (UI.sub === 'fixos') return viewFixos();
@@ -2325,7 +2974,7 @@ function viewMore() {
       set('search', 'Categorização automática', nr ? `${nr} regra${nr > 1 ? 's' : ''} aprendida${nr > 1 ? 's' : ''} ou criada${nr > 1 ? 's' : ''}` : 'Preenche a categoria sozinho pela descrição', 'autocatlist')) +
     group('Dados',
       set('upload', 'Importar extrato', 'Arquivo OFX ou CSV exportado do banco', 'impstart') +
-      set('file', 'Relatório em PDF', 'Resumo dos últimos meses para imprimir', 'openreport') +
+      set('chart', 'Relatórios', 'Padrões e personalizados, em CSV ou PDF', 'openrel') +
       set('save', 'Backup', 'Exportar ou importar todos os seus dados', 'dados')) +
     `<div class="group-t">Aparência</div><div class="seg">${[['light', 'Clara'], ['dark', 'Escura'], ['auto', 'Automática']].map(([k, l]) => `<button class="${th === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</button>`).join('')}</div>` +
     (authUser ? group('Conta', set('logout', 'Sair da conta', email, 'logout')) : '') +
@@ -2353,7 +3002,7 @@ function renderNav() {
   const nav = $('nav'); if (!nav) return;
   if (!nav.querySelector('.tabs')) {
     const t = (k, l, ic) => `<button class="tab" data-act="go" data-tab="${k}" aria-label="${l}">${icon(ic, 22)}<span>${l}</span></button>`;
-    nav.innerHTML = `<div class="nav-in"><div class="brand">${LOGO(30)}<b>Controle Financeiro</b></div><button class="btn primary newbtn" data-act="add" data-m="out">${icon('plus', 18)} Novo lançamento</button><div class="tabs">${t('home', 'Início', 'home')}${t('ext', 'Extrato', 'list')}<div class="fab-slot"><button class="fab" data-act="add" data-m="out" aria-label="Novo lançamento">${icon('plus', 26)}</button></div>${t('cards', 'Cartões', 'card')}${t('pat', 'Patrimônio', 'trend')}</div><div class="nav-foot">${t('more', 'Ajustes', 'cog')}<button class="nav-user" data-act="goset"><span class="av"></span><span style="min-width:0"><b></b><small></small></span></button></div></div>`;
+    nav.innerHTML = `<div class="nav-in"><div class="brand">${LOGO(30)}<b>Controle Financeiro</b></div><button class="btn primary newbtn" data-act="add" data-m="out">${icon('plus', 18)} Novo lançamento</button><div class="tabs">${t('home', 'Início', 'home')}${t('ext', 'Extrato', 'list')}<div class="fab-slot"><button class="fab" data-act="add" data-m="out" aria-label="Novo lançamento">${icon('plus', 26)}</button></div>${t('cards', 'Cartões', 'card')}${t('pat', 'Patrimônio', 'trend')}${t('rel', 'Relatórios', 'chart').replace('class="tab"', 'class="tab desk"')}</div><div class="nav-foot">${t('more', 'Ajustes', 'cog')}<button class="nav-user" data-act="goset"><span class="av"></span><span style="min-width:0"><b></b><small></small></span></button></div></div>`;
   }
   nav.querySelectorAll('.tab').forEach(b => { const on = b.dataset.tab === UI.tab; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   const u = nav.querySelector('.nav-user');
@@ -2383,11 +3032,11 @@ function countUp(root, animate) {
 }
 function render() {
   M = Core.make(S, TODAY);
-  const views = { home: viewHome, ext: viewExt, cards: viewCardsTab, pat: viewPat, more: viewMore };
+  const views = { home: viewHome, ext: viewExt, cards: viewCardsTab, pat: viewPat, rel: viewRel, more: viewMore };
   if (!views[UI.tab]) UI.tab = 'home';
   const warn = storageOK ? '' : `<div class="warn">Este navegador não deixou salvar os dados. Faça um backup em Ajustes → Backup.</div>`;
   const app = $('app');
-  const scope = [UI.tab, UI.sub || '', UI.tab === 'ext' ? UI.ext : '', UI.tab === 'pat' ? UI.pat : ''].join('|');
+  const scope = [UI.tab, UI.sub || '', UI.tab === 'ext' ? UI.ext : '', UI.tab === 'pat' ? UI.pat : '', UI.tab === 'rel' ? UI.rep || '' : ''].join('|');
   const tabChanged = LAST.scope !== scope, ymChanged = !tabChanged && LAST.ym !== UI.ym;
   clearTimeout(enterTimer); app.classList.remove('enter', 'swap');
   app.innerHTML = warn + views[UI.tab]();
@@ -2414,6 +3063,7 @@ ACT.go = el => {
   let t = el.dataset.tab;
   if (t === 'cx' || t === 'inv') { UI.pat = t; t = 'pat'; }
   if (t !== 'more') UI.prevTab = t;
+  if (t === 'rel') UI.rep = null;
   UI.tab = t; UI.sub = null; render(); window.scrollTo && window.scrollTo(0, 0);
 };
 ACT.goset = () => { if (UI.tab !== 'more') UI.prevTab = UI.tab; UI.tab = 'more'; UI.sub = null; render(); window.scrollTo && window.scrollTo(0, 0); };
