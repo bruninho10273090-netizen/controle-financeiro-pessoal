@@ -1571,12 +1571,13 @@ function viewHome() {
   const saldo = d.saldo, mesNome = MES_L[+ym.slice(5, 7) - 1].toLowerCase();
   const subTxt = d.meta < -0.004 ? `As saídas passaram as entradas em ${brl(-d.meta)} neste mês.` : saldo > 0.004 ? `Sobram ${brl(d.meta)} no mês${d.guardSobra > 0.004 ? `, e ${brl(d.guardSobra)} já foram guardados` : ''}.` : d.meta > 0.004 ? `A sobra de ${brl(d.meta)} já está guardada nas caixinhas.` : 'Registre entradas e saídas para acompanhar o mês.';
   const denom = Math.max(d.ent, d.sai, 1), w = v => (Math.max(0, v) / denom * 100).toFixed(2);
-  const flow = [['fl2', 'Cartão', fat], ['fl3', 'VA/VR', vaSai], ['fl1', 'Demais', demais], ['fl4', 'Sobra', Math.max(0, d.meta)]].filter(x => x[2] > 0.004);
+  const csF = M.cardsList(), cardFlow = csF.map(c => { const q = cardPal(c); return ['', csF.length > 1 ? c.name : 'Cartão', M.aPagarForCard(ym, c.id), `background:linear-gradient(90deg,${q[2]},${q[3]})`]; });
+  const flow = [...cardFlow, ['fl3', 'VA/VR', vaSai], ['fl1', 'Demais', demais], ['fl4', 'Sobra', Math.max(0, d.meta)]].filter(x => x[2] > 0.004);
   const hero = `<section class="herox">
     <div class="lab"><span>Saldo de ${mesNome}</span><button data-act="hopen" data-k="sai" data-ym="${ym}">Detalhes</button></div>
     <div class="num ${saldo < -0.004 ? 'neg' : ''}" data-count="${saldo}" data-key="saldo">${brl(saldo)}</div>
     <p class="sub">${subTxt}</p>
-    ${flow.length ? `<div class="flowx" role="img" aria-label="Para onde vai a renda do mês">${flow.map(([c, , v]) => `<i class="${c}" style="width:${w(v)}%"></i>`).join('')}</div><div class="flowleg">${flow.map(([c, l]) => `<span><i class="${c}"></i>${l}</span>`).join('')}</div>` : ''}
+    ${flow.length ? `<div class="flowx" role="img" aria-label="Para onde vai a renda do mês">${flow.map(([c, , v, st]) => `<i class="${c}" style="width:${w(v)}%;${st || ''}"></i>`).join('')}</div><div class="flowleg">${flow.map(([c, l, , st]) => `<span><i class="${c}" style="${st || ''}"></i>${esc(l)}</span>`).join('')}</div>` : ''}
     <div class="kpis">
       <button class="kpi" data-act="hopen" data-k="ent" data-ym="${ym}"><span>Entradas</span><b data-count="${d.ent}" data-key="ent" data-fmt="k">${brlK(d.ent)}</b></button>
       <button class="kpi" data-act="hopen" data-k="sai" data-ym="${ym}"><span>Saídas</span><b data-count="${d.sai}" data-key="sai" data-fmt="k">${brlK(d.sai)}</b></button>
