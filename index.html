@@ -385,14 +385,19 @@ const Core = (() => {
     const vaSep = S.vaSep === true, isVa = f => f.id === 'f_vavr' || /^va\/vr$/i.test(f.name);
     const vaCost = m => vaSep ? 0 : S.vaMode === 'lancado' ? (m <= curYm ? vaSpent(m) : Math.max(vaSpent(m), budgets)) : budgets;
 
-    // S.cards já existe (1 cartão por padrão, migrate() cria a partir de S.closeDay) mas o cálculo abaixo ainda é
-    // de cartão único de propósito: dá pra evoluir para closeDay por cartão (S.cards[i].closeDay) trocando este
-    // valor global por um parâmetro por cartão em faturaYm/chargeDate, com muito cuidado pra não mudar o caso de 1 cartão só.
-    const closeDay = S.closeDay || 1; // 1 = comportamento original (compra do mês entra na fatura do mês seguinte)
-    const faturaYm = t => addM(t.d.slice(0, 7), +t.d.slice(8, 10) >= closeDay ? 1 : 0);
-    function installments(m) {
+    // S.cards já existe (1 cartão por padrão, migrate() cria a partir de S.closeDay). O cálculo é individualizado
+    // por cartão (cada um com seu closeDay); as funções agregadas abaixo (installments/cardItems/fatura/etc.) somam
+    // todos os cartões e continuam com a MESMA assinatura de antes — com 1 cartão só, o resultado é idêntico ao
+    // comportamento original (cardsList() tem 1 item, então "todos os cartões" = aquele cartão).
+    const cardsList = () => (S.cards && S.cards.length ? S.cards : [{ id: 'card1', name: 'Cartão principal', closeDay: S.closeDay || 1 }]);
+    const defaultCardId = () => cardsList()[0].id;
+    const cardIdOf = x => x.cardId || defaultCardId();
+    const closeDayOf = cardId => { const c = cardsList().find(c => c.id === cardId); return (c && c.closeDay) || 1; };
+    const faturaYm = t => addM(t.d.slice(0, 7), +t.d.slice(8, 10) >= closeDayOf(cardIdOf(t)) ? 1 : 0);
+    function installmentsForCard(m, cardId) {
       const out = [];
       for (const t of cards) {
+        if (cardIdOf(t) !== cardId) continue;
         const k = ymIdx(m) - ymIdx(faturaYm(t)) + 1;
         if (k >= 1 && k <= (t.par || 1)) {
           // como o banco: parcelas iguais (arredondadas para baixo) e a sobra de centavos vai na primeira
@@ -402,17 +407,24 @@ const Core = (() => {
       }
       return out;
     }
+    const installments = m => cardsList().flatMap(c => installmentsForCard(m, c.id));
     // itens recorrentes no cartão: "agendados" (com dia de cobrança) só somam depois que o dia passa
-    function chargeDate(f, m) { const c = f.cardDay >= closeDay ? addM(m, -1) : m; return c + '-' + String(Math.min(28, Math.max(1, f.cardDay))).padStart(2, '0'); }
-    const cardItems = m => fixedOf(m, 'out').filter(x => x.f.inFatura).map(x => { const due = x.f.cardDay ? chargeDate(x.f, m) : null; return Object.assign(x, { due, done: !due || pd(due) < today }); });
+    function chargeDate(f, m) { const cd = closeDayOf(cardIdOf(f)); const c = f.cardDay >= cd ? addM(m, -1) : m; return c + '-' + String(Math.min(28, Math.max(1, f.cardDay))).padStart(2, '0'); }
+    const cardItemsForCard = (m, cardId) => fixedOf(m, 'out').filter(x => x.f.inFatura && cardIdOf(x.f) === cardId).map(x => { const due = x.f.cardDay ? chargeDate(x.f, m) : null; return Object.assign(x, { due, done: !due || pd(due) < today }); });
+    const cardItems = m => cardsList().flatMap(c => cardItemsForCard(m, c.id));
+    const cardExtraForCard = (m, cardId) => sum(cardItemsForCard(m, cardId), x => x.v);
     const cardExtra = m => sum(cardItems(m), x => x.v);
-    const cardDone = m => sum(cardItems(m).filter(x => x.done), x => x.v);
-    const fatura = m => sum(installments(m), x => x.v) + cardDone(m);
+    const cardDoneForCard = (m, cardId) => sum(cardItemsForCard(m, cardId).filter(x => x.done), x => x.v);
+    const faturaForCard = (m, cardId) => sum(installmentsForCard(m, cardId), x => x.v) + cardDoneForCard(m, cardId);
+    const fatura = m => cardsList().reduce((s, c) => s + faturaForCard(m, c.id), 0);
     // adiantado: valor já pago de um item da fatura (chave = id do lançamento ou do item recorrente)
     const advOf = (m, k) => ((S.adv || {})[m] || {})[k] || 0;
-    const advSum = m => sum(installments(m), x => Math.min(advOf(m, x.t.id), x.v)) + sum(cardItems(m).filter(x => x.done), x => Math.min(advOf(m, x.f.id), x.v));
+    const advSumForCard = (m, cardId) => sum(installmentsForCard(m, cardId), x => Math.min(advOf(m, x.t.id), x.v)) + sum(cardItemsForCard(m, cardId).filter(x => x.done), x => Math.min(advOf(m, x.f.id), x.v));
+    const advSum = m => cardsList().reduce((s, c) => s + advSumForCard(m, c.id), 0);
+    const aPagarForCard = (m, cardId) => faturaForCard(m, cardId) - advSumForCard(m, cardId);
     const aPagar = m => fatura(m) - advSum(m);
-    const faturaPlan = m => sum(installments(m), x => x.v) + cardExtra(m);
+    const faturaPlanForCard = (m, cardId) => sum(installmentsForCard(m, cardId), x => x.v) + cardExtraForCard(m, cardId);
+    const faturaPlan = m => cardsList().reduce((s, c) => s + faturaPlanForCard(m, c.id), 0);
     // entradas só contam depois de recebidas: lançamentos "A receber" (st = 'rec') ficam de fora até serem marcados como recebidos
     const aReceber = m => sum(B(m).in.filter(t => t.st === 'rec'), t => t.v);
     const fixedIn = m => vaSep ? fixedOf(m, 'in').filter(x => !isVa(x.f)) : fixedOf(m, 'in');
@@ -575,7 +587,7 @@ const Core = (() => {
       return { ent, sai, meta, guard, guardSobra, saldo, dif: meta - guardSobra, patrimonio, principal, juros, invT, env, total: patrimonio, cx, pj, target, proxFatura, nxt, fatura: fatura(ym) };
     }
 
-    return { S, today, curYm, closeDay, vaSep, fixedIn, gastosDaCategoria, vaCost, vaShown, vaSpent, aReceber, entradasComReceber, faturaYm, fv, fixedOf, installments, cardItems, cardExtra, faturaPlan, fatura, advOf, advSum, aPagar, entradas, saidas, sobra, pendCard, saidasConf, sobraConf, envSummary, envFor, envSpent, cxRows, project, invest, distribuir, porCategoria, dashboard, B, budgets };
+    return { S, today, curYm, cardsList, cardIdOf, closeDayOf, vaSep, fixedIn, gastosDaCategoria, vaCost, vaShown, vaSpent, aReceber, entradasComReceber, faturaYm, fv, fixedOf, installments, installmentsForCard, cardItems, cardItemsForCard, cardExtra, faturaPlan, faturaPlanForCard, fatura, faturaForCard, advOf, advSum, advSumForCard, aPagar, aPagarForCard, entradas, saidas, sobra, pendCard, saidasConf, sobraConf, envSummary, envFor, envSpent, cxRows, project, invest, distribuir, porCategoria, dashboard, B, budgets };
   }
   return { make, calc, schedAt, schedSet, pd, fromDn, ymIdx, idxYm, addM, lastDay, bd, key, round2, floor2 };
 })();
@@ -613,8 +625,8 @@ let KEY = 'cfp:v1'; const THEME_KEY = 'cfp:theme';
 let S, M, storageOK = true, saveTimer = null, undoSnap = null;
 const SEED = () => (typeof SHARE !== 'undefined' && SHARE) ? blankState({}) : JSON.parse($('seed').textContent);
 function migrate(o) {
-  // base para múltiplos cartões: por enquanto só 1 cartão (o closeDay global vale para todos); itens de S.fixed/S.tx
-  // podem ganhar um cardId opcional no futuro, com fallback pro primeiro cartão (item.cardId || S.cards[0].id).
+  // múltiplos cartões: cada um com seu dia de fechamento. Itens de S.fixed/S.tx têm um cardId opcional,
+  // com fallback pro primeiro cartão (item.cardId || S.cards[0].id) — dados antigos continuam funcionando.
   if (!Array.isArray(o.cards) || !o.cards.length) o.cards = [{ id: 'card1', name: 'Cartão principal', closeDay: o.closeDay || 1 }];
   if (o.vaMode == null) o.vaMode = 'lancado'; // VA/VR soma nas entradas e só sai quando o gasto é lançado
   if (!Array.isArray(o.autocat)) o.autocat = []; // regras de categorização automática (palavra-chave -> categoria)
@@ -954,9 +966,13 @@ ACT.adv = el => {
     save: f => { const t2 = String(f.a || '').trim(); const a = t2 === '' ? 0 : Core.calc(t2); if (!(a >= 0)) return 'Digite um valor válido.'; commit(S => setAdv(S, ym, key, Math.min(a, full)), a > 0.004 ? 'Adiantado registrado' : 'Adiantado removido'); return true; }
   });
 };
-function faturaDesc(y) {
-  const adv = M.advSum(y), tot = M.fatura(y), aPag = M.aPagar(y), plan = M.faturaPlan(y);
-  return `<div class="kv tot"><span>Fatura de ${ymLabel(y)}</span><b>${brl(tot)}</b></div>${adv > 0.004 ? kv('Já adiantado', '−' + brl(adv)) + `<div class="kv tot"><span>A pagar</span><b>${brl(aPag)}</b></div>` : ''}${plan - tot > 0.004 ? kv('Previsto (com os agendados que ainda vão entrar)', brl(plan)) : ''}<p class="mut sm" style="margin:.5rem 0 0">Fecha dia ${S.closeDay || 1}. Compras a partir desse dia entram na fatura de ${ymLabel(Core.addM(y, 1))}.</p>${cardLines(y)}`;
+function faturaDesc(y, cardId) {
+  const adv = cardId ? M.advSumForCard(y, cardId) : M.advSum(y);
+  const tot = cardId ? M.faturaForCard(y, cardId) : M.fatura(y);
+  const aPag = cardId ? M.aPagarForCard(y, cardId) : M.aPagar(y);
+  const plan = cardId ? M.faturaPlanForCard(y, cardId) : M.faturaPlan(y);
+  const cd = cardId ? M.closeDayOf(cardId) : (S.closeDay || 1);
+  return `<div class="kv tot"><span>Fatura de ${ymLabel(y)}</span><b>${brl(tot)}</b></div>${adv > 0.004 ? kv('Já adiantado', '−' + brl(adv)) + `<div class="kv tot"><span>A pagar</span><b>${brl(aPag)}</b></div>` : ''}${plan - tot > 0.004 ? kv('Previsto (com os agendados que ainda vão entrar)', brl(plan)) : ''}<p class="mut sm" style="margin:.5rem 0 0">Fecha dia ${cd}. Compras a partir desse dia entram na fatura de ${ymLabel(Core.addM(y, 1))}.</p>${cardLines(y, false, cardId)}`;
 }
 // ---------- descritivo das entradas e saídas (cabeçalho) ----------
 function txRowSheet(t, tagExtra = '') {
@@ -990,17 +1006,20 @@ ACT.catopen = el => {
   const pay = x => x.src === 'cartao' ? `Cartão${x.n > 1 ? ` ${x.k}/${x.n}` : ''}` : x.src === 'vavr' ? 'VA/VR' : 'Conta';
   openInfo(`${cat} · ${ymLabel(ym)}`, list.length ? `<div class="kv tot"><span>${list.length} ${list.length === 1 ? 'gasto' : 'gastos'}</span><b>${brl(tot)}</b></div>` + list.map(x => `<button class="row" data-act="edtx" data-id="${x.t.id}"><span class="r-main"><b>${esc(x.t.desc || x.t.cat)}</b><span class="tags"><i class="tag">${dmy(x.t.d)}/${x.t.d.slice(0, 4)}</i><i class="tag">${pay(x)}</i></span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>`).join('') : '<p class="mut">Nenhum gasto dessa categoria neste mês.</p>');
 };
-function cardLines(ym, back) {
-  const ins = M.installments(ym).slice().sort((a, b) => a.t.d < b.t.d ? 1 : a.t.d > b.t.d ? -1 : 0);
-  const all = M.cardItems(ym).filter(x => Math.abs(x.v) > 0.004);
+function cardLines(ym, back, cardId) {
+  const insRaw = cardId ? M.installmentsForCard(ym, cardId) : M.installments(ym);
+  const ins = insRaw.slice().sort((a, b) => a.t.d < b.t.d ? 1 : a.t.d > b.t.d ? -1 : 0);
+  const allRaw = cardId ? M.cardItemsForCard(ym, cardId) : M.cardItems(ym);
+  const all = allRaw.filter(x => Math.abs(x.v) > 0.004);
   const byDue = (a, b) => (a.due || '') < (b.due || '') ? 1 : (a.due || '') > (b.due || '') ? -1 : 0;
   const done = all.filter(x => x.done).sort(byDue), pend = all.filter(x => !x.done).sort(byDue);
+  const plan = cardId ? M.faturaPlanForCard(ym, cardId) : M.faturaPlan(ym);
   const rowRec = (x, late) => `<div class="rr"><button class="row" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}"${back ? ' data-back="1"' : ''}${late ? ' style="opacity:.62"' : ''}><span class="r-main"><b>${esc(x.f.name)}</b><span class="tags"><i class="tag pay-cartao">Todo mês</i>${late ? `<i class="tag acc">soma em ${dmy(x.due)}/${x.due.slice(0, 4)}</i>` : ''}</span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${late ? '' : advChip(ym, x.f.id, x.v)}</div>`;
   const insH = ins.map(x => `<div class="rr"><button class="row" data-act="edtx" data-id="${x.t.id}"><span class="r-main"><b>${esc(x.t.desc || x.t.cat)}</b><span class="tags"><i class="tag">${x.k}/${x.n}</i><i class="tag">${esc(x.t.cat)}</i><i class="tag">compra ${dmy(x.t.d)}</i></span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${advChip(ym, x.t.id, x.v)}</div>`).join('');
   const sub = (l, v, mut) => `<div class="fat-subh"><span>${l}</span>${mut ? '' : `<b>${brl(v)}</b>`}</div>`;
   return (done.length ? sub('Recorrentes já cobrados', sum(done, x => x.v)) + done.map(x => rowRec(x, false)).join('') : '') +
     (ins.length ? sub('Parcelas de compras', sum(ins, x => x.v)) + insH : '') +
-    (pend.length ? sub('Agendados no cartão (somam depois do dia)', 0, true) + pend.map(x => rowRec(x, true)).join('') + `<p class="mut sm">Previsto com os agendados: <b>${brl(M.faturaPlan(ym))}</b></p>` : '') +
+    (pend.length ? sub('Agendados no cartão (somam depois do dia)', 0, true) + pend.map(x => rowRec(x, true)).join('') + `<p class="mut sm">Previsto com os agendados: <b>${brl(plan)}</b></p>` : '') +
     (!done.length && !ins.length && !pend.length ? '<p class="mut sm">Nada no cartão neste mês.</p>' : '');
 }
 
@@ -1273,6 +1292,7 @@ function viewMore() {
   if (UI.sub === 'inv') return viewInv();
   if (UI.sub === 'fixos') return viewFixos();
   if (UI.sub === 'fatura') return viewFatura();
+  if (UI.sub === 'cards') return viewCards();
   const item = (ic, t, s, act) => `<button class="row big-row" data-act="${act}"><span class="ico">${icon(ic)}</span><span class="r-main"><b>${t}</b><small class="mut">${s}</small></span>${icon('right', 18)}</button>`;
   let th = 'light'; try { th = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { }
   return `<h1 class="ph">Mais</h1>` + ((typeof SHARE !== 'undefined' && SHARE) ? accountCard() : '') +
@@ -1281,7 +1301,7 @@ function viewMore() {
     patrimChart() +
     item('card', 'VA/VR e salário', S.vaSep === false ? 'Somado ao salário (sem controle separado)' : hasVA() ? 'Separado do salário: o saldo do VA/VR fica à parte' : 'Sem VA/VR. Toque para configurar', 'vasetup') +
     item('card', 'Faturas do cartão', 'Parcelas, recorrentes e agendados — fatura por fatura', 'openfat') +
-    item('card', 'Fechamento da fatura', `Dia ${S.closeDay || 1}: compras a partir dele vão para a fatura do mês seguinte`, 'closeday') +
+    item('card', 'Cartões', (S.cards || []).length > 1 ? `${S.cards.length} cartões cadastrados` : `Dia ${(S.cards && S.cards[0] && S.cards[0].closeDay) || S.closeDay || 1}: compras a partir dele vão para a fatura do mês seguinte`, 'opencards') +
     item('tag', 'Categorias', 'Edite as opções de saída e de entrada', 'cats') +
     item('tag', 'Categorização automática', (S.autocat || []).length ? `${(S.autocat || []).length} regra${(S.autocat || []).length > 1 ? 's' : ''}: preenche a categoria sozinho pela descrição` : 'Preenche a categoria sozinho a partir de palavras da descrição', 'autocatlist') +
     item('save', 'Backup e dados', (typeof SHARE !== 'undefined' && SHARE) ? 'Exportar ou importar os dados desta conta' : 'Exportar, importar ou restaurar a planilha', 'dados') +
@@ -1295,9 +1315,14 @@ function subHead(t) { return `<div class="subh"><button class="ib" data-act="sub
 // ---------- tela cheia da fatura do cartão ----------
 function viewFatura() {
   const y = UI.fym || Core.addM(M.curYm, 1);
+  const cardsAll = M.cardsList();
+  const multi = cardsAll.length > 1;
+  const cid = multi ? (cardsAll.some(c => c.id === UI.fcard) ? UI.fcard : cardsAll[0].id) : null;
   const nav = `<div class="mnav"><button class="ib" data-act="fym" data-d="-1" aria-label="Fatura anterior">${icon('left', 20)}</button><button class="mlabel" data-act="fymnow" aria-label="Voltar para a fatura atual">${ymLabel(y)}</button><button class="ib" data-act="fym" data-d="1" aria-label="Próxima fatura">${icon('right', 20)}</button></div>`;
-  return subHead('Fatura do cartão') + nav + `<section class="card">${faturaDesc(y)}</section>`;
+  const switcher = multi ? `<div class="chips pad">${cardsAll.map(c => `<button class="chip sm ${c.id === cid ? 'on' : ''}" data-act="fcardset" data-id="${c.id}">${esc(c.name)}</button>`).join('')}</div>` : '';
+  return subHead('Fatura do cartão') + switcher + nav + `<section class="card">${faturaDesc(y, cid || undefined)}</section>`;
 }
+ACT.fcardset = el => { UI.fcard = el.dataset.id; render(); };
 
 function viewInv() {
   const iv = M.invest(), I = S.inv;
@@ -1398,6 +1423,10 @@ function entryFields(v) {
   f.push({ t: 'money', k: 'v', label: v.mode === 'ap' ? 'Valor guardado' : 'Valor' });
   if (v.mode === 'out') {
     f.push({ t: 'seg', k: 'pay', label: 'Como pagou', opts: [['cartao', 'Cartão'], ['vavr', 'VA/VR'], ['conta', 'Pix/débito']].filter(o => o[0] !== 'vavr' || hasVA() || v.pay === 'vavr') });
+    if (v.pay === 'cartao' && S.cards && S.cards.length > 1) {
+      if (!S.cards.some(c => c.id === v.cardId)) v.cardId = S.cards[0].id;
+      f.push({ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) });
+    }
     if (v.pay === 'vavr') {
       if (!S.env.some(e => e.id === v.env)) { const e0 = M.envFor({ cat: v.cat || '' }) || S.env[0]; v.env = e0 ? e0.id : ''; }
       if (S.env.length > 1) f.push({ t: 'seg', k: 'env', label: 'Linha do VA/VR', opts: S.env.map(e => [e.id, e.name]) });
@@ -1431,14 +1460,14 @@ function entryPreview(v) {
   const ym = v.d.slice(0, 7);
   if (v.mode === 'in' && v.st === 'rec') h += `<div>Previsto para <b>${dmy(v.d)}/${v.d.slice(0, 4)}</b>, entra na sobra de ${ymLabel(ym)} quando você marcar como recebido</div>`;
   if (v.mode === 'out') {
-    if (v.pay === 'cartao') { const p = +v.par || 1, first = M.faturaYm({ d: v.d }); const bs = Math.floor(Math.round(amt / p * 1e4) / 100) / 100, f1 = Core.round2(amt - bs * (p - 1)); h += p > 1 ? `<div>${Math.abs(f1 - bs) > 0.004 ? `1ª de <b>${brl(f1)}</b> e ${p - 1}× de <b>${brl(bs)}</b>` : `${p}× de <b>${brl(bs)}</b>`}, a primeira na fatura de ${ymLabel(first)}</div>` : `<div>Entra na fatura de <b>${ymLabel(first)}</b> <span class="mut">(fecha dia ${M.closeDay})</span></div>`; }
+    if (v.pay === 'cartao') { const p = +v.par || 1, cid = v.cardId || M.cardsList()[0].id, first = M.faturaYm({ d: v.d, cardId: cid }); const bs = Math.floor(Math.round(amt / p * 1e4) / 100) / 100, f1 = Core.round2(amt - bs * (p - 1)); h += p > 1 ? `<div>${Math.abs(f1 - bs) > 0.004 ? `1ª de <b>${brl(f1)}</b> e ${p - 1}× de <b>${brl(bs)}</b>` : `${p}× de <b>${brl(bs)}</b>`}, a primeira na fatura de ${ymLabel(first)}</div>` : `<div>Entra na fatura de <b>${ymLabel(first)}</b> <span class="mut">(fecha dia ${M.closeDayOf(cid)})</span></div>`; }
     else if (v.pay === 'vavr') { const e = S.env.find(x => x.id === v.env) || M.envFor({ cat: v.cat || '' }); if (e) { const row = M.envSummary(ym).rows.find(r => r.e === e); h += `<div>Sai do envelope <b>${esc(e.name)}</b>${row ? `, saldo hoje ${brl(row.bal)}, depois ${brl(row.bal - amt)}` : ''}</div>`; } }
     else h += `<div>Sai direto do mês em <b>${ymLabel(ym)}</b></div>`;
   }
   return h;
 }
 function entryDefaults(over) {
-  const v = Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0', _autocatManual: false, _autocatHit: false }, over || {});
+  const v = Object.assign({ mode: 'out', v: '', cat: '', desc: '', pay: 'cartao', cardId: '', par: 1, d: TODAY, showDate: false, cx: '', st: 'ok', adv: '', re: '0', env: '', gen: '0', _autocatManual: false, _autocatHit: false }, over || {});
   if (over && over.id) v._autocatManual = true; // editando um lançamento existente: não mexe na categoria já escolhida
   return v;
 }
@@ -1509,7 +1538,8 @@ function saveEntry(v, again) {
       const list = v.mode === 'in' ? S.incCats : S.cats; if (!list.includes(cat)) list.push(cat);
       const desc = (v.desc || '').trim() || cat;
       const tid = v.id && v.id[0] === 't' ? v.id : nid('t');
-      S.tx.push({ id: tid, d: v.d, t: v.mode, v: val, cat, desc, pay: v.mode === 'in' ? 'conta' : v.pay, par: v.mode === 'out' && v.pay === 'cartao' ? (+v.par || 1) : 1, ...(v.mode === 'in' && v.st === 'rec' ? { st: 'rec' } : {}) });
+      const cardId = v.mode === 'out' && v.pay === 'cartao' && v.cardId ? v.cardId : null;
+      S.tx.push({ id: tid, d: v.d, t: v.mode, v: val, cat, desc, pay: v.mode === 'in' ? 'conta' : v.pay, par: v.mode === 'out' && v.pay === 'cartao' ? (+v.par || 1) : 1, ...(cardId ? { cardId } : {}), ...(v.mode === 'in' && v.st === 'rec' ? { st: 'rec' } : {}) });
       // aprendizado automático: se ninguém tinha uma regra pra essa descrição, guarda a categoria escolhida agora como regra nova
       if (v.mode === 'out' && !v.id && !v._autocatHit && desc && desc.toLowerCase() !== cat.toLowerCase() && !autocatFind(desc)) {
         S.autocat = S.autocat || []; S.autocat.push({ id: nid('ac'), match: desc.toLowerCase(), cat });
@@ -1517,7 +1547,7 @@ function saveEntry(v, again) {
       for (const m of Object.keys(S.adv || {})) delete S.adv[m][tid];
       if (v.mode === 'out' && v.pay === 'cartao') {
         const a = Core.calc(v.adv || ''), n = +v.par || 1, bs = n > 1 ? Math.floor(Math.round(val / n * 1e4) / 100) / 100 : val, f1 = Core.round2(val - bs * (n - 1));
-        if (a > 0.004) setAdv(S, M.faturaYm({ d: v.d }), tid, Math.min(a, f1));
+        if (a > 0.004) setAdv(S, M.faturaYm({ d: v.d, cardId }), tid, Math.min(a, f1));
       }
       if (v.mode === 'out') {
         const existing = S.tx.find(x => x.recFor === tid);
@@ -1570,16 +1600,39 @@ ACT.vasetup = () => {
     }
   });
 };
-ACT.closeday = () => openForm({
-  title: 'Fechamento da fatura', v: { d: String(S.closeDay || 2) },
-  fields: [{ t: 'num', k: 'd', label: 'Dia do fechamento', ph: 'Ex.: 2' }, { t: 'note', html: 'Compras feitas a partir desse dia entram na fatura do mês seguinte; as anteriores entram na fatura do próprio mês. O que vale é o dia que o Nubank mostra na sua fatura.' }],
-  save: f => { const d = parseInt(f.d); if (!(d >= 1 && d <= 28)) return 'Digite um dia de 1 a 28.'; commit(S => { S.closeDay = d; }, `Fechamento no dia ${d}`); }
+// ---------- cartões (múltiplos, cada um com seu dia de fechamento) ----------
+function viewCards() {
+  const list = (S.cards || []).map(c => `<button class="row" data-act="cardedit" data-id="${c.id}"><span class="r-main"><b>${esc(c.name)}</b><span class="tags"><i class="tag">fecha dia ${c.closeDay || 1}</i></span></span>${icon('right', 18)}</button>`).join('');
+  return subHead('Cartões') + card('Seus cartões', list + `<button class="link" data-act="cardnew">Novo cartão</button>`) + `<p class="mut sm pad">Cada cartão tem seu próprio dia de fechamento e sua própria fatura. Ao lançar uma compra ou um item fixo no cartão, você escolhe a qual cartão ela pertence.</p>`;
+}
+ACT.opencards = () => { UI.tab = 'more'; UI.sub = 'cards'; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.cardnew = () => openForm({
+  title: 'Novo cartão', back: () => { UI.sub = 'cards'; render(); }, v: { name: '', closeDay: '1' },
+  fields: [{ t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Cartão do casal' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)', ph: 'Ex.: 10' }],
+  save: v => {
+    if (!v.name.trim()) return 'Dê um nome ao cartão.';
+    const d = parseInt(v.closeDay); if (!(d >= 1 && d <= 28)) return 'Digite um dia de 1 a 28.';
+    commit(S => { S.cards = S.cards || []; S.cards.push({ id: nid('card'), name: v.name.trim(), closeDay: d }); }, 'Cartão criado');
+  }
 });
+ACT.cardedit = el => {
+  const c = (S.cards || []).find(x => x.id === el.dataset.id); if (!c) return;
+  openForm({
+    title: 'Editar cartão', back: () => { UI.sub = 'cards'; render(); }, v: { name: c.name, closeDay: String(c.closeDay || 1) },
+    fields: [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'num', k: 'closeDay', label: 'Dia do fechamento (1 a 28)' }],
+    del: S.cards.length > 1 ? () => { commit(S => { S.tx.forEach(t => { if (t.cardId === c.id) delete t.cardId; }); S.fixed.forEach(f => { if (f.cardId === c.id) delete f.cardId; }); S.cards = S.cards.filter(x => x.id !== c.id); }, 'Cartão removido'); } : null,
+    save: v => {
+      if (!v.name.trim()) return 'Dê um nome ao cartão.';
+      const d = parseInt(v.closeDay); if (!(d >= 1 && d <= 28)) return 'Digite um dia de 1 a 28.';
+      commit(S => { const g = S.cards.find(x => x.id === c.id); g.name = v.name.trim(); g.closeDay = d; }, 'Cartão atualizado');
+    }
+  });
+};
 ACT.envreset = () => { const nx = Core.addM(M.curYm, 1); askConfirm(`Zerar o VA/VR? Vale só o que você lançar a partir de hoje (${dmy(TODAY)}); o acumulado volta a 0 e recomeça em ${ymLabel(nx)}. Nenhum lançamento é apagado.`, 'Zerar', () => commit(S => { S.vaFrom = TODAY; S.envFrom = nx; }, 'VA/VR zerado')); };
 ACT.addenv = el => { const c = el.dataset.c || ''; openEntry({ mode: 'out', pay: 'vavr', cat: c, desc: c === 'Troca com o Pai' ? 'Troca com o pai' : c }); };
 ACT.recv = el => { const t = S.tx.find(x => x.id === el.dataset.id); if (!t) return; commit(S => { const g = S.tx.find(x => x.id === el.dataset.id); delete g.st; }, `Recebido: ${t.desc}`); };
 ACT.add = el => openEntry({ mode: el.dataset.m || 'out' });
-ACT.edtx = el => { const t = S.tx.find(x => x.id === el.dataset.id); if (t) openEntry({ id: t.id, mode: t.t, v: String(t.v).replace('.', ','), cat: t.cat, desc: t.desc, pay: t.pay === 'conta' && t.t === 'in' ? 'cartao' : t.pay, par: t.par || 1, d: t.d, st: t.st || 'ok', adv: (() => { const a = M.advOf(M.faturaYm(t), t.id); return a ? String(a).replace('.', ',') : ''; })(), gen: S.tx.some(x => x.recFor === t.id) ? '1' : '0' }); };
+ACT.edtx = el => { const t = S.tx.find(x => x.id === el.dataset.id); if (t) openEntry({ id: t.id, mode: t.t, v: String(t.v).replace('.', ','), cat: t.cat, desc: t.desc, pay: t.pay === 'conta' && t.t === 'in' ? 'cartao' : t.pay, cardId: t.cardId || '', par: t.par || 1, d: t.d, st: t.st || 'ok', adv: (() => { const a = M.advOf(M.faturaYm(t), t.id); return a ? String(a).replace('.', ',') : ''; })(), gen: S.tx.some(x => x.recFor === t.id) ? '1' : '0' }); };
 ACT.edap = el => { const a = S.ap.find(x => x.id === el.dataset.id); if (a) openEntry({ id: a.id, mode: 'ap', v: String(a.v).replace('.', ','), cx: a.cx, d: a.d, re: a.re ? '1' : a.ext ? '2' : '0' }); };
 
 // ---------- valores fixos por mês ----------
@@ -1628,16 +1681,17 @@ function ptForm(fid, i) {
 ACT.fixopts = el => {
   const f = S.fixed.find(x => x.id === el.dataset.f); const fid = f.id;
   openForm({
-    title: 'Opções do item', back: () => fixedDetail(fid), v: { name: f.name, kind: f.kind, cardDay: f.cardDay || '', inFatura: f.inFatura ? '1' : '0' },
-    fields: [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'seg', k: 'kind', label: 'Tipo', opts: [['in', 'Entrada'], ['out', 'Saída']] },
+    title: 'Opções do item', back: () => fixedDetail(fid), v: { name: f.name, kind: f.kind, cardDay: f.cardDay || '', inFatura: f.inFatura ? '1' : '0', cardId: f.cardId || (S.cards && S.cards[0] ? S.cards[0].id : '') },
+    fields: v => [{ t: 'text', k: 'name', label: 'Nome' }, { t: 'seg', k: 'kind', label: 'Tipo', opts: [['in', 'Entrada'], ['out', 'Saída']] },
       { t: 'num', k: 'cardDay', label: 'Dia da cobrança (opcional)', ph: 'Ex.: 8' },
-      { t: 'seg', k: 'inFatura', label: 'Sai no cartão?', opts: [['0', 'Não'], ['1', 'Sim']] }],
+      { t: 'seg', k: 'inFatura', label: 'Sai no cartão?', opts: [['0', 'Não'], ['1', 'Sim']] },
+      ...(v.inFatura === '1' && S.cards && S.cards.length > 1 ? [{ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) }] : [])],
     del: () => { commit(S => { S.fixed = S.fixed.filter(x => x.id !== fid); }, 'Item removido'); },
-    save: v => { if (!v.name.trim()) return 'Dê um nome ao item.'; commit(S => { const g = S.fixed.find(x => x.id === fid); g.name = v.name.trim(); g.kind = v.kind; const d = parseInt(v.cardDay); if (d >= 1 && d <= 31) g.cardDay = d; else delete g.cardDay; if (v.inFatura === '1') g.inFatura = true; else delete g.inFatura; }, 'Item atualizado'); }
+    save: v => { if (!v.name.trim()) return 'Dê um nome ao item.'; commit(S => { const g = S.fixed.find(x => x.id === fid); g.name = v.name.trim(); g.kind = v.kind; const d = parseInt(v.cardDay); if (d >= 1 && d <= 31) g.cardDay = d; else delete g.cardDay; if (v.inFatura === '1') { g.inFatura = true; if (v.cardId) g.cardId = v.cardId; else delete g.cardId; } else { delete g.inFatura; delete g.cardId; } }, 'Item atualizado'); }
   });
 };
 ACT.fixnew = () => openForm({
-  title: 'Novo item fixo', v: { name: '', kind: 'out', val: '', m: CUR_YM, card: '0', cardDay: '' },
+  title: 'Novo item fixo', v: { name: '', kind: 'out', val: '', m: CUR_YM, card: '0', cardDay: '', cardId: S.cards && S.cards[0] ? S.cards[0].id : '' },
   fields: v => [
     { t: 'text', k: 'name', label: 'Nome', ph: 'Ex.: Internet, YouTube Premium' },
     { t: 'seg', k: 'kind', opts: [['out', 'Saída'], ['in', 'Entrada']] },
@@ -1645,14 +1699,15 @@ ACT.fixnew = () => openForm({
     ...(v.kind === 'out' ? [{ t: 'seg', k: 'card', label: 'Onde sai', opts: [['0', 'Conta'], ['1', 'Recorrente no cartão']] }] : []),
     ...(v.kind === 'out' && v.card === '1' ? [
       { t: 'num', k: 'cardDay', label: 'Dia da cobrança no cartão', ph: 'Ex.: 3' },
-      { t: 'note', html: 'É o dia em que a cobrança aparece na sua fatura. Com o dia de fechamento configurado, o app calcula sozinho em qual fatura de cada mês ela entra.' }
+      { t: 'note', html: 'É o dia em que a cobrança aparece na sua fatura. Com o dia de fechamento configurado, o app calcula sozinho em qual fatura de cada mês ela entra.' },
+      ...(S.cards && S.cards.length > 1 ? [{ t: 'seg', k: 'cardId', label: 'Cartão', opts: S.cards.map(c => [c.id, c.name]) }] : [])
     ] : []),
     { t: 'month', k: 'm', label: 'A partir de' }],
   save: v => {
     const n = Core.calc(v.val); if (!v.name.trim()) return 'Dê um nome ao item.'; if (isNaN(n) || n < 0) return 'Digite o valor mensal.';
     const card = v.kind === 'out' && v.card === '1'; const day = parseInt(v.cardDay);
     if (card && !(day >= 1 && day <= 31)) return 'Digite o dia da cobrança (de 1 a 31).';
-    commit(S => { S.fixed.push({ id: nid('f'), name: v.name.trim(), kind: v.kind, sched: [[v.m, Core.round2(n)]], ...(card ? { inFatura: true, cardDay: day } : {}) }); }, 'Item criado');
+    commit(S => { S.fixed.push({ id: nid('f'), name: v.name.trim(), kind: v.kind, sched: [[v.m, Core.round2(n)]], ...(card ? { inFatura: true, cardDay: day, ...(v.cardId ? { cardId: v.cardId } : {}) } : {}) }); }, 'Item criado');
   }
 });
 
