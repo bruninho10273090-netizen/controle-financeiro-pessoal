@@ -2066,6 +2066,7 @@ function calcInit() {
     cartoes: { gasto: '3000', dolar: '5,40', a_nome: 'Cartão A', a_anu: '0', a_cash: '1', a_pts: '0', a_mil: '0', b_nome: 'Cartão B', b_anu: '1200', b_cash: '0', b_pts: '2,2', b_mil: '25' },
     aluguel: { imovel: '500000', entrada: '100000', taxa: '11,5', anos: '30', aluguel: '2500', reaj: '5', valor: '5', rend: (selic * .85).toFixed(2).replace('.', ',') },
     amort: { valor: '300000', taxa: '11,5', meses: '360', extra: '0', sis: 'sac' },
+    amxsel: { valor: '300000', taxa: '11,5', meses: '360', extra: '500', unico: '0', sis: 'sac', selic: sel, pctsel: '100', ir: '15' },
     salario: { bruto: f2(salV), dep: '0', outros: '0' },
     cltpj: { clt: f2(salV), ben: '800', pj: f2(salV * 1.5), aliq: '6', contador: '300', pro: '1621' },
     decimo: { sal: f2(salV), meses: '12', dep: '0' },
@@ -2171,6 +2172,44 @@ const CALCS = {
       while (s > 0.01 && m < n) { const j = s * i, p = sac ? am + j : fixa, amo = Math.min(s, p - j + ex); juros += j; s -= amo; m++; const pg = amo + j; if (m === 1) first = pg; lastP = pg; pagoAno += pg; if (m % 12 === 0 || s <= 0.01) { yrs.push({ a: Math.ceil(m / 12), s: Math.max(0, s), pg: pagoAno }); pagoAno = 0; } }
       const semEx = sac ? pv * i * (n + 1) / 2 : fixa * n - pv;
       return cres('Total de juros', brl(juros)) + cgrid([['1ª parcela', brl(first)], ['Última parcela', brl(lastP)], ['Quitado em', tempoTxt(m)], ['Juros economizados', ex > 0 ? brl(semEx - juros) : '—', 'pos']]) + `<div class="tscroll" style="margin-top:12px;max-height:260px;overflow:auto;box-shadow:none;border:1px solid var(--line)"><table class="tbl" style="min-width:0"><thead><tr><th>Ano</th><th>Pago no ano</th><th>Saldo devedor</th></tr></thead><tbody>${yrs.map(y => `<tr><th>${y.a}º</th><td>${f2(y.pg)}</td><td>${f2(y.s)}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+  },
+  amxsel: {
+    t: 'Amortizar ou investir na Selic', s: 'Compara usar o dinheiro extra pra abater o financiamento ou deixar rendendo.', ic: 'swap', k: 4,
+    ins: [['valor', 'Saldo devedor', 'R$'], ['taxa', 'Juros do financiamento', '', '% a.a.'], ['meses', 'Prazo restante', '', 'meses'], ['extra', 'Valor extra por mês', 'R$'], ['unico', 'Valor extra agora (único)', 'R$'], { seg: 'sis', opts: [['sac', 'SAC'], ['price', 'Price']], l: 'Tabela do financiamento' }, ['selic', 'Selic', '', '% a.a.'], ['pctsel', 'Rende quanto da Selic', '', '%'], ['ir', 'IR sobre o rendimento', '', '%']],
+    res(c) {
+      const pv = cnum(c.valor), i = cm(cnum(c.taxa)), n = Math.max(1, Math.round(cnum(c.meses))), ex = cnum(c.extra), un = Math.min(cnum(c.unico), pv), sac = c.sis === 'sac';
+      const selA = cnum(c.selic) * cnum(c.pctsel) / 100, liqA = selA * (1 - cnum(c.ir) / 100), r = cm(liqA);
+      const fixa = pmtPrice(pv, i, n), am = pv / n;
+      // A: amortiza (prazo menor). B: paga normal e investe o extra. O orçamento do mês é o mesmo nos dois (parcela normal + extra);
+      // o que sobra em A (parcelas menores e, depois de quitar, tudo) também vai pra Selic. No fim do prazo original ninguém deve nada.
+      let sA = pv - un, sB = pv, iA = 0, iB = un, jA = 0, jB = 0, quitA = 0; const pts = [];
+      for (let m = 1; m <= n; m++) {
+        iA *= 1 + r; iB *= 1 + r;
+        const jb = sB * i, pB = sac ? Math.min(sB + jb, am + jb) : Math.min(sB + jb, fixa); jB += jb; sB = Math.max(0, sB - (pB - jb));
+        const budget = pB + ex; iB += ex;
+        let paidA = 0;
+        if (sA > 0.01) {
+          const ja = sA * i, pA = sac ? Math.min(sA + ja, am + ja) : Math.min(sA + ja, fixa); jA += ja; sA = Math.max(0, sA - (pA - ja));
+          const extraUsed = Math.min(sA, ex); sA -= extraUsed; paidA = pA + extraUsed;
+          if (sA <= 0.01) { sA = 0; quitA = m; }
+        }
+        iA += Math.max(0, budget - paidA);
+        if (m % 12 === 0 || m === n) pts.push({ m, a: iA - sA, b: iB - sB });
+      }
+      if (!quitA) quitA = n;
+      const win = iA >= iB ? 'Amortizar' : 'Investir na Selic', dif = Math.abs(iA - iB);
+      const W = 300, H = 110, pb = 16, all = pts.flatMap(q => [q.a, q.b]), lo = Math.min(0, ...all), hi = Math.max(1, ...all);
+      const X = k => 4 + k * (W - 8) / Math.max(1, pts.length - 1), Y = v => 6 + (1 - (v - lo) / (hi - lo || 1)) * (H - 6 - pb);
+      const ln = key => pts.map((q, k) => (k ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(q[key]).toFixed(1)).join(' ');
+      const step = Math.ceil(pts.length / 8);
+      const chart = pts.length > 1 ? `<div class="chartleg" style="margin-top:12px"><span><i style="background:var(--acc)"></i>Amortizando</span><span><i style="background:var(--tan)"></i>Investindo</span></div><svg viewBox="0 0 ${W} ${H}" class="mchart" role="img" aria-label="Patrimônio líquido ao longo do tempo"><line class="axis" x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"/><path d="${ln('b')}" fill="none" style="stroke:var(--tan);stroke-width:2"/><path d="${ln('a')}" fill="none" style="stroke:var(--acc);stroke-width:2"/>${pts.map((q, k) => k % step && k !== pts.length - 1 ? '' : `<text x="${X(k).toFixed(1)}" y="${H - 3}" text-anchor="${k === 0 ? 'start' : k === pts.length - 1 ? 'end' : 'middle'}" class="ax">${Math.ceil(q.m / 12)}a</text>`).join('')}</svg><p class="mut sm" style="margin-top:4px">Patrimônio líquido = o que está investido menos o que ainda deve.</p>` : '';
+      const taxaA = cnum(c.taxa);
+      return cres('Vale mais a pena', `${win} · +${brl(dif)}`) + cgrid([
+        ['Financiamento', `${pct(taxaA / 100, 2)} a.a.`], ['Selic líquida (após IR)', `${pct(liqA / 100, 2)} a.a.`, liqA > taxaA ? 'pos' : ''],
+        [`Amortizando: quita em`, `${quitA} meses${quitA < n ? ` (−${n - quitA})` : ''}`, 'acc'], ['Juros economizados', brl(jB - jA), 'pos'],
+        [`Em ${n} meses, amortizando`, brl(iA)], [`Em ${n} meses, investindo`, brl(iB)]
+      ]) + chart + `<p class="mut sm" style="margin-top:8px">Nos dois casos você gasta o mesmo por mês (parcela normal + extra). Amortizando, o prazo encurta; o que sobra (parcelas menores e, depois de quitar, a parcela inteira) vai pra Selic. Regra geral: se a Selic líquida é menor que os juros do financiamento, amortizar ganha. Não considera TR, seguros nem a liquidez de ter o dinheiro guardado.</p>`;
     }
   },
   salario: {
