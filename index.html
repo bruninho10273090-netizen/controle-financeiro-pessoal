@@ -2943,7 +2943,7 @@ function healthScore(a, b) {
   parts.forEach(p => { p.pts = Math.round(p.f * p.max); });
   const score = sum(parts, p => p.pts);
   const label = score >= 80 ? 'Ótima' : score >= 60 ? 'Boa' : score >= 40 ? 'Pede atenção' : 'Precisa de cuidado';
-  return { score, label, parts, yms, ent, sai };
+  return { score, label, parts, yms, ent, sai, noData: !(ent > 0.004) };
 }
 const scoreColor = s => s >= 80 ? 'var(--pos)' : s >= 60 ? 'var(--acc)' : s >= 40 ? 'var(--amb)' : 'var(--neg)';
 function scoreGauge(s) {
@@ -2995,7 +2995,8 @@ function homeInsights() {
 const insRow = x => `<button class="ins ${x.tone}" ${x.act}><span class="ii">${icon(x.ic, 16)}</span><span class="it">${x.t}</span>${icon('right', 16)}</button>`;
 function insightCard() {
   const L = homeInsights(), H = healthScore(...healthRange());
-  return `<section class="insight"><button class="ins-score" data-act="openrep" data-id="saude" style="--sc:${scoreColor(H.score)}"><span class="isc">${H.score}</span><span class="ist"><small>Saúde financeira</small><b>${H.label}</b><em>Ver o que pesa na nota</em></span></button>` +
+  const sc = H.noData ? `<button class="ins-score" data-act="openrep" data-id="saude" style="--sc:var(--mut)"><span class="isc">—</span><span class="ist"><small>Saúde financeira</small><b>Ainda sem nota</b><em>Aparece com o primeiro mês de entradas</em></span></button>` : `<button class="ins-score" data-act="openrep" data-id="saude" style="--sc:${scoreColor(H.score)}"><span class="isc">${H.score}</span><span class="ist"><small>Saúde financeira</small><b>${H.label}</b><em>Ver o que pesa na nota</em></span></button>`;
+  return `<section class="insight">${sc}` +
     `<div class="ins-list">${L.length ? L.slice(0, 3).map(insRow).join('') : `<p class="mut sm" style="padding:10px 4px">Tudo em dia por aqui.</p>`}${L.length > 3 ? `<button class="link ins-more" data-act="insall">Ver todos os avisos (${L.length})</button>` : ''}</div></section>`;
 }
 ACT.insall = () => openInfo('Avisos do mês', `<div class="ins-list sheetlist">${homeInsights().map(insRow).join('')}</div>`);
@@ -3179,7 +3180,7 @@ const REPS = {
   saude: {
     t: 'Saúde financeira', s: 'Nota de 0 a 100 com o que ajuda e o que atrapalha, e a divisão 50/30/20 do seu dinheiro.', ic: 'heart', k: 4,
     run(a, b) {
-      const H = healthScore(a, b); if (!H.yms.length) return { html: rsec('Saúde financeira', rnone('Escolha um período que já começou.')), csv: [['Indicador']] };
+      const H = healthScore(a, b); if (!H.yms.length || H.noData) return { html: rsec('Saúde financeira', rnone(H.yms.length ? 'Ainda não há entradas neste período. A nota aparece assim que houver pelo menos um mês com entradas lançadas (ou o salário como item fixo).' : 'Escolha um período que já começou.')), csv: [['Indicador']] };
       const F = fifty(a, b), pc = x => F.E > 0.004 ? x / F.E : 0;
       const parts = H.parts.map(p => `<div class="hp"><div class="hp-t"><b>${p.t}</b><span>${p.pts} <small>de ${p.max}</small></span></div><div class="hp-bar"><i style="width:${(p.f * 100).toFixed(0)}%;background:${scoreColor(p.f * 100)}"></i></div><div class="hp-v">${p.v}</div><p class="hp-tip">${p.tip}</p></div>`).join('');
       const bar = (l, v, target, c) => `<div class="ft"><div class="ft-t"><b>${l}</b><span>${pct(pc(v), 0)} <small>ideal ${target}%</small></span></div><div class="ft-bar"><i style="width:${Math.min(100, Math.max(0, pc(v) * 100)).toFixed(1)}%;background:${c}"></i><em style="left:${target}%"></em></div><small class="mut">${brl(v)}</small></div>`;
