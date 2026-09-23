@@ -3276,10 +3276,10 @@ function moreFilterChip() {
     const a = f.startsWith('acc:') ? accById(f.slice(4)) : null;
     return `<button class="chip on" data-act="fmore" data-mf="1">${f.startsWith('tag:') ? '#' + esc(f.slice(4)) : a ? accDot(a) + esc(a.name) : 'Conta'}<span class="chipx" data-act="fclear" role="button" aria-label="Limpar filtro">${icon('x', 12)}</span></button>`;
   }
-  return accMulti() || allTags().length ? `<button class="chip" data-act="fmore" data-mf="1">Mais filtros</button>` : '';
+  return accMulti() || tagStats().length ? `<button class="chip" data-act="fmore" data-mf="1">Mais filtros</button>` : '';
 }
 ACT.fmore = () => {
-  const L = accList(), tags = allTags(), f = UI.filter;
+  const L = accList(), tags = tagStats(), f = UI.filter;
   const sec = (t, body) => `<div class="fld"><label class="fl">${t}</label><div class="chips">${body}</div></div>`;
   const html = (L.length > 1 ? sec('Conta', L.map(a => `<button type="button" class="chip ${f === 'acc:' + a.id ? 'on' : ''}" data-act="fpick" data-v="acc:${esc(a.id)}">${accDot(a)}${esc(a.name)}</button>`).join('')) : '') +
     (tags.length ? sec('Tag', tags.map(x => `<button type="button" class="chip ${f === 'tag:' + x.name ? 'on' : ''}" data-act="fpick" data-v="tag:${esc(x.name)}">#${esc(x.name)}<small>${x.n}</small></button>`).join('')) : '');
@@ -3317,14 +3317,15 @@ function trPreview(v) {
 // ---------- tags (etiquetas) ----------
 // tx.tags = ['Viagem Nordeste', ...] (opcional), em entradas e saídas. A mesma tag com maiúsculas/acentos diferentes vira uma só.
 const txTags = t => (Array.isArray(t && t.tags) ? t.tags.filter(x => typeof x === 'string' && x.trim()) : []);
-function allTags() {
+// tags em uso com a contagem, das mais usadas para as menos → [{ name, n }] (não confundir com allTags() dos relatórios, que devolve só os nomes)
+function tagStats() {
   const m = new Map();
   for (const t of S.tx) for (const g of txTags(t)) { const k = norm(g).trim(), o = m.get(k) || { name: g.trim(), n: 0 }; o.n++; m.set(k, o); }
   return [...m.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name, 'pt-BR'));
 }
 function tagClean(s) {
   const c = String(s || '').replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 30); if (!c) return '';
-  const ex = allTags().find(x => norm(x.name) === norm(c));
+  const ex = tagStats().find(x => norm(x.name) === norm(c));
   return ex ? ex.name : c;
 }
 function tagsUniq(list) { const seen = new Set(), out = []; for (const x of list) { const c = tagClean(x), k = norm(c); if (c && !seen.has(k)) { seen.add(k); out.push(c); } } return out; }
@@ -3342,7 +3343,7 @@ function descTagsHtml(v, ph) {
 }
 function tagSugHtml(v) {
   const have = new Set((v.tags || []).map(x => norm(x))), q = norm(v._tagIn || '').replace(/^#+/, '').trim();
-  return allTags().filter(x => !have.has(norm(x.name)) && (!q || norm(x.name).includes(q))).slice(0, 8)
+  return tagStats().filter(x => !have.has(norm(x.name)) && (!q || norm(x.name).includes(q))).slice(0, 8)
     .map(x => `<button type="button" class="chip sm" data-act="tagpick" data-t="${esc(x.name)}">#${esc(x.name)}</button>`).join('');
 }
 ACT.tagadd = () => { if (!FM) return; FM.tagAdding = true; FM.v._tagIn = ''; drawSheet(); const i = $('tagIn'); if (i) { try { i.focus(); } catch (e) { } } };
