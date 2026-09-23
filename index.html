@@ -90,6 +90,9 @@ h1,h2,h3,h4,p{margin:0}
 .kv.tot{border-top:1.5px solid var(--ink);margin-top:2px}.kv.tot span{color:var(--ink);font-weight:700}.kv.tot b{font-weight:800}
 .link{background:none;border:0;color:var(--acc);font-weight:600;padding:10px 0 2px;font-size:14px}
 .sec-h{display:flex;justify-content:space-between;align-items:center;margin:16px 2px 8px}.sec-h h3{font-size:16px;font-weight:700}
+.fat-subh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line);font-size:11.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.fat-subh:first-child{margin-top:0;padding-top:0;border-top:0}
+.fat-subh b{font-size:13.5px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:700}
 h4{display:flex;justify-content:space-between;margin:16px 0 4px;font-size:14px}
 
 /* barras */
@@ -372,6 +375,9 @@ const Core = (() => {
     const vaSep = S.vaSep === true, isVa = f => f.id === 'f_vavr' || /^va\/vr$/i.test(f.name);
     const vaCost = m => vaSep ? 0 : S.vaMode === 'lancado' ? (m <= curYm ? vaSpent(m) : Math.max(vaSpent(m), budgets)) : budgets;
 
+    // S.cards já existe (1 cartão por padrão, migrate() cria a partir de S.closeDay) mas o cálculo abaixo ainda é
+    // de cartão único de propósito: dá pra evoluir para closeDay por cartão (S.cards[i].closeDay) trocando este
+    // valor global por um parâmetro por cartão em faturaYm/chargeDate, com muito cuidado pra não mudar o caso de 1 cartão só.
     const closeDay = S.closeDay || 1; // 1 = comportamento original (compra do mês entra na fatura do mês seguinte)
     const faturaYm = t => addM(t.d.slice(0, 7), +t.d.slice(8, 10) >= closeDay ? 1 : 0);
     function installments(m) {
@@ -597,6 +603,9 @@ let KEY = 'cfp:v1'; const THEME_KEY = 'cfp:theme';
 let S, M, storageOK = true, saveTimer = null, undoSnap = null;
 const SEED = () => (typeof SHARE !== 'undefined' && SHARE) ? blankState({}) : JSON.parse($('seed').textContent);
 function migrate(o) {
+  // base para múltiplos cartões: por enquanto só 1 cartão (o closeDay global vale para todos); itens de S.fixed/S.tx
+  // podem ganhar um cardId opcional no futuro, com fallback pro primeiro cartão (item.cardId || S.cards[0].id).
+  if (!Array.isArray(o.cards) || !o.cards.length) o.cards = [{ id: 'card1', name: 'Cartão principal', closeDay: o.closeDay || 1 }];
   if (o.vaMode == null) o.vaMode = 'lancado'; // VA/VR soma nas entradas e só sai quando o gasto é lançado
   if (typeof personalMigrate === 'function' && !o.noMig) o = personalMigrate(o);
   if (!o.noMig && o.vaSep == null) o.vaSep = true; // VA/VR separado do salário: não entra na sobra nem no saldo
@@ -905,7 +914,7 @@ function personalMigrate(o) {
 }
 
 /* Telas e ações. */
-const UI = { tab: 'home', ym: CUR_YM, ext: 'lanc', filter: 'all', year: +CUR_YM.slice(0, 4), sub: null, open: {} };
+const UI = { tab: 'home', ym: CUR_YM, ext: 'lanc', filter: 'all', year: +CUR_YM.slice(0, 4), sub: null, fym: null, open: {} };
 const PAY = { cartao: 'Cartão', vavr: 'VA/VR', conta: 'Pix/débito' };
 
 // ---------- pedaços reutilizáveis ----------
@@ -935,8 +944,8 @@ ACT.adv = el => {
   });
 };
 function faturaDesc(y) {
-  const adv = M.advSum(y), tot = M.fatura(y);
-  return `<div style="margin-top:.4rem">${kv(`Fatura ${ymLabel(y)}`, brl(tot))}${adv > 0.004 ? kv('Já adiantado', '−' + brl(adv)) + `<div class="kv tot"><span>A pagar</span><b>${brl(M.aPagar(y))}</b></div>` : ''}${cardLines(y)}</div>`;
+  const adv = M.advSum(y), tot = M.fatura(y), aPag = M.aPagar(y), plan = M.faturaPlan(y);
+  return `<div class="kv tot"><span>Fatura de ${ymLabel(y)}</span><b>${brl(tot)}</b></div>${adv > 0.004 ? kv('Já adiantado', '−' + brl(adv)) + `<div class="kv tot"><span>A pagar</span><b>${brl(aPag)}</b></div>` : ''}${plan - tot > 0.004 ? kv('Previsto (com os agendados que ainda vão entrar)', brl(plan)) : ''}<p class="mut sm" style="margin:.5rem 0 0">Fecha dia ${S.closeDay || 1}. Compras a partir desse dia entram na fatura de ${ymLabel(Core.addM(y, 1))}.</p>${cardLines(y)}`;
 }
 // ---------- descritivo das entradas e saídas (cabeçalho) ----------
 function txRowSheet(t, tagExtra = '') {
@@ -970,7 +979,6 @@ ACT.catopen = el => {
   const pay = x => x.src === 'cartao' ? `Cartão${x.n > 1 ? ` ${x.k}/${x.n}` : ''}` : x.src === 'vavr' ? 'VA/VR' : 'Conta';
   openInfo(`${cat} · ${ymLabel(ym)}`, list.length ? `<div class="kv tot"><span>${list.length} ${list.length === 1 ? 'gasto' : 'gastos'}</span><b>${brl(tot)}</b></div>` + list.map(x => `<button class="row" data-act="edtx" data-id="${x.t.id}"><span class="r-main"><b>${esc(x.t.desc || x.t.cat)}</b><span class="tags"><i class="tag">${dmy(x.t.d)}/${x.t.d.slice(0, 4)}</i><i class="tag">${pay(x)}</i></span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>`).join('') : '<p class="mut">Nenhum gasto dessa categoria neste mês.</p>');
 };
-ACT.hcset = el => { UI.open.hc = UI.open.hc === el.dataset.v ? false : el.dataset.v; render(); };
 function cardLines(ym, back) {
   const ins = M.installments(ym).slice().sort((a, b) => a.t.d < b.t.d ? 1 : a.t.d > b.t.d ? -1 : 0);
   const all = M.cardItems(ym).filter(x => Math.abs(x.v) > 0.004);
@@ -978,7 +986,7 @@ function cardLines(ym, back) {
   const done = all.filter(x => x.done).sort(byDue), pend = all.filter(x => !x.done).sort(byDue);
   const rowRec = (x, late) => `<div class="rr"><button class="row" data-act="monthedit" data-f="${x.f.id}" data-ym="${ym}"${back ? ' data-back="1"' : ''}${late ? ' style="opacity:.62"' : ''}><span class="r-main"><b>${esc(x.f.name)}</b><span class="tags"><i class="tag pay-cartao">Todo mês</i>${late ? `<i class="tag acc">soma em ${dmy(x.due)}/${x.due.slice(0, 4)}</i>` : ''}</span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${late ? '' : advChip(ym, x.f.id, x.v)}</div>`;
   const insH = ins.map(x => `<div class="rr"><button class="row" data-act="edtx" data-id="${x.t.id}"><span class="r-main"><b>${esc(x.t.desc || x.t.cat)}</b><span class="tags"><i class="tag">${x.k}/${x.n}</i><i class="tag">${esc(x.t.cat)}</i><i class="tag">compra ${dmy(x.t.d)}</i></span></span><span class="r-amt">${brl(x.v).replace('−', '')}</span></button>${advChip(ym, x.t.id, x.v)}</div>`).join('');
-  const sub = (l, v, mut) => `<p class="mut sm" style="margin:.7rem 0 .1rem;display:flex;justify-content:space-between"><span>${l}</span>${mut ? '' : `<b>${brl(v)}</b>`}</p>`;
+  const sub = (l, v, mut) => `<div class="fat-subh"><span>${l}</span>${mut ? '' : `<b>${brl(v)}</b>`}</div>`;
   return (done.length ? sub('Recorrentes já cobrados', sum(done, x => x.v)) + done.map(x => rowRec(x, false)).join('') : '') +
     (ins.length ? sub('Parcelas de compras', sum(ins, x => x.v)) + insH : '') +
     (pend.length ? sub('Agendados no cartão (somam depois do dia)', 0, true) + pend.map(x => rowRec(x, true)).join('') + `<p class="mut sm">Previsto com os agendados: <b>${brl(M.faturaPlan(ym))}</b></p>` : '') +
@@ -1027,12 +1035,11 @@ function viewHome() {
     ${fut ? kv('Aportes previstos (sobras)', brlS(d.principal - d.cx.tot)) + kv('Rendimento projetado', brlS(d.juros)) : ''}
     ${kv('Investimentos', brl(d.invT))}`;
   const pat = `<section class="card"><button class="card-h btn-h" data-act="tog" data-t="pat" aria-expanded="${UI.open.pat ? 'true' : 'false'}"><h3>Patrimônio</h3><b>${brl(d.total)} <span class="mut">${UI.open.pat ? '▴' : '▾'}</span></b></button>${UI.open.pat ? patBody : ''}</section>`;
-  const atualYm = Core.addM(ym, 1), antYm = ym; // relativas ao mês que está sendo visto: anterior = mês visto, atual = o seguinte
   const fatCard = card('Cartão', `
     ${kv(`Fatura de ${ymLabel(ym)}${M.advSum(ym) > 0.004 ? ' (a pagar)' : ''}`, brl(M.aPagar(ym)))}${M.advSum(ym) > 0.004 ? kv('Já adiantado', '−' + brl(M.advSum(ym))) : ''}
     ${kv(`Fatura de ${ymLabel(d.nxt)} até agora`, brl(d.proxFatura))}
-    <p class="mut sm">Parcelas já lançadas mais os itens recorrentes (academia, assinaturas) cujo dia de cobrança já passou.</p>
-    <div class="chips" style="margin:.5rem 0"><button class="chip sm ${UI.open.hc === 'atual' ? 'on' : ''}" data-act="hcset" data-v="atual">Fatura atual · ${ymLabel(atualYm)}</button><button class="chip sm ${UI.open.hc === 'ant' ? 'on' : ''}" data-act="hcset" data-v="ant">Fatura anterior · ${ymLabel(antYm)}</button></div>${UI.open.hc === 'atual' ? faturaDesc(atualYm) : UI.open.hc === 'ant' ? faturaDesc(antYm) : ''}`);
+    <p class="mut sm">Fecha dia ${S.closeDay || 1}. Parcelas já lançadas mais os itens recorrentes (academia, assinaturas) cujo dia de cobrança já passou.</p>
+    <button class="hl-btn" data-act="openfat" data-ym="${ym}" style="margin-top:.6rem"><span>Parcelas, recorrentes e agendados</span><span class="hl-more">Ver detalhes ›</span></button>`);
   const zerado = S.vaFrom && S.vaFrom.slice(0, 7) === ym && S.vaFrom.slice(8, 10) !== '01';
   const envs = dd('env', 'VA/VR do mês · restante', brl(vaIn - vaGasto), kv('Recebido no cartão VA/VR', brl(vaIn)) + kv(zerado ? `Gasto desde ${dmy(S.vaFrom)}` : 'Gasto no mês', brl(vaGasto)) + `<div class="hb-b ${vaP > 1 ? 'over' : ''}"><i style="width:${Math.min(100, vaP * 100)}%"></i></div><div class="kv tot"><span>Restante do mês</span><b class="${signCls(vaIn - vaGasto)}">${brl(vaIn - vaGasto)}</b></div>` + (Math.abs(vaPrev) > 0.004 ? kv('Acumulado de meses anteriores', brlS(vaPrev)) : '') + `<div class="chips" style="margin:.6rem 0"><button class="chip sm" data-act="addenv">+ Lançar</button>${((typeof SHARE !== 'undefined' && SHARE) ? [] : ['Combustível', 'Troca com o Pai']).filter(c => S.cats.includes(c)).map(c => `<button class="chip sm" data-act="addenv" data-c="${c}">${c}</button>`).join('')}</div><p class="mut sm">Você tem ${brl(vaIn)} por mês e vai lançando conforme gasta. O que sobra acumula${S.envFrom && S.envFrom > S.startYm ? ` a partir de ${ymLabel(S.envFrom)}` : ''} e entra no patrimônio.</p><button class="link" data-act="envreset">Zerar VA/VR</button>`);
   const cats = M.porCategoria(ym);
@@ -1166,12 +1173,14 @@ function viewCx() {
 function viewMore() {
   if (UI.sub === 'inv') return viewInv();
   if (UI.sub === 'fixos') return viewFixos();
+  if (UI.sub === 'fatura') return viewFatura();
   const item = (ic, t, s, act) => `<button class="row big-row" data-act="${act}"><span class="ico">${icon(ic)}</span><span class="r-main"><b>${t}</b><small class="mut">${s}</small></span>${icon('right', 18)}</button>`;
   let th = 'light'; try { th = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { }
   return `<h1 class="ph">Mais</h1>` + ((typeof SHARE !== 'undefined' && SHARE) ? accountCard() : '') +
     item('trend', 'Investimentos', 'Carteira, metas e rebalanceamento do aporte', 'openinv') +
     item('cog', 'Itens fixos e VA/VR', 'Salário, moradia, VA/VR e outros itens fixos', 'openfix') +
     item('card', 'VA/VR e salário', S.vaSep === false ? 'Somado ao salário (sem controle separado)' : hasVA() ? 'Separado do salário: o saldo do VA/VR fica à parte' : 'Sem VA/VR. Toque para configurar', 'vasetup') +
+    item('card', 'Faturas do cartão', 'Parcelas, recorrentes e agendados — fatura por fatura', 'openfat') +
     item('card', 'Fechamento da fatura', `Dia ${S.closeDay || 1}: compras a partir dele vão para a fatura do mês seguinte`, 'closeday') +
     item('tag', 'Categorias', 'Edite as opções de saída e de entrada', 'cats') +
     item('save', 'Backup e dados', (typeof SHARE !== 'undefined' && SHARE) ? 'Exportar ou importar os dados desta conta' : 'Exportar, importar ou restaurar a planilha', 'dados') +
@@ -1180,6 +1189,13 @@ function viewMore() {
     `<p class="mut sm pad">Seus dados ficam salvos na sua conta. Faça um backup de vez em quando.</p>`;
 }
 function subHead(t) { return `<div class="subh"><button class="ib" data-act="subback" aria-label="Voltar">${icon('left', 20)}</button><h1>${t}</h1></div>`; }
+
+// ---------- tela cheia da fatura do cartão ----------
+function viewFatura() {
+  const y = UI.fym || Core.addM(M.curYm, 1);
+  const nav = `<div class="mnav"><button class="ib" data-act="fym" data-d="-1" aria-label="Fatura anterior">${icon('left', 20)}</button><button class="mlabel" data-act="fymnow" aria-label="Voltar para a fatura atual">${ymLabel(y)}</button><button class="ib" data-act="fym" data-d="1" aria-label="Próxima fatura">${icon('right', 20)}</button></div>`;
+  return subHead('Fatura do cartão') + nav + `<section class="card">${faturaDesc(y)}</section>`;
+}
 
 function viewInv() {
   const iv = M.invest(), I = S.inv;
@@ -1226,6 +1242,9 @@ ACT.togd = el => { UI.open[el.dataset.t] = UI.open[el.dataset.t] === false; rend
 ACT.tog = el => { UI.open[el.dataset.t] = !UI.open[el.dataset.t]; render(); };
 ACT.openinv = () => { UI.tab = 'more'; UI.sub = 'inv'; render(); window.scrollTo && window.scrollTo(0, 0); };
 ACT.openfix = () => { UI.tab = 'more'; UI.sub = 'fixos'; render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.openfat = el => { UI.tab = 'more'; UI.sub = 'fatura'; const y = el && el.dataset && el.dataset.ym; UI.fym = y || UI.fym || Core.addM(M.curYm, 1); render(); window.scrollTo && window.scrollTo(0, 0); };
+ACT.fym = el => { UI.fym = Core.addM(UI.fym || Core.addM(M.curYm, 1), +el.dataset.d); render(); };
+ACT.fymnow = () => { UI.fym = Core.addM(M.curYm, 1); render(); };
 ACT.subback = () => { UI.sub = null; render(); };
 ACT.monthopen = el => monthDetail(el.dataset.ym);
 ACT.theme = el => { const v = el.dataset.v; try { localStorage.setItem(THEME_KEY, v); } catch (e) { } applyTheme(v); render(); };
