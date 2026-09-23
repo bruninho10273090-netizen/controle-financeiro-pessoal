@@ -2062,7 +2062,7 @@ function calcInit() {
     renda: { renda: '5000', taxa: sel, ipca: '4,5', ret: '3000' },
     reserva: { gasto: f2(avgGasto()), meses: '6', tem: f2(res ? res.v : 0), ap: f2(avgSobra()) },
     rf: { valor: '10000', meses: '24', cdi: Math.max(0, selic - .1).toFixed(2).replace('.', ','), cdb: '110', lci: '92', tes: '100' },
-    vista: { preco: '3000', desc: '5', n: '10', juros: '0', cash: '1', rend: (selic * .85).toFixed(2).replace('.', ',') },
+    vista: { preco: '3000', dmodo: 'pct', desc: '5', vv: '2850', n: '10', juros: '0', cash: '1', rend: (selic * .85).toFixed(2).replace('.', ',') },
     cartoes: { gasto: '3000', dolar: '5,40', a_nome: 'Cartão A', a_anu: '0', a_cash: '1', a_pts: '0', a_mil: '0', b_nome: 'Cartão B', b_anu: '1200', b_cash: '0', b_pts: '2,2', b_mil: '25' },
     aluguel: { imovel: '500000', entrada: '100000', taxa: '11,5', anos: '30', aluguel: '2500', reaj: '5', valor: '5', rend: (selic * .85).toFixed(2).replace('.', ',') },
     amort: { valor: '300000', taxa: '11,5', meses: '360', extra: '0', sis: 'sac' },
@@ -2129,14 +2129,14 @@ const CALCS = {
   },
   vista: {
     t: 'À vista ou parcelado', s: 'Considera o rendimento do dinheiro parado e o cashback do cartão.', ic: 'card', k: 5,
-    ins: [['preco', 'Preço cheio', 'R$'], ['desc', 'Desconto à vista', '', '%'], ['n', 'Parcelas', '', 'x'], ['juros', 'Juros do parcelado', '', '% a.m.'], ['cash', 'Cashback no crédito', '', '%'], ['rend', 'Rendimento líquido', '', '% a.a.']],
+    ins: c => [['preco', 'Preço cheio', 'R$'], { seg: 'dmodo', opts: [['pct', 'Desconto em %'], ['valor', 'Valor à vista']], l: 'Como o vendedor passou o preço à vista' }, c.dmodo === 'valor' ? ['vv', 'Preço à vista', 'R$'] : ['desc', 'Desconto à vista', '', '%'], ['n', 'Parcelas', '', 'x'], ['juros', 'Juros do parcelado', '', '% a.m.'], ['cash', 'Cashback no crédito', '', '%'], ['rend', 'Rendimento líquido', '', '% a.a.']],
     res(c) {
       const preco = cnum(c.preco), n = Math.max(1, Math.round(cnum(c.n))), jm = cnum(c.juros) / 100, i = cm(cnum(c.rend));
       const parc = pmtPrice(preco, jm, n), total = parc * n, cash = total * cnum(c.cash) / 100;
-      const pv = i ? parc * (1 - Math.pow(1 + i, -n)) / i : total, custoParc = pv - cash, custoVista = preco * (1 - cnum(c.desc) / 100);
+      const pv = i ? parc * (1 - Math.pow(1 + i, -n)) / i : total, custoParc = pv - cash, custoVista = c.dmodo === 'valor' ? cnum(c.vv) : preco * (1 - cnum(c.desc) / 100), descV = preco ? 1 - custoVista / preco : 0;
       const melhor = custoVista <= custoParc ? 'À vista' : 'Parcelado', eco = Math.abs(custoParc - custoVista);
       const descMin = Math.max(0, 1 - custoParc / preco);
-      return cres('Vale mais a pena', `${melhor} · economiza ${brl(eco)}`) + cgrid([['À vista', brl(custoVista)], [`Parcelado ${n}× de ${brl(parc)}`, brl(total)], ['Custo real do parcelado', brl(custoParc), 'acc'], ['Cashback', brl(cash), 'pos'], ['Desconto mínimo p/ pagar à vista', pct(descMin, 1)], ['Rendimento enquanto paga', brl(total - pv)]]) + `<p class="mut sm" style="margin-top:8px">Custo real do parcelado = quanto você precisaria deixar investido hoje pra pagar todas as parcelas, menos o cashback.</p>`;
+      return cres('Vale mais a pena', `${melhor} · economiza ${brl(eco)}`) + cgrid([[c.dmodo === 'valor' ? `À vista · ${pct(descV, 1)} de desconto` : 'À vista', brl(custoVista)], [`Parcelado ${n}× de ${brl(parc)}`, brl(total)], ['Custo real do parcelado', brl(custoParc), 'acc'], ['Cashback', brl(cash), 'pos'], ['Desconto mínimo p/ pagar à vista', pct(descMin, 1)], ['Rendimento enquanto paga', brl(total - pv)]]) + `<p class="mut sm" style="margin-top:8px">Custo real do parcelado = quanto você precisaria deixar investido hoje pra pagar todas as parcelas, menos o cashback.</p>`;
     }
   },
   cartoes: {
@@ -2215,7 +2215,7 @@ const CALCS = {
 };
 function calcBody(g) {
   const c = CALC[g], d = CALCS[g];
-  const ins = d.ins.map(x => {
+  const ins = (typeof d.ins === 'function' ? d.ins(c) : d.ins).map(x => {
     if (x.h) return `<div class="chead">${x.h}</div>`;
     if (x.seg) return `<div class="cin cfull"><span>${x.l}</span><div class="seg">${x.opts.map(([v, l]) => `<button type="button" class="${String(c[x.seg]) === v ? 'on' : ''}" data-act="calcset" data-g="${g}" data-f="${x.seg}" data-v="${v}">${l}</button>`).join('')}</div></div>`;
     const [k, l, pre, suf, txt] = x;
